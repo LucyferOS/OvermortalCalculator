@@ -1,4 +1,6 @@
-Version 3.0.0
+
+
+Version 0.3.0 (BETA)
 
   * Released first web version of old sheets
   * Implemented backup and restore functionality using json.
@@ -6,10 +8,12 @@ Version 3.0.0
     * This function may be used to save multiple taoists for ease of swapping between character views. 
     * you may optionally edit this json directly using your preferred text editor instead of using the UI.
 
-	Limitations / Known issues			
+	Limitations / Known issues
+	  NOTE - THIS IS NOT YET RELEASED: VIRYA, FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY			
       This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 			Debug Data is not yet santitized and ready for player use. For example, cosmoapsis is not currently displaying properly.
 			Percentages exceeding 100% are not yet handled for major breakthroughs
+      NOTE - THIS IS NOT YET RELEASED: VIRYA, FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY
 
 Acknowledgments
 
