@@ -1,4 +1,4 @@
-        // ==================== GAME DATA (Static values from 'My hidden Flat sheet') ====================
+        // ==================== GAME DATA  ====================
         class BaseXP {
             constructor(respira, red, gold, purple, blue, elixer, benediction) {
                 this.respira = respira;
@@ -112,13 +112,13 @@
             },
 
             viryaRequirements: {
-                'Eminence': 3,
+                'Eminence': 4,
                 'Perfect': 2,
                 'Half-Step': 0,
             }
         };
 
-        // ==================== CALCULATION ENGINE ====================
+        // ================ CALCULATION ENGINE ================
         class OvermortalCalculator {
             constructor() {
 				this.storageKey = 'overmortal_calculator_data';
@@ -128,7 +128,7 @@
 				this.loadFromLocalStorage();
                 this.updateFromInputs();
             }
-
+			
             initializePlayerData() {
                 this.playerData = {
                     mainPathRealm: 'Incarnation Early',
@@ -160,7 +160,6 @@
                     respiraExp: 0
                 };
             }
-
 
 			saveToLocalStorage() {
 				try {
@@ -313,115 +312,158 @@
 				}
 			}
 		
-            updateFromInputs() {
-                let mainPathRealm = document.getElementById('main-path-realm').value;
-                let mainPathRealmMajor = mainPathRealm.substring(0, mainPathRealm.indexOf(' '));
-                let mainPathRealmMinor = mainPathRealm.substring(mainPathRealm.indexOf(' ') + 1);
-                let mainPathProgress = parseFloat(document.getElementById('main-path-progress').value) || 0;
-                let secondaryPathRealm = document.getElementById('secondary-path-realm').value;
-                let secondaryPathRealmMajor = secondaryPathRealm.substring(0, secondaryPathRealm.indexOf(' '));
-                let secondaryPathRealmMinor = secondaryPathRealm.substring(secondaryPathRealm.indexOf(' ') + 1);
-                let secondaryPathProgress = parseFloat(document.getElementById('secondary-path-progress').value) || 0;
-                let mainPathExp = GameData.realms[mainPathRealm].xp * (mainPathProgress / 100);
-                let secondaryPathExp = GameData.realms[secondaryPathRealm].xp * (secondaryPathProgress / 100);
-
-                let pillBonusCurio = parseFloat(document.getElementById('pill-bonus-curio').value) || 0;
-                let pillBonusImmortalFriends = parseFloat(document.getElementById('pill-bonus-immortal-friends').value) || 0;
-                let pillBonusTechnique = parseFloat(document.getElementById('pill-bonus-technique').value) || 0;
-                let pillBonusNirvanaChariotMansion = parseFloat(document.getElementById('pill-nirvana-chariot-mansion').value) || 0;
-                let pillBonusNirvanaGhostMansion = parseFloat(document.getElementById('pill-nirvana-ghost-mansion').value) || 0;
-                let pillBonusNirvanaTurtleBeakMansion = parseFloat(document.getElementById('pill-nirvana-turtle-beak-mansion').value) || 0;
-                let pillBonus = (pillBonusCurio + pillBonusImmortalFriends + pillBonusTechnique) / 100;
-
-                let abodeBonusCurio = parseFloat(document.getElementById('abode-aura-curio').value) || 0;
-                let abodeBonusTechnique = parseFloat(document.getElementById('abode-aura-technique').value) || 0;
-                let abodeBonusSectLevel = parseFloat(document.getElementById('abode-sect-level').value) || 0;
-                let abodeBonusSectBarrier = parseFloat(document.getElementById('abode-sect-barrier').value) || 0;
-                let abodeBonusCelestialSpring = parseFloat(document.getElementById('abode-celestial-spring').value) || 0;
-                let abodeBonusEnergyArray = parseFloat(document.getElementById('abode-energy-array').value) || 0;
-                let abodeBonusSwordArray = parseFloat(document.getElementById('abode-sword-array').value) || 0;
-                let abodeBonusHeavenGate = parseFloat(document.getElementById('abode-heaven-gate').value) || 0;
-                let abodeBonusWholenessCitta = parseFloat(document.getElementById('abode-wholeness-citta').value) || 0;
-                let abodeBonusPerfectionWorldRift = parseFloat(document.getElementById('abode-perfection-world-rift').value) || 0;
-                let abodeBonusNirvanaPathofAscension = parseFloat(document.getElementById('abode-nirvana-path-of-ascension').value) || 0;
-                let abodeBonusNirvanaHornMansion = parseFloat(document.getElementById('abode-nirvana-horn-mansion').value) || 0;
-                let abodeBonusNirvanaNeckMansion = parseFloat(document.getElementById('abode-nirvana-neck-mansion').value) || 0;
-
-                let respiraAttemptsImmortalFriend = parseInt(document.getElementById('respira-attempt-immortal-friends').value) || 0;
-                let respiraAttemptsTechnique = parseInt(document.getElementById('respira-attempt-technique').value) || 0;
-                let respiraAttemptsCurio = parseInt(document.getElementById('respira-attempt-curio').value) || 0;
-                let respiraAttemptsTotal = (10 + respiraAttemptsImmortalFriend + respiraAttemptsCurio + respiraAttemptsTechnique);
-
-                let respiraBonusImmortalFriend = parseInt(document.getElementById('respira-bonus-immortal-friends').value) || 0;
-                let respiraBonusTechnique = parseInt(document.getElementById('respira-bonus-technique').value) || 0;
-                let respiraBonusCurio = parseInt(document.getElementById('respira-bonus-curio').value) || 0;
-                let respiraBonusTotal = 1 + ((respiraBonusCurio + respiraBonusImmortalFriend + respiraBonusTechnique) / 100);
-
-                let abodeAuraXPTotal = GameData.abodeBase * GameData.realms[mainPathRealm].absorption;
-
-                this.playerData = {
-                    mainPathRealm: mainPathRealm,
-                    mainPathRealmMajor: mainPathRealmMajor,
-                    mainPathRealmMinor: mainPathRealmMinor,
-                    mainPathProgress: parseFloat(document.getElementById('main-path-progress').value),
-                    mainPathExp: mainPathExp,
-                    secondaryPathRealm: secondaryPathRealm,
-                    secondaryPathRealmMajor: secondaryPathRealmMajor,
-                    secondaryPathRealmMinor: secondaryPathRealmMinor,
-                    secondaryPathProgress: parseFloat(document.getElementById('secondary-path-progress').value),
-                    secondaryPathExp: secondaryPathExp,
-                    pathFocus: document.getElementById('path-focus').value,
-                    timegateDays: parseFloat(document.getElementById('timegate-days').value),
-
-                    abodeBonusCurio: abodeBonusCurio,
-                    abodeBonusTechnique: abodeBonusTechnique,
-                    abodeBonusSectLevel: abodeBonusSectLevel,
-                    abodeBonusSectBarrier: abodeBonusSectBarrier,
-                    abodeBonusCelestialSpring: abodeBonusCelestialSpring,
-                    abodeBonusEnergyArray: abodeBonusEnergyArray,
-                    abodeBonusSwordArray: abodeBonusSwordArray,
-                    abodeBonusHeavenGate: abodeBonusHeavenGate,
-                    abodeBonusWholenessCitta: abodeBonusWholenessCitta,
-                    abodeBonusPerfectionWorldRift: abodeBonusPerfectionWorldRift,
-                    abodeBonusNirvanaPathofAscension: abodeBonusNirvanaPathofAscension,
-                    abodeBonusNirvanaHornMansion: abodeBonusNirvanaHornMansion,
-                    abodeBonusNirvanaNeckMansion: abodeBonusNirvanaNeckMansion,
-
-                    respiraAttemptsImmortalFriend: respiraAttemptsImmortalFriend,
-                    respiraAttemptsTechnique: respiraAttemptsTechnique,
-                    respiraAttemptsCurio: respiraAttemptsCurio,
-                    respiraAttemptsTotal: respiraAttemptsTotal,
-
-                    respiraBonusImmortalFriend: respiraBonusImmortalFriend,
-                    respiraBonusTechnique: respiraBonusTechnique,
-                    respiraBonusCurio: respiraBonusCurio,
-                    respiraBonusTotal: respiraBonusTotal,
-
-                    pillBonusNirvanaChariotMansion: pillBonusNirvanaChariotMansion,
-                    pillBonusNirvanaGhostMansion: pillBonusNirvanaGhostMansion,
-                    pillBonusNirvanaTurtleBeakMansion: pillBonusNirvanaTurtleBeakMansion,
-
-                    vaseStars: document.getElementById('vase-stars').value,
-                    mirrorStars: document.getElementById('mirror-stars').value,
-                    tokenStars: document.getElementById('token-stars').value,
-
-                    goldPill: parseFloat(document.getElementById('gold-pill').value),
-                    purplePill: parseFloat(document.getElementById('purple-pill').value),
-                    bluePill: parseFloat(document.getElementById('blue-pill').value),
-                    elixir: parseFloat(document.getElementById('elixir').value),
-
-                    fruitsCount: parseInt(document.getElementById('fruits-count').value),
-                    weeklyFruits: parseInt(document.getElementById('weekly-fruits').value),
-                    fruitsUsage: document.getElementById('fruits-usage').value,
-
-                    cosmoapsis: abodeAuraXPTotal,
-                    gemQuality: document.getElementById('gem-quality').value,
-
-                    respiraAttemptsTotal: respiraAttemptsTotal,
-                    respiraBonusTotal: respiraBonusTotal,
-                    pillBonus: pillBonus + 1
-                };
-            }
+			updateFromInputs() {
+				// Helper function for consistent value retrieval
+				const getNumberValue = (elementId, defaultValue = 0) => {
+					const element = document.getElementById(elementId);
+					const value = parseFloat(element?.value);
+					return isNaN(value) ? defaultValue : value;
+				};
+				
+				const getIntegerValue = (elementId, defaultValue = 0) => {
+					const element = document.getElementById(elementId);
+					const value = parseInt(element?.value);
+					return isNaN(value) ? defaultValue : value;
+				};
+				
+				const getStringValue = (elementId) => {
+					return document.getElementById(elementId)?.value || '';
+				};
+				
+				const splitRealmString = (realmString) => {
+					const spaceIndex = realmString.indexOf(' ');
+					if (spaceIndex === -1) return { major: realmString, minor: '' };
+					
+					return {
+						major: realmString.substring(0, spaceIndex),
+						minor: realmString.substring(spaceIndex + 1)
+					};
+				};
+				
+				// Main Path
+				const mainPathRealm = getStringValue('main-path-realm');
+				const mainPathRealmParts = splitRealmString(mainPathRealm);
+				const mainPathProgress = getNumberValue('main-path-progress');
+				const mainPathExp = GameData.realms[mainPathRealm]?.xp * (mainPathProgress / 100) || 0;
+				
+				// Secondary Path
+				const secondaryPathRealm = getStringValue('secondary-path-realm');
+				const secondaryPathRealmParts = splitRealmString(secondaryPathRealm);
+				const secondaryPathProgress = getNumberValue('secondary-path-progress');
+				const secondaryPathExp = GameData.realms[secondaryPathRealm]?.xp * (secondaryPathProgress / 100) || 0;
+				
+				// Pill Bonuses
+				const pillBonusCurio = getNumberValue('pill-bonus-curio');
+				const pillBonusImmortalFriends = getNumberValue('pill-bonus-immortal-friends');
+				const pillBonusTechnique = getNumberValue('pill-bonus-technique');
+				const pillBonus = (pillBonusCurio + pillBonusImmortalFriends + pillBonusTechnique) / 100;
+				
+				const pillBonusNirvanaChariotMansion = getNumberValue('pill-nirvana-chariot-mansion');
+				const pillBonusNirvanaGhostMansion = getNumberValue('pill-nirvana-ghost-mansion');
+				const pillBonusNirvanaTurtleBeakMansion = getNumberValue('pill-nirvana-turtle-beak-mansion');
+				
+				// Abode Bonuses
+				const abodeBonusCurio = getNumberValue('abode-aura-curio');
+				const abodeBonusTechnique = getNumberValue('abode-aura-technique');
+				const abodeBonusSectLevel = getNumberValue('abode-sect-level');
+				const abodeBonusSectBarrier = getNumberValue('abode-sect-barrier');
+				const abodeBonusCelestialSpring = getNumberValue('abode-celestial-spring');
+				const abodeBonusEnergyArray = getNumberValue('abode-energy-array');
+				const abodeBonusSwordArray = getNumberValue('abode-sword-array');
+				const abodeBonusHeavenGate = getNumberValue('abode-heaven-gate');
+				const abodeBonusWholenessCitta = getNumberValue('abode-wholeness-citta');
+				const abodeBonusPerfectionWorldRift = getNumberValue('abode-perfection-world-rift');
+				const abodeBonusNirvanaPathofAscension = getNumberValue('abode-nirvana-path-of-ascension');
+				const abodeBonusNirvanaHornMansion = getNumberValue('abode-nirvana-horn-mansion');
+				const abodeBonusNirvanaNeckMansion = getNumberValue('abode-nirvana-neck-mansion');
+				
+				// Respira Attempts
+				const respiraAttemptsImmortalFriend = getIntegerValue('respira-attempt-immortal-friends');
+				const respiraAttemptsTechnique = getIntegerValue('respira-attempt-technique');
+				const respiraAttemptsCurio = getIntegerValue('respira-attempt-curio');
+				const respiraAttemptsTotal = 10 + respiraAttemptsImmortalFriend + respiraAttemptsCurio + respiraAttemptsTechnique;
+				
+				// Respira Bonuses
+				const respiraBonusImmortalFriend = getNumberValue('respira-bonus-immortal-friends');
+				const respiraBonusTechnique = getNumberValue('respira-bonus-technique');
+				const respiraBonusCurio = getNumberValue('respira-bonus-curio');
+				const respiraBonusTotal = 1 + ((respiraBonusCurio + respiraBonusImmortalFriend + respiraBonusTechnique) / 100);
+				
+				const abodeAuraXPTotal = GameData.abodeBase * (GameData.realms[mainPathRealm]?.absorption || 0);
+				
+				this.playerData = {
+					// Main Path
+					mainPathRealm,
+					mainPathRealmMajor: mainPathRealmParts.major,
+					mainPathRealmMinor: mainPathRealmParts.minor,
+					mainPathProgress,
+					mainPathExp,
+					
+					// Secondary Path
+					secondaryPathRealm,
+					secondaryPathRealmMajor: secondaryPathRealmParts.major,
+					secondaryPathRealmMinor: secondaryPathRealmParts.minor,
+					secondaryPathProgress,
+					secondaryPathExp,
+					
+					// Path Configuration
+					pathFocus: getStringValue('path-focus'),
+					timegateDays: getNumberValue('timegate-days'),
+					
+					// Abode Bonuses
+					abodeBonusCurio,
+					abodeBonusTechnique,
+					abodeBonusSectLevel,
+					abodeBonusSectBarrier,
+					abodeBonusCelestialSpring,
+					abodeBonusEnergyArray,
+					abodeBonusSwordArray,
+					abodeBonusHeavenGate,
+					abodeBonusWholenessCitta,
+					abodeBonusPerfectionWorldRift,
+					abodeBonusNirvanaPathofAscension,
+					abodeBonusNirvanaHornMansion,
+					abodeBonusNirvanaNeckMansion,
+					
+					// Respira Attempts
+					respiraAttemptsImmortalFriend,
+					respiraAttemptsTechnique,
+					respiraAttemptsCurio,
+					respiraAttemptsTotal,
+					
+					// Respira Bonuses
+					respiraBonusImmortalFriend,
+					respiraBonusTechnique,
+					respiraBonusCurio,
+					respiraBonusTotal,
+					
+					// Pill Bonuses
+					pillBonusNirvanaChariotMansion,
+					pillBonusNirvanaGhostMansion,
+					pillBonusNirvanaTurtleBeakMansion,
+					
+					// Stars
+					vaseStars: getStringValue('vase-stars'),
+					mirrorStars: getStringValue('mirror-stars'),
+					tokenStars: getStringValue('token-stars'),
+					
+					// Pills and Elixirs
+					goldPill: getNumberValue('gold-pill'),
+					purplePill: getNumberValue('purple-pill'),
+					bluePill: getNumberValue('blue-pill'),
+					elixir: getNumberValue('elixir'),
+					
+					// Fruits
+					fruitsCount: getIntegerValue('fruits-count'),
+					weeklyFruits: getIntegerValue('weekly-fruits'),
+					fruitsUsage: getStringValue('fruits-usage'),
+					
+					// Miscellaneous
+					cosmoapsis: abodeAuraXPTotal,
+					gemQuality: getStringValue('gem-quality'),
+					pillBonus: pillBonus + 1
+				};
+			}
 			
             calculateAll() {
                 this.updateFromInputs();
@@ -430,54 +472,103 @@
                 return this.calculationResults;
             }
 
-            calculateDailyXP() {
-                const p = this.playerData;
-                let abodeAuraXPTotalFinal = (p.cosmoapsis * (1 + ((p.abodeBonusCurio + p.abodeBonusTechnique + p.abodeBonusSectLevel + p.abodeBonusSectBarrier + p.abodeBonusCelestialSpring + p.abodeBonusEnergyArray + p.abodeBonusSwordArray +
-                    p.abodeBonusHeavenGate + p.abodeBonusWholenessCitta + p.abodeBonusPerfectionWorldRift + p.abodeBonusNirvanaPathofAscension + p.abodeBonusNirvanaHornMansion + p.abodeBonusNirvanaNeckMansion) / 100)));
-                abodeAuraXPTotalFinal = abodeAuraXPTotalFinal * 10800;
-
-                let gemBonusXPdaily = abodeAuraXPTotalFinal * GameData.gemQuality[p.gemQuality];
-
-                let vaseRedPill;
-                if (p.vaseStars == 'No artifact') {
-                    vaseRedPill = 0;
-                } else {
-                    vaseRedPill = ((GameData.artifactEnergyReplenishment[p.vaseStars] * GameData.taoistYearsPerDay) + 100) / 100;
-                }
-
-                let mirrorRedPill;
-                if (p.mirrorStars == 'No artifact') {
-                    mirrorRedPill = 0;
-                } else {
-                    mirrorRedPill = ((GameData.artifactEnergyReplenishment[p.mirrorStars] * GameData.taoistYearsPerDay) + 100) / (200 * (1 - GameData.mirrorTokenBonus[p.mirrorStars]));
-                }
-
-                let tokenRedPill;
-                if (p.tokenStars == 'No artifact') {
-                    tokenRedPill = 0;
-                } else {
-                    tokenRedPill = ((GameData.artifactEnergyReplenishment[p.tokenStars] * GameData.taoistYearsPerDay) + 100) / (200 * (1 - GameData.mirrorTokenBonus[p.tokenStars])) * .1225;
-                }
-
-                let numRedPills = vaseRedPill + mirrorRedPill + tokenRedPill;
-
-                const goldPillXP = XPData[p.mainPathRealmMajor + "XP"].gold * (1 + (p.pillBonusNirvanaChariotMansion / 100)) * p.goldPill;
-                const purplePillXP = XPData[p.mainPathRealmMajor + "XP"].purple * (1 + (p.pillBonusNirvanaTurtleBeakMansion / 100)) * p.purplePill;
-                const bluePillXP = XPData[p.mainPathRealmMajor + "XP"].blue * (1 + (p.pillBonusNirvanaGhostMansion / 100)) * p.bluePill;
-                const elixirXP = XPData[p.mainPathRealmMajor + "XP"].elixer * p.elixir;
-                const redPillXP = XPData[p.mainPathRealmMajor + "XP"].red * (1 + GameData.vaseBonus[p.vaseStars]) * numRedPills;
-
-                console.log(redPillXP);
-
-                let pillXPTotal = (goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP) * p.pillBonus * 1000;
-                this.calculationResults.pillXPTotal = pillXPTotal;
-
-                let respiraAttemptsGush = (p.respiraAttemptsTotal * .55) + (p.respiraAttemptsTotal * .30 * 2) + (p.respiraAttemptsTotal * .1475 * 5) + (p.respiraAttemptsTotal * .0025 * 10);
-                let respiraExp = respiraAttemptsGush * XPData[p.mainPathRealmMajor + "XP"].respira * 1000 * p.respiraBonusTotal;
-
-                const totalDailyXP = abodeAuraXPTotalFinal + gemBonusXPdaily + pillXPTotal + respiraExp;
-                return totalDailyXP;
-            }
+			calculateDailyXP() {
+				const p = this.playerData;
+				
+				// Helper functions for readability
+				const calculateAbodeAuraXP = () => {
+					const abodeBonuses = [
+						p.abodeBonusCurio, p.abodeBonusTechnique, p.abodeBonusSectLevel,
+						p.abodeBonusSectBarrier, p.abodeBonusCelestialSpring, p.abodeBonusEnergyArray,
+						p.abodeBonusSwordArray, p.abodeBonusHeavenGate, p.abodeBonusWholenessCitta,
+						p.abodeBonusPerfectionWorldRift, p.abodeBonusNirvanaPathofAscension,
+						p.abodeBonusNirvanaHornMansion, p.abodeBonusNirvanaNeckMansion
+					];
+					
+					const totalAbodeBonus = abodeBonuses.reduce((sum, bonus) => sum + bonus, 0);
+					const baseAuraXP = p.cosmoapsis * (1 + (totalAbodeBonus / 100));
+					return baseAuraXP * 10800; // Convert to daily value
+				};
+				
+				const calculateVaseRedPill = () => {
+					if (p.vaseStars == 'No artifact') return 0;
+					const energy = GameData.artifactEnergyReplenishment[p.vaseStars] * GameData.taoistYearsPerDay;
+					return (energy + 100) / 100;
+				};
+				
+				const calculateMirrorRedPill = () => {
+					if (p.mirrorStars == 'No artifact') return 0;
+					const energy = GameData.artifactEnergyReplenishment[p.mirrorStars] * GameData.taoistYearsPerDay;
+					const mirrorBonus = 1 - GameData.mirrorTokenBonus[p.mirrorStars];
+					return (energy + 100) / (200 * mirrorBonus);
+				};
+				
+				const calculateTokenRedPill = () => {
+					if (p.tokenStars == 'No artifact') return 0;
+					const energy = GameData.artifactEnergyReplenishment[p.tokenStars] * GameData.taoistYearsPerDay;
+					const tokenBonus = 1 - GameData.mirrorTokenBonus[p.tokenStars];
+					return ((energy + 100) / (200 * tokenBonus)) * 0.1225;
+				};
+				
+				const calculatePillXP = () => {
+					const realmXP = XPData[p.mainPathRealmMajor + "XP"];
+					
+					const goldPillXP = realmXP.gold 
+						* (1 + (p.pillBonusNirvanaChariotMansion / 100)) 
+						* p.goldPill;
+						
+					const purplePillXP = realmXP.purple 
+						* (1 + (p.pillBonusNirvanaTurtleBeakMansion / 100)) 
+						* p.purplePill;
+						
+					const bluePillXP = realmXP.blue 
+						* (1 + (p.pillBonusNirvanaGhostMansion / 100)) 
+						* p.bluePill;
+						
+					const elixirXP = realmXP.elixer * p.elixir;
+					
+					// Calculate red pills
+					const vaseRedPill = calculateVaseRedPill();
+					const mirrorRedPill = calculateMirrorRedPill();
+					const tokenRedPill = calculateTokenRedPill();
+					const numRedPills = vaseRedPill + mirrorRedPill + tokenRedPill;
+					
+					const redPillXP = realmXP.red 
+						* (1 + GameData.vaseBonus[p.vaseStars]) 
+						* numRedPills;
+					
+					// Total all pill XP
+					const totalPillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP;
+					return totalPillXP * p.pillBonus * 1000;
+				};
+				
+				const calculateRespiraXP = () => {
+					const probabilities = [0.55, 0.30, 0.1475, 0.0025];
+					const multipliers = [1, 2, 5, 10];
+					
+					let expectedGushValue = 0;
+					for (let i = 0; i < probabilities.length; i++) {
+						expectedGushValue += probabilities[i] * multipliers[i];
+					}
+					
+					const respiraAttemptsGush = p.respiraAttemptsTotal * expectedGushValue;
+					const realmRespiraXP = XPData[p.mainPathRealmMajor + "XP"].respira;
+					
+					return respiraAttemptsGush * realmRespiraXP * 1000 * p.respiraBonusTotal;
+				};
+				
+				// Main calculations
+				const abodeAuraXPTotalFinal = calculateAbodeAuraXP();
+				const gemBonusXPdaily = abodeAuraXPTotalFinal * GameData.gemQuality[p.gemQuality];
+				const pillXPTotal = calculatePillXP();
+				const respiraExp = calculateRespiraXP();
+				
+				// Store and return results
+				this.calculationResults.pillXPTotal = pillXPTotal;
+				
+				const totalDailyXP = abodeAuraXPTotalFinal + gemBonusXPdaily + pillXPTotal + respiraExp;
+				return totalDailyXP;
+			}
 
 			calculateRealmProgression() {
 				const p = this.playerData;
@@ -671,249 +762,342 @@
             }
         }
 		
-		// ==================== MAIN INITIALIZATION ====================
-let calculator; // Declare calculator globally
+		// ============= APPLICATION INITIALIZER ==============
+		class OvermortalApp {
+			constructor() {
+				this.calculator = null;
+				this.saveTimeout = null;
+				this.init();
+			}
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Create calculator instance
-    calculator = new OvermortalCalculator();
-    
-    // Add event listeners
-    document.getElementById('calculate-btn').addEventListener('click', calculateAndUpdateUI);
-    document.getElementById('reset-btn').addEventListener('click', resetToDefaults);
-    
-    // Load from localStorage and calculate
-    if (calculator.loadFromLocalStorage()) {
-        calculator.updateFromInputs();
-    }
-    calculateAndUpdateUI();
-    
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function() {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            
-            this.classList.add('active');
-            const sectionId = this.getAttribute('data-section');
-            document.getElementById(sectionId).classList.add('active');
-        });
-    });
-    
-    // Add local storage auto-save listeners
-    calculator.saveToLocalStorage(); // Initial save
-    
-    document.addEventListener('input', function(event) {
-        if (event.target.matches('input, select, textarea')) {
-            clearTimeout(window.saveTimeout);
-            window.saveTimeout = setTimeout(() => {
-                calculator.saveToLocalStorage();
-            }, 500);
-        }
-    });
-    
-    document.addEventListener('change', function(event) {
-        if (event.target.matches('select')) {
-            clearTimeout(window.saveTimeout);
-            calculator.saveToLocalStorage();
-        }
-    });
-});
-// ==================== LOCAL STORAGE AUTO-SAVE ====================
-// Auto-save when any input changes
-document.addEventListener('input', function(event) {
-    if (event.target.matches('input, select, textarea')) {
-        // Debounce the save to avoid too many writes
-        clearTimeout(window.saveTimeout);
-        window.saveTimeout = setTimeout(() => {
-            calculator.saveToLocalStorage();
-        }, 500);
-    }
-});
+			init() {
+				document.addEventListener('DOMContentLoaded', () => this.onDOMContentLoaded());
+			}
 
-// Also save on select change events
-document.addEventListener('change', function(event) {
-    if (event.target.matches('select')) {
-        clearTimeout(window.saveTimeout);
-        calculator.saveToLocalStorage();
-    }
-});
+			// ============== DOM READY HANDLER ===============
+			onDOMContentLoaded() {
+				this.setupCalculator();
+				this.setupEventListeners();
+				this.setupNavigation();
+				this.loadSavedData();
+				this.performInitialCalculation();
+			}
 
-// Save on calculate button click
-document.getElementById('calculate-btn').addEventListener('click', () => {
-    calculator.saveToLocalStorage();
-});
+			setupCalculator() {
+				this.calculator = new OvermortalCalculator();
+			}
 
-// Clear saved data button
-document.getElementById('clear-storage-btn').addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear all saved data? This cannot be undone.')) {
-        calculator.clearLocalStorage();
-        resetToDefaults();
-    }
-});
+			setupEventListeners() {
+				// Calculation and reset
+				document.getElementById('calculate-btn').addEventListener('click', () => 
+					this.calculateAndUpdateUI()
+				);
+				document.getElementById('reset-btn').addEventListener('click', () => 
+					this.resetToDefaults()
+				);
 
-// Export data button
-document.getElementById('export-data-btn').addEventListener('click', () => {
-    calculator.exportData();
-});
+				// Local storage management
+				this.setupLocalStorageListeners();
+				
+				// Data import/export
+				document.getElementById('export-data-btn').addEventListener('click', () => 
+					this.calculator.exportData()
+				);
+				document.getElementById('import-data-btn').addEventListener('click', () => 
+					document.getElementById('import-file-input').click()
+				);
+				document.getElementById('import-file-input').addEventListener('change', (event) => 
+					this.handleFileImport(event)
+				);
+				document.getElementById('clear-storage-btn').addEventListener('click', () => 
+					this.clearLocalStorage()
+				);
+			}
 
-// Import data button
-document.getElementById('import-data-btn').addEventListener('click', () => {
-    document.getElementById('import-file-input').click();
-});
+			setupLocalStorageListeners() {
+				// Debounced save on input
+				const debouncedSave = this.debounce(() => this.calculator.saveToLocalStorage(), 500);
+				
+				document.addEventListener('input', (event) => {
+					if (event.target.matches('input, select, textarea')) {
+						debouncedSave();
+					}
+				});
 
-// Handle file import
-document.getElementById('import-file-input').addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            calculator.importData(e.target.result);
-        };
-        reader.readAsText(file);
-    }
-    event.target.value = ''; // Reset file input
-});
+				// Immediate save on select change
+				document.addEventListener('change', (event) => {
+					if (event.target.matches('select')) {
+						this.calculator.saveToLocalStorage();
+					}
+				});
 
-        function calculateAndUpdateUI() {
-            const calculateBtn = document.getElementById('calculate-btn');
-            const originalText = calculateBtn.innerHTML;
-            calculateBtn.innerHTML = '</i> Calculating...';
-            calculateBtn.disabled = true;
+				// Save on calculate button click
+				document.getElementById('calculate-btn').addEventListener('click', () => {
+					this.calculator.saveToLocalStorage();
+				});
+			}
 
-            setTimeout(() => {
-                try {
-                    const results = calculator.calculateAll();
-                    updateDashboard(results);
-                    updateDebugInfo();
-                    alert('Calculation complete! Results updated.');
-                } catch (error) {
-                    console.error('Calculation error:', error);
-                    alert('Error during calculation: ' + error.message);
-                } finally {
-                    calculateBtn.innerHTML = originalText;
-                    calculateBtn.disabled = false;
-                }
-            }, 500);
-        }
+			setupNavigation() {
+				document.querySelectorAll('.nav-item').forEach(item => {
+					item.addEventListener('click', () => this.switchSection(item));
+				});
+			}
 
-        function updateDashboard(results) {
-            const p = calculator.playerData;
-            const realmResults = results.realmProgression;
+			switchSection(navItem) {
+				// Remove active class from all nav items and sections
+				document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+				document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+				
+				// Activate clicked nav item and corresponding section
+				navItem.classList.add('active');
+				const sectionId = navItem.getAttribute('data-section');
+				document.getElementById(sectionId).classList.add('active');
+			}
 
-            console.log("=== DEBUG updateDashboard ===");
-            console.log("Results received:", results);
-            console.log("Realm results:", realmResults);
+			loadSavedData() {
+				if (this.calculator.loadFromLocalStorage()) {
+					this.calculator.updateFromInputs();
+					this.calculator.saveToLocalStorage(); // Initial save
+				}
+			}
 
-            if (!realmResults) {
-                console.log("No realm results found!");
-                return;
-            }
+			performInitialCalculation() {
+				this.calculateAndUpdateUI();
+			}
 
-            document.getElementById('main-path-realm-display').textContent = p.mainPathRealm;
-            document.getElementById('main-path-progress-display').textContent = p.mainPathProgress + '%';
-            document.getElementById('secondary-path-realm-display').textContent = p.secondaryPathRealm;
-            document.getElementById('secondary-path-progress-display').textContent = p.secondaryPathProgress + '%';
-            document.getElementById('path-focus-display').textContent = p.pathFocus;
+			// ================ CORE FUNCTIONS ================
+			calculateAndUpdateUI() {
+				const calculateBtn = document.getElementById('calculate-btn');
+				const originalText = calculateBtn.innerHTML;
+				
+				// Show loading state
+				calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> Calculating...';
+				calculateBtn.disabled = true;
 
-            if (realmResults.mainPath) {
-                const mp = realmResults.mainPath;
-                console.log("Main path results:", mp);
+				// Delay calculation to show loading state
+				setTimeout(() => {
+					try {
+						const results = this.calculator.calculateAll();
+						this.updateDashboard(results);
+						this.updateDebugInfo();
+						this.showSuccess('Calculation complete! Results updated.');
+					} catch (error) {
+						console.error('Calculation error:', error);
+						this.showError('Error during calculation: ' + error.message);
+					} finally {
+						// Restore button state
+						calculateBtn.innerHTML = originalText;
+						calculateBtn.disabled = false;
+					}
+				}, 100);
+			}
 
-                const minorTime = calculator.formatTimeDays(mp.timeToNextMinor);
-                const majorTime = calculator.formatTimeDays(mp.timeToNextMajor);
+			updateDashboard(results) {
+				const p = this.calculator.playerData;
+				const realmResults = results.realmProgression;
 
-                console.log("Formatted minor time:", minorTime);
-                console.log("Formatted major time:", majorTime);
+				if (!realmResults) {
+					console.warn("No realm results found!");
+					return;
+				}
 
-                document.getElementById('main-minor-time-display').textContent = minorTime;
-                document.getElementById('main-minor-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(mp.timeToNextMinor);
+				// Update basic path information
+				this.updateElementText('main-path-realm-display', p.mainPathRealm);
+				this.updateElementText('main-path-progress-display', `${p.mainPathProgress}%`);
+				this.updateElementText('secondary-path-realm-display', p.secondaryPathRealm);
+				this.updateElementText('secondary-path-progress-display', `${p.secondaryPathProgress}%`);
+				this.updateElementText('path-focus-display', p.pathFocus);
 
-                document.getElementById('main-major-time-display').textContent = majorTime;
-                document.getElementById('main-major-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(mp.timeToNextMajor);
+				// Update main path results
+				if (realmResults.mainPath) {
+					this.updateMainPathResults(realmResults.mainPath);
+				}
 
-                document.getElementById('main-minor-progress-display').style.width = Math.min(100, mp.progressPercentMinorMain) + '%';
-                document.getElementById('main-minor-progress-display').textContent = Math.round(mp.progressPercentMinorMain) + '%';
+				// Update secondary path results
+				if (realmResults.secondaryPath) {
+					this.updateSecondaryPathResults(realmResults.secondaryPath);
+				}
 
-                document.getElementById('main-major-progress-display').style.width = Math.min(100, mp.progressPercentMajorMain ) + '%';
-                document.getElementById('main-major-progress-display').textContent = Math.round(mp.progressPercentMajorMain ) + '%';
-            }
+				// Update fruit scenario results
+				const fruitResults = results.fruitScenarios;
+				if (fruitResults) {
+					this.updateFruitResults(fruitResults);
+				}
 
-            if (realmResults.secondaryPath) {
-                const sp = realmResults.secondaryPath;
-                console.log("Secondary path results:", sp);
+				// Update recommendation
+				this.updateElementHTML('recommendation-display', 
+					`<span><strong>Recommendation:</strong> ${results.recommendation || 'No recommendation available.'}</span>`
+				);
+			}
 
-                document.getElementById('secondary-minor-time-display').textContent = calculator.formatTimeDays(sp.timeToNextMinor);
-                document.getElementById('secondary-minor-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(sp.timeToNextMinor);
-                document.getElementById('secondary-minor-progress-display').style.width = Math.min(100, sp.progressPercentMinorSecondary) + '%';
-                document.getElementById('secondary-minor-progress-display').textContent = Math.round(sp.progressPercentMinorSecondary) + '%';
+			updateMainPathResults(mainPath) {
+				const format = this.calculator.formatTimeDays;
+				const formatDate = this.calculator.formatDateFromDays;
 
-                document.getElementById('secondary-major-time-display').textContent = calculator.formatTimeDays(sp.timeToNextMajor);
-                document.getElementById('secondary-major-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(sp.timeToNextMajor);
-                document.getElementById('secondary-major-progress-display').style.width = Math.min(100, sp.progressPercentMajorSecondary) + '%';
-                document.getElementById('secondary-major-progress-display').textContent = Math.round(sp.progressPercentMajorSecondary) + '%';
-            }
+				// Minor realm
+				this.updateElementText('main-minor-time-display', format(mainPath.timeToNextMinor));
+				this.updateElementText('main-minor-date-display', `Estimated: ${formatDate(mainPath.timeToNextMinor)}`);
+				this.updateProgressBar('main-minor-progress-display', mainPath.progressPercentMinorMain);
 
-            console.log("=== END DEBUG updateDashboard ===");
+				// Major realm
+				this.updateElementText('main-major-time-display', format(mainPath.timeToNextMajor));
+				this.updateElementText('main-major-date-display', `Estimated: ${formatDate(mainPath.timeToNextMajor)}`);
+				this.updateProgressBar('main-major-progress-display', mainPath.progressPercentMajorMain);
+			}
 
-            const fruitResults = results.fruitScenarios;
-            if (fruitResults) {
-                if (fruitResults.mainPath.withFruits) {
-                    const f = fruitResults.mainPath.withFruits;
-                    document.getElementById('fruits-minor-main-display').textContent = calculator.formatTimeDays(f.timeToComplete);
-                    document.getElementById('fruits-minor-main-percent-display').textContent = f.canComplete ? 'Use Now' : f.percentLeft.toFixed(1) + '%';
-                }
+			updateSecondaryPathResults(secondaryPath) {
+				const format = this.calculator.formatTimeDays;
+				const formatDate = this.calculator.formatDateFromDays;
 
-                if (fruitResults.secondaryPath.withFruits) {
-                    const f = fruitResults.secondaryPath.withFruits;
-                    document.getElementById('fruits-minor-secondary-display').textContent = calculator.formatTimeDays(f.timeToComplete);
-                    document.getElementById('fruits-minor-secondary-percent-display').textContent = f.canComplete ? 'Use Now' : f.percentLeft.toFixed(1) + '%';
-                }
-            }
+				// Minor realm
+				this.updateElementText('secondary-minor-time-display', format(secondaryPath.timeToNextMinor));
+				this.updateElementText('secondary-minor-date-display', `Estimated: ${formatDate(secondaryPath.timeToNextMinor)}`);
+				this.updateProgressBar('secondary-minor-progress-display', secondaryPath.progressPercentMinorSecondary);
 
-            document.getElementById('recommendation-display').innerHTML = `
-                <span><strong>Recommendation:</strong> ${results.recommendation || 'No recommendation available.'}</span>
-            `;
-        }
+				// Major realm
+				this.updateElementText('secondary-major-time-display', format(secondaryPath.timeToNextMajor));
+				this.updateElementText('secondary-major-date-display', `Estimated: ${formatDate(secondaryPath.timeToNextMajor)}`);
+				this.updateProgressBar('secondary-major-progress-display', secondaryPath.progressPercentMajorSecondary);
+			}
 
-        function updateDebugInfo() {
-            const gameDataStr = JSON.stringify(GameData, null, 2)
-                .replace(/\n/g, '<br>')
-                .replace(/ /g, '&nbsp;');
-            document.getElementById('debug-game-data').innerHTML = gameDataStr;
+			updateFruitResults(fruitResults) {
+				const format = this.calculator.formatTimeDays;
 
-            const playerDataStr = JSON.stringify(calculator.playerData, null, 2)
-                .replace(/\n/g, '<br>')
-                .replace(/ /g, '&nbsp;');
-            document.getElementById('debug-player-input').innerHTML = playerDataStr;
+				// Main path with fruits
+				if (fruitResults.mainPath?.withFruits) {
+					const f = fruitResults.mainPath.withFruits;
+					this.updateElementText('fruits-minor-main-display', format(f.timeToComplete));
+					this.updateElementText('fruits-minor-main-percent-display', 
+						f.canComplete ? 'Use Now' : `${f.percentLeft.toFixed(1)}%`
+					);
+				}
 
-            const calcStr = JSON.stringify(calculator.calculationResults, null, 2)
-                .replace(/\n/g, '<br>')
-                .replace(/ /g, '&nbsp;');
-            document.getElementById('debug-calculations').innerHTML = calcStr || 'No calculations performed yet.';
-        }
+				// Secondary path with fruits
+				if (fruitResults.secondaryPath?.withFruits) {
+					const f = fruitResults.secondaryPath.withFruits;
+					this.updateElementText('fruits-minor-secondary-display', format(f.timeToComplete));
+					this.updateElementText('fruits-minor-secondary-percent-display', 
+						f.canComplete ? 'Use Now' : `${f.percentLeft.toFixed(1)}%`
+					);
+				}
+			}
 
-        function resetToDefaults() {
-            if (confirm('Are you sure you want to reset all inputs to default values?')) {
-                calculator.initializePlayerData();
+			updateProgressBar(elementId, percent) {
+				const progress = Math.min(100, percent);
+				const element = document.getElementById(elementId);
+				element.style.width = `${progress}%`;
+				element.textContent = `${Math.round(progress)}%`;
+			}
 
-                document.getElementById('main-path-realm').value = calculator.playerData.mainPathRealm;
-                document.getElementById('main-path-progress').value = calculator.playerData.mainPathProgress;
-                document.getElementById('secondary-path-realm').value = calculator.playerData.secondaryPathRealm;
-                document.getElementById('secondary-path-progress').value = calculator.playerData.secondaryPathProgress;
-                document.getElementById('path-focus').value = calculator.playerData.pathFocus;
-                document.getElementById('timegate-days').value = calculator.playerData.timegateDays;
-                document.getElementById('vase-stars').value = calculator.playerData.vaseStars;
-                document.getElementById('mirror-stars').value = calculator.playerData.mirrorStars;
-                document.getElementById('gold-pill').value = calculator.playerData.goldPill;
-                document.getElementById('purple-pill').value = calculator.playerData.purplePill;
-                document.getElementById('blue-pill').value = calculator.playerData.bluePill;
-                document.getElementById('elixir').value = calculator.playerData.elixir;
-                document.getElementById('fruits-count').value = calculator.playerData.fruitsCount;
-                document.getElementById('weekly-fruits').value = calculator.playerData.weeklyFruits;
-                document.getElementById('fruits-usage').value = calculator.playerData.fruitsUsage;
+			updateElementText(elementId, text) {
+				const element = document.getElementById(elementId);
+				if (element) element.textContent = text;
+			}
 
-                calculateAndUpdateUI();
-                alert('Reset to default values complete.');
-            }
-        }
+			updateElementHTML(elementId, html) {
+				const element = document.getElementById(elementId);
+				if (element) element.innerHTML = html;
+			}
+
+			updateDebugInfo() {
+				// Game Data
+				const gameDataStr = this.formatJSONForDisplay(GameData);
+				document.getElementById('debug-game-data').innerHTML = gameDataStr;
+
+				// Player Input
+				const playerDataStr = this.formatJSONForDisplay(this.calculator.playerData);
+				document.getElementById('debug-player-input').innerHTML = playerDataStr;
+
+				// Calculations
+				const calcStr = this.formatJSONForDisplay(this.calculator.calculationResults) || 
+							   'No calculations performed yet.';
+				document.getElementById('debug-calculations').innerHTML = calcStr;
+			}
+
+			formatJSONForDisplay(obj) {
+				return JSON.stringify(obj, null, 2)
+					.replace(/\n/g, '<br>')
+					.replace(/ /g, '&nbsp;');
+			}
+
+			resetToDefaults() {
+				if (!confirm('Are you sure you want to reset all inputs to default values?')) {
+					return;
+				}
+
+				this.calculator.initializePlayerData();
+				this.syncInputsToCalculator();
+				this.calculateAndUpdateUI();
+				this.showSuccess('Reset to default values complete.');
+			}
+
+			syncInputsToCalculator() {
+				const p = this.calculator.playerData;
+				const inputs = {
+					'main-path-realm': p.mainPathRealm,
+					'main-path-progress': p.mainPathProgress,
+					'secondary-path-realm': p.secondaryPathRealm,
+					'secondary-path-progress': p.secondaryPathProgress,
+					'path-focus': p.pathFocus,
+					'timegate-days': p.timegateDays,
+					'vase-stars': p.vaseStars,
+					'mirror-stars': p.mirrorStars,
+					'token-stars': p.tokenStars,
+					'gold-pill': p.goldPill,
+					'purple-pill': p.purplePill,
+					'blue-pill': p.bluePill,
+					'elixir': p.elixir,
+					'fruits-count': p.fruitsCount,
+					'weekly-fruits': p.weeklyFruits,
+					'fruits-usage': p.fruitsUsage
+				};
+
+				Object.entries(inputs).forEach(([id, value]) => {
+					const element = document.getElementById(id);
+					if (element) element.value = value;
+				});
+			}
+
+			handleFileImport(event) {
+				const file = event.target.files[0];
+				if (!file) return;
+
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					this.calculator.importData(e.target.result);
+					this.calculateAndUpdateUI();
+				};
+				reader.readAsText(file);
+				
+				event.target.value = ''; // Reset file input
+			}
+
+			clearLocalStorage() {
+				if (!confirm('Are you sure you want to clear all saved data? This cannot be undone.')) {
+					return;
+				}
+
+				this.calculator.clearLocalStorage();
+				this.resetToDefaults();
+			}
+
+			showSuccess(message) {
+				// You could enhance this with a proper notification system
+				alert(message);
+			}
+
+			showError(message) {
+				// You could enhance this with a proper error notification system
+				alert(message);
+			}
+
+			debounce(func, wait) {
+				return (...args) => {
+					clearTimeout(this.saveTimeout);
+					this.saveTimeout = setTimeout(() => func.apply(this, args), wait);
+				};
+			}
+		}
+
+		// =============== INITIALIZE APPLICATION ===============
+		const app = new OvermortalApp();
