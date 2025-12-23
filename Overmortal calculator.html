@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OverMortal Realm Breakthrough Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2A3B47;
+            --secondary: #5A7684;
+            --accent: #C76B6B;
+            --success: #4A8B6E;
+            --warning: #D4A55E;
+            --light: #F8F9FA;
+            --dark: #1E2A32;
+            --gray: #8A9BA8;
+            --card-bg: #FFFFFF;
+            --body-bg: #F0F2F5;
+            --gradient-start: #3A506B;
+            --gradient-end: #5A7684;
+            --border: #E1E5E9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+			.tab {
+			  display: inline-block;
+			  padding-left: 2em; /* Adjust to control tab size */
+			}
+        body {
+            background-color: var(--body-bg);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(42, 59, 71, 0.12);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            font-weight: 300;
+        }
+
+        .version {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(42, 59, 71, 0.06);
+            height: fit-content;
+            position: sticky;
+            top: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin: 6px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            font-weight: 400;
+        }
+
+        .nav-item.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(42, 59, 71, 0.15);
+        }
+
+        .nav-item:hover:not(.active) {
+            background-color: var(--light);
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            display: grid;
+            gap: 24px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(42, 59, 71, 0.05);
+            border-left: 4px solid var(--secondary);
+            border: 1px solid var(--border);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 59, 71, 0.08);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 24px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .card-title i {
+            color: var(--secondary);
+        }
+
+        .warning {
+            background-color: rgba(199, 107, 107, 0.05);
+            border-left: 4px solid var(--accent);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid rgba(199, 107, 107, 0.1);
+        }
+
+        .warning i {
+            color: var(--accent);
+            margin-right: 12px;
+        }
+
+        .info {
+            background-color: rgba(90, 118, 132, 0.05);
+            border-left: 4px solid var(--secondary);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid rgba(90, 118, 132, 0.1);
+        }
+
+        .info i {
+            color: var(--secondary);
+            margin-right: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.25s;
+            background-color: var(--light);
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(90, 118, 132, 0.15);
+            background-color: white;
+        }
+
+        .input-group.required label::after {
+            content: " *";
+            color: var(--accent);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(42, 59, 71, 0.15);
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, var(--success), #3A7A5E);
+            font-size: 1rem;
+            padding: 14px 32px;
+        }
+
+        .btn-calculate:hover {
+            background: linear-gradient(135deg, #3A7A5E, #2E6B4F);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #F8F9FA, #FFFFFF);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 8px 0;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-weight: 400;
+        }
+
+        .time-display {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            font-weight: 700;
+            margin: 8px 0;
+        }
+
+        .date-display {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .progress-container {
+            margin: 16px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: var(--light);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), #7A96A4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: var(--light);
+        }
+
+        .virya-scenario {
+            background: linear-gradient(135deg, #F0F7F4, #FFFFFF);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #D1E7DD;
+        }
+
+        .scenario-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--success);
+        }
+
+        .footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--gray);
+            font-size: 0.85rem;
+            font-weight: 300;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .debug-section {
+            background-color: #FAFBFC;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .debug-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+		@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>OverMortal Realm Breakthrough Calculator</h1>
+                    <div class="subtitle">Plan your cultivation journey and optimize your breakthrough strategy</div>
+                </div>
+                <div class="version">v0.3.0 (BETA)</div>
+            </div>
+        </header>
+        <div class="sidebar">
+            <div class="nav-item active" data-section="dashboard">
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-section="player-input">
+                <span>Player Input</span>
+            </div>
+            <div class="nav-item" data-section="debug">
+                <span>Debug Data</span>
+            </div>
+			<div class="nav-item" data-section="Release Notes">
+                <span>Release notes</span>
+            </div>
+        </div>
+        <div class="main-content">
+            <!-- DASHBOARD SECTION -->
+            <div id="dashboard" class="section active">
+                <div class="card">
+                    <h2 class="card-title">Player Time to Cultivate</h2>
+                    <div class="grid">
+                        <div class="result-box">
+                            <div class="result-label">Main Path Realm</div>
+                            <div class="result-value" id="main-path-realm-display">Voidbreak Late</div>
+                            <div class="result-label">Progress: <span id="main-path-progress-display">50.0%</span></div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path Realm</div>
+                            <div class="result-value" id="secondary-path-realm-display">Incarnation Late</div>
+                            <div class="result-label">Progress: <span id="secondary-path-progress-display">0.0%</span></div>
+                        </div>
+                    </div>
+                    <h3>Next Minor Realm In:</h3>
+                    <div class="grid">
+                        <div class="result-box">
+                            <div class="result-label">Main Path</div>
+                            <div class="time-display" id="main-minor-time-display">⏲️ Calculating...</div>
+                            <div class="date-display" id="main-minor-date-display">Estimated: --</div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="main-minor-progress-display" style="width: 0%">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path</div>
+                            <div class="time-display" id="secondary-minor-time-display">⏲️ Calculating...</div>
+                            <div class="date-display" id="secondary-minor-date-display">Estimated: --</div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="secondary-minor-progress-display" style="width: 0%">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Next Major Realm In:</h3>
+                    <div class="grid">
+                        <div class="result-box">
+                            <div class="result-label">Main Path</div>
+                            <div class="time-display" id="main-major-time-display">⏲️ Calculating...</div>
+                            <div class="date-display" id="main-major-date-display">Estimated: --</div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="main-major-progress-display" style="width: 0%">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path</div>
+                            <div class="time-display" id="secondary-major-time-display">⏲️ Calculating...</div>
+                            <div class="date-display" id="secondary-major-date-display">Estimated: --</div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="secondary-major-progress-display" style="width: 0%">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">With Current Fruits & Aura Extractor</h2>
+                    <div class="grid">
+                        <div class="result-box">
+                            <div class="result-label">Main Path Minor</div>
+                            <div class="time-display" id="fruits-minor-main-display">⏲️ Calculating...</div>
+                            <div class="result-label">Late Realm % left: <span id="fruits-minor-main-percent-display">--</span></div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Main Path Major</div>
+                            <div class="time-display" id="fruits-major-main-display">⏲️ Calculating...</div>
+                            <div class="result-label">Late Realm % left: <span id="fruits-major-main-percent-display">--</span></div>
+                        </div>
+
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path Minor</div>
+                            <div class="time-display" id="fruits-minor-secondary-display">⏲️ Calculating...</div>
+                            <div class="result-label">Late Realm % left: <span id="fruits-minor-secondary-percent-display">--</span></div>
+                        </div>
+
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path Major</div>
+                            <div class="time-display" id="fruits-major-secondary-display">⏲️ Calculating...</div>
+                            <div class="result-label">Late Realm % left: <span id="fruits-major-secondary-percent-display">--</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">Player Time to Virya</h2>
+                    <div class="info">
+                        <span>Player Path Focus Scenario chosen: <strong id="path-focus-display">Main Path</strong></span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Time to Cultivate</th>
+                                    <th>Completion Date</th>
+                                    <th>Differential XP vs Overflow</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Completion</strong></td>
+                                    <td id="virya-completion-time">⏲️ Calculating...</td>
+                                    <td id="virya-completion-date">--</td>
+                                    <td id="virya-completion-diff">+0% (Baseline)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Eminence</strong></td>
+                                    <td id="virya-eminence-time">⏲️ Calculating...</td>
+                                    <td id="virya-eminence-date">--</td>
+                                    <td id="virya-eminence-diff">--</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Perfect</strong></td>
+                                    <td id="virya-perfect-time">⏲️ Calculating...</td>
+                                    <td id="virya-perfect-date">--</td>
+                                    <td id="virya-perfect-diff">--</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Half-Step</strong></td>
+                                    <td id="virya-halfstep-time">⏲️ Calculating...</td>
+                                    <td id="virya-halfstep-date">--</td>
+                                    <td id="virya-halfstep-diff">--</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="warning" id="recommendation-display">
+                        <span><strong>Recommendation:</strong> Complete Main Path for better pills during dual cultivation before thinking about Virya. You will not reach any Virya without attaining Completion first.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLAYER INPUT SECTION -->
+            <div id="player-input" class="section">
+                <div class="card">
+                    <h2 class="card-title">Player Information</h2>
+                    <h3>Path details</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="main-path-realm">Current Main Path minor realm</label>
+                            <select id="main-path-realm">
+                                <option value="Incarnation Early">Incarnation Early</option>
+                                <option value="Incarnation Mid">Incarnation Mid</option>
+                                <option value="Incarnation Late">Incarnation Late</option>
+                                <option value="Voidbreak Early">Voidbreak Early</option>
+                                <option value="Voidbreak Mid">Voidbreak Mid</option>
+                                <option value="Voidbreak Late">Voidbreak Late</option>
+                                <option value="Wholeness Early">Wholeness Early</option>
+                                <option value="Wholeness Mid">Wholeness Mid</option>
+                                <option value="Wholeness Late">Wholeness Late</option>
+                                <option value="Perfection Early">Perfection Early</option>
+                                <option value="Perfection Mid">Perfection Mid</option>
+                                <option value="Perfection Late">Perfection Late</option>
+                                <option value="Nirvana Early">Nirvana Early</option>
+                                <option value="Nirvana Mid">Nirvana Mid</option>
+                                <option value="Nirvana Late">Nirvana Late</option>
+                                <option value="Celestial Early">Celestial Early</option>
+                                <option value="Celestial Mid">Celestial Mid</option>
+                                <option value="Celestial Late">Celestial Late</option>
+                                <option value="Eternal Early">Eternal Early</option>
+                                <option value="Eternal Mid">Eternal Mid</option>
+                                <option value="Eternal Late">Eternal Late</option>
+                                <option value="Supreme Early">Supreme Early</option>
+                                <option value="Supreme Mid">Supreme Mid</option>
+                                <option value="Supreme Late">Supreme Late</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="main-path-progress">Main Path realm progression (%)</label>
+                            <input type="number" id="main-path-progress" step="0.001" min="0" max="100" value="50.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="secondary-path-realm">Current Secondary Path minor realm</label>
+                            <select id="secondary-path-realm">
+                                <option value="Incarnation Early">Incarnation Early</option>
+                                <option value="Incarnation Mid">Incarnation Mid</option>
+                                <option value="Incarnation Late">Incarnation Late</option>
+                                <option value="Voidbreak Early">Voidbreak Early</option>
+                                <option value="Voidbreak Mid">Voidbreak Mid</option>
+                                <option value="Voidbreak Late">Voidbreak Late</option>
+                                <option value="Wholeness Early">Wholeness Early</option>
+                                <option value="Wholeness Mid">Wholeness Mid</option>
+                                <option value="Wholeness Late">Wholeness Late</option>
+                                <option value="Perfection Early">Perfection Early</option>
+                                <option value="Perfection Mid">Perfection Mid</option>
+                                <option value="Perfection Late">Perfection Late</option>
+                                <option value="Nirvana Early">Nirvana Early</option>
+                                <option value="Nirvana Mid">Nirvana Mid</option>
+                                <option value="Nirvana Late">Nirvana Late</option>
+                                <option value="Celestial Early">Celestial Early</option>
+                                <option value="Celestial Mid">Celestial Mid</option>
+                                <option value="Celestial Late">Celestial Late</option>
+                                <option value="Eternal Early">Eternal Early</option>
+                                <option value="Eternal Mid">Eternal Mid</option>
+                                <option value="Eternal Late">Eternal Late</option>
+                                <option value="Supreme Early">Supreme Early</option>
+                                <option value="Supreme Mid">Supreme Mid</option>
+                                <option value="Supreme Late">Supreme Late</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="secondary-path-progress">Secondary Path realm progression (%)</label>
+                            <input type="number" id="secondary-path-progress" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="input-group">
+                            <label for="path-focus">Current path main focus</label>
+                            <select id="path-focus">
+                                <option value="Main Path">Main Path</option>
+                                <option value="Secondary Path">Secondary Path</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="had-Virya">Did you have Virya last realm?</label>
+                            <select id="had-Virya">
+                                <option value="No">No</option>
+                                <option value="Eminence">Eminence</option>
+                                <option value="Perfection">Perfection</option>
+                                <option value="Halfstep">Halfstep</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="timegate-days">Days remaining before timegate end</label>
+                            <input type="number" id="timegate-days" step="0.1" value="30">
+                        </div>
+                    </div>
+
+                    <h3>Daily Pills</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="gold-pill">Gold pill / day</label>
+                            <input type="number" id="gold-pill" step="0.1" value="0.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="purple-pill">Purple pill / day</label>
+                            <input type="number" id="purple-pill" step="0.1" value="0.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="blue-pill">Blue pill / day</label>
+                            <input type="number" id="blue-pill" step="0.1" value="20.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="elixir">Elixir / day</label>
+                            <input type="number" id="elixir" step="0.1" value="0.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="elixir">Elixir consumed</label>
+                            <input type="number" id="elixir-consumed" step="0.1" value="0.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="benediction">Benediction / day</label>
+                            <input type="number" id="benediction" step="0.1" value="0.0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="benediction">Benediction consumed</label>
+                            <input type="number" id="benediction-consumed" step="0.1" value="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Creation Artifact</h2>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="vase-stars">Vase stars</label>
+                            <select id="vase-stars">
+                                <option value="No artifact">No artifact</option>
+                                <option value="0 star">0 star</option>
+                                <option value="1 star" selected>1 star</option>
+                                <option value="2 stars">2 stars</option>
+                                <option value="3 stars">3 stars</option>
+                                <option value="4 stars">4 stars</option>
+                                <option value="5 stars">5 stars</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="mirror-stars">Mirror stars</label>
+                            <select id="mirror-stars">
+                                <option value="No artifact">No artifact</option>
+                                <option value="0 star">0 star</option>
+                                <option value="1 star">1 star</option>
+                                <option value="2 stars">2 stars</option>
+                                <option value="3 stars">3 stars</option>
+                                <option value="4 stars">4 stars</option>
+                                <option value="5 stars">5 stars</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="token-stars">Token stars</label>
+                            <select id="token-stars">
+                                <option value="No artifact">No artifact</option>
+                                <option value="0 star">0 star</option>
+                                <option value="1 star">1 star</option>
+                                <option value="2 stars">2 stars</option>
+                                <option value="3 stars">3 stars</option>
+                                <option value="4 stars">4 stars</option>
+                                <option value="5 stars">5 stars</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Aura Gem</h2>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="gem-quality">Aura Gem quality</label>
+                            <select id="gem-quality">
+                                <option value="No Aura">No Aura</option>
+                                <option value="Common">Common</option>
+                                <option value="Uncommon" selected>Uncommon</option>
+                                <option value="Rare">Rare</option>
+                                <option value="Epic">Epic</option>
+                                <option value="Legendary">Legendary</option>
+                                <option value="Mythic">Mythic</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Stage Specific Mechanics</h2>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="abode-sect-level">Sect Level</label>
+                            <input type="number" id="abode-sect-level" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-celestial-spring">Celestial Spring</label>
+                            <input type="number" id="abode-celestial-spring" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-sect-barrier">Sect Barrier</label>
+                            <input type="number" id="abode-sect-barrier" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                    </div>
+
+                    <h3>Mortal World</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="abode-energy-array">Energy Array</label>
+                            <input type="number" id="abode-energy-array" step="0.001" min="0" max="100" value="50.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-sword-array">Sword Array</label>
+                            <input type="number" id="abode-sword-array" step="0.001" min="0" max=".100" value="0.0">
+                        </div>
+                    </div>
+
+                    <h3>Spiritual World</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="abode-heaven-gate">Heaven Abode Gate</label>
+                            <input type="number" id="abode-heaven-gate" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-wholeness-citta">Wholeness Abode - Citta</label>
+                            <input type="number" id="abode-wholeness-citta" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-perfection-world-rift">Perfection Abode - World Rift</label>
+                            <input type="number" id="abode-perfection-world-rift" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-nirvana-path-of-ascension">Nirvana Abode Path of Ascension</label>
+                            <input type="number" id="abode-nirvana-path-of-ascension" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-nirvana-ghost-mansion">Nirvana Blue pill Ghost Mansion</label>
+                            <input type="number" id="pill-nirvana-ghost-mansion" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-nirvana-horn-mansion">Nirvana Abode Horn Mansion</label>
+                            <input type="number" id="abode-nirvana-horn-mansion" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-nirvana-turtle-beak-mansion">Nirvana Purple pill Turtle Beak Mansion</label>
+                            <input type="number" id="pill-nirvana-turtle-beak-mansion" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-nirvana-dipper-mansion">Nirvana Respira Dipper Mansion</label>
+                            <input type="number" id="respira-nirvana-dipper-mansion" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-nirvana-chariot-mansion">Nirvana Gold pill Chariot Mansion</label>
+                            <input type="number" id="pill-nirvana-chariot-mansion" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-nirvana-neck-mansion">Nirvana Abode Neck Mansion</label>
+                            <input type="number" id="abode-nirvana-neck-mansion" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Cultivation Boosts</h2>
+                    <h3>Techniques</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="pill-attempts-technique">Pill Attempts</label>
+                            <input type="number" id="pill-attempts-technique" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-bonus-technique">Pill Bonus</label>
+                            <input type="number" id="pill-bonus-technique" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-attempt-technique">respira attempt</label>
+                            <input type="number" id="respira-attempt-technique" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-bonus-technique">respira bonus</label>
+                            <input type="number" id="respira-bonus-technique" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-aura-technique">Abode Aura</label>
+                            <input type="number" id="abode-aura-technique" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Curios</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="abode-aura-curio">Abode Aura</label>
+                            <input type="number" id="abode-aura-curio" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-bonus-curio">Pill Bonus</label>
+                            <input type="number" id="pill-bonus-curio" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-attempt-curio">respira attempt</label>
+                            <input type="number" id="respira-attempt-curio" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-bonus-curio">respira bonus</label>
+                            <input type="number" id="respira-bonus-curio" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-temper-aura-curio">Temper Abode Aura</label>
+                            <input type="number" id="abode-temper-aura-curio" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Immortal Friends</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="pill-attempts-immortal-friends">Pill Attempts</label>
+                            <input type="number" id="pill-attempts-immortal-friends" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-bonus-immortal-friends">Pill Bonus</label>
+                            <input type="number" id="pill-bonus-immortal-friends" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-attempt-immortal-friends">respira attempt</label>
+                            <input type="number" id="respira-attempt-immortal-friends" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-bonus-immortal-friends">respira bonus</label>
+                            <input type="number" id="respira-bonus-immortal-friends" step="0.001" min="0" max="100" value="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Myrimon Fruits</h2>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="fruits-count">Number of Myrimon fruits</label>
+                            <input type="number" id="fruits-count" value="0">
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="weekly-fruits">Weekly Fruits from runs</label>
+                            <input type="number" id="weekly-fruits" value="0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="fruits-usage">Fruits usage</label>
+                            <select id="fruits-usage">
+                                <option value="current">Virya - Current Extractor</option>
+                                <option value="max">Virya - Max Extractor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="extractor-rank">Extractor Rank</label>
+                            <select id="extractor-rank">
+                                <option value="Common">Common</option>
+                                <option value="Uncommon">Uncommon</option>
+                                <option value="Rare">Rare</option>
+                                <option value="Epic">Epic</option>
+                                <option value="Legendary">Legendary</option>
+                                <option value="Mythic">Mythic</option>
+                            </select>
+                        </div>
+                        <div class="input-group required">
+                            <label for="extractor-experience">Extractor Experience</label>
+                            <input type="number" id="extractor-experience" value="0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="extractor-quality">Extractor Quality</label>
+                            <input type="number" id="extractor-quality" value="0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="extractor-gush-bonus">Extractor Gush Bonus</label>
+                            <input type="number" id="extractor-gush-bonus" value="0">
+                        </div>
+                    </div>
+                </div>
+
+				<div style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
+					<button class="btn btn-calculate" id="calculate-btn">
+						<i class="fas fa-calculator"></i> Calculate All
+					</button>
+					<button class="btn" id="reset-btn">
+						<i class="fas fa-undo"></i> Reset to Defaults
+					</button>
+					<button class="btn" id="clear-storage-btn" style="background-color: var(--accent);">
+						<i class="fas fa-trash"></i> Clear Saved Data
+					</button>
+					<button class="btn" id="export-data-btn" style="background-color: var(--success);">
+						<i class="fas fa-download"></i> Export Data
+					</button>
+					<button class="btn" id="import-data-btn" style="background-color: var(--secondary);">
+						<i class="fas fa-upload"></i> Import Data
+					</button>
+				</div>
+				<input type="file" id="import-file-input" accept=".json" style="display: none;">
+            </div>
+
+            <!-- DEBUG SECTION -->
+            <div id="debug" class="section">
+                <div class="card">
+                    <h2 class="card-title">Debug Information</h2>
+					<p>Please note that the debug section may have some bugs, it is not finished for player use yet.</p>
+                    <div class="debug-section">
+                        <div class="debug-title">Game Data (Static Values):</div>
+                        <div id="debug-game-data">Loading...</div>
+                    </div>
+
+                    <div class="debug-section">
+                        <div class="debug-title">Player Input:</div>
+                        <div id="debug-player-input">Loading...</div>
+                    </div>
+
+                    <div class="debug-section">
+                        <div class="debug-title">Calculations:</div>
+                        <div id="debug-calculations">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+			<div id="Release Notes" class="section active">
+				 <div class="card">
+					<h2 class="card-title">Release Notes</h2>
+					<strong>Version 3.0.0</strong>
+					<ul>
+						<li>Released first web version of old sheets</li>
+						<li>Implemented backup and restore functionality using json.</li> 
+						<ul>	
+							<li class="tab"> It is recommended to backup if you ever clear browser cache or before utilizing the clear data option.</li>
+							<li class="tab"> This function may be used to save multiple taoists for ease of swapping between character views. </li>
+							<li class="tab"> you may optionally edit this json directly using your preferred text editor instead of using the UI.</li>
+						</ul>
+					</ul>
+					<h4>Limitations / Known issues</h4>
+						<ul>
+							<li>This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.</li>
+							<li>Debug Data is not yet santitized and ready for player use. For example, cosmoapsis is not currently displaying properly.</li>
+							<li>Percentages exceeding 100% are not yet handled for major breakthroughs</li>
+						</ul>
+					<h4>Acknowledgments</h4>
+					<span>Thank you for trying out my take on the old google sheets calculator! Inspiration came from the calculator mentioned in the footer, which is currently maintained by Yutsu.
+					I also wish to thank Endless for the great effort they have put into educating this lowley taoist in the ways of the dao, as well as 'R' for encouraging me along the way while i developed this version of the calculator.
+					If you have questions or requests, please add me on discord and mention that you have been directed from this calculator. For any bug reports, please include a copy of your exported json and screenshots from your taoist. -  lucyfer_os
+					</span>
+					
+				 </div>
+			</div>
+
+            <div class="footer">
+                <p>OverMortal Realm Breakthrough Calculator v3.0.0</p>
+                <p>Coded by LucyferOS (Endless) | <a href="https://docs.google.com/spreadsheets/d/19xuznnncxhgHlUFwawAt8DPCu7YgwdGSP7mdHXGWTdk/edit?gid=1602589637#gid=1602589637" target="_blank">Based on original work by Zild and the Eternal Palace community, as well as Yutsu (Abyssal Hunt)</a></p>
+                <p>Last updated: 23/12/2025</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME DATA (Static values from 'My hidden Flat sheet') ====================
+        class BaseXP {
+            constructor(respira, red, gold, purple, blue, elixer, benediction) {
+                this.respira = respira;
+                this.red = red;
+                this.gold = gold;
+                this.purple = purple;
+                this.blue = blue;
+                this.elixer = elixer;
+                this.benediction = benediction;
+            }
+        };
+
+        const XPData = {
+            IncarnationXP: new BaseXP(5.30, 192.00, 96.00, 48.00, 25.60, 0, 0),
+            VoidbreakXP: new BaseXP(7.80, 288.00, 144.00, 72.00, 38.40, 60.00, 87.00),
+            WholenessXP: new BaseXP(10.5, 492.00, 246.00, 123.00, 65.60, 84.00, 135.00),
+            PerfectionXP: new BaseXP(13.5, 744.00, 372.00, 186.00, 99.20, 128.00, 205.00),
+            NirvanaXP: new BaseXP(25.00, 1368.00, 684.00, 342.00, 182.40, 180.00, 470.00),
+            CelestialXP: new BaseXP(37.5, 3096.00, 1548.00, 774.00, 412.70, 368.00, 1220.00),
+            EternalXP: new BaseXP(86.33, 7296.00, 3648.00, 1824.00, 972.80, 754.00, 3250.00),
+            SupremeXP: new BaseXP(84.38, 14592.00, 7296.00, 3648.00, 1945.60, 2500.00, 7500.00)
+        };
+
+        const GameData = {
+            minPerTaoistYear: 15,
+            taoistYearsPerDay: 96,
+            abodeBase: 130,
+
+            gemQuality: {
+                'No Aura': 0,
+                'Common': .1,
+                'Uncommon': .13,
+                'Rare': .16,
+                'Epic': .20,
+                'Legendary': .24,
+                'Mythic': .28
+            },
+
+            realms: {
+                'Incarnation Early': { xp: 12326300, absorption: 0.317 },
+                'Incarnation Mid': { xp: 26155400, absorption: 0.358 },
+                'Incarnation Late': { xp: 61792200, absorption: 0.4 },
+                'Voidbreak Early': { xp: 68014736, absorption: 0.5 },
+                'Voidbreak Mid': { xp: 142093920, absorption: 0.65 },
+                'Voidbreak Late': { xp: 307715027, absorption: 0.8 },
+                'Wholeness Early': { xp: 186813569, absorption: 0.85 },
+                'Wholeness Mid': { xp: 263951236, absorption: 0.9 },
+                'Wholeness Late': { xp: 304450560, absorption: 0.95 },
+                'Perfection Early': { xp: 469855611, absorption: 1.3 },
+                'Perfection Mid': { xp: 690774727, absorption: 1.6 },
+                'Perfection Late': { xp: 915460544, absorption: 1.8 },
+                'Nirvana Early': { xp: 1119067845, absorption: 2.0 },
+                'Nirvana Mid': { xp: 1430384212, absorption: 2.2 },
+                'Nirvana late': { xp: 1795072703, absorption: 2.4 },
+                'Celestial Early': { xp: 2923599210, absorption: 2.6 },
+                'Celestial Mid': { xp: 3856472371, absorption: 2.8 },
+                'Celestial Late': { xp: 5215416675, absorption: 3.0 },
+                'Eternal Early': { xp: 8427284628, absorption: 4.0 },
+                'Eternal Mid': { xp: 9849448919, absorption: 4.2 },
+                'Eternal Late': { xp: 12813035158, absorption: 4.4 },
+                'Supreme Early': { xp: 19860203495, absorption: 5.0 },
+                'Supreme Mid': { xp: 25818265842, absorption: 5.2 },
+                'Supreme Late': { xp: 34854658887, absorption: 5.4 }
+            },
+			
+			realmMajorTotalxp: {
+				'Incarnation': 100273900,
+				'Voidbreak': 517823683,
+				'Wholeness': 755215365,
+				'Perfection': 2076090882,
+				'Nirvana': 4344524760,
+				'Celestial': 11995488256,
+				'Eternal': 31089768705,
+				'Supreme': 80533128224
+			},
+
+            viryaBonus: {
+                'Eminence': 0.2,
+                'Perfection': 0.2,
+                'Halfstep': 0.4
+            },
+
+            artifactEnergyReplenishment: {
+                'No artifact': 0,
+                '0 star': 1,
+                '1 star': 1.3,
+                '2 stars': 1.6,
+                '3 stars': 2.0,
+                '4 stars': 2.4,
+                '5 stars': 3.0
+            },
+
+            vaseBonus: {
+                'No artifact': 0,
+                '0 star': 0,
+                '1 star': 0.1,
+                '2 stars': 0.1,
+                '3 stars': 0.2,
+                '4 stars': 0.2,
+                '5 stars': 0.2
+            },
+
+            mirrorTokenBonus: {
+                'No artifact': 0,
+                '0 star': 0,
+                '1 star': 0.05,
+                '2 stars': 0.05,
+                '3 stars': 0.1,
+                '4 stars': 0.1,
+                '5 stars': 0.1
+            },
+
+            viryaRequirements: {
+                'Eminence': 3,
+                'Perfect': 2,
+                'Half-Step': 0,
+            }
+        };
+
+        // ==================== CALCULATION ENGINE ====================
+        class OvermortalCalculator {
+            constructor() {
+				this.storageKey = 'overmortal_calculator_data';
+                this.playerData = {};
+                this.calculationResults = {};
+                this.initializePlayerData();
+				this.loadFromLocalStorage();
+                this.updateFromInputs();
+            }
+
+            initializePlayerData() {
+                this.playerData = {
+                    mainPathRealm: 'Incarnation Early',
+                    mainPathRealmMajor: 'Incarnation',
+                    mainPathRealmMinor: 'Early',
+                    mainPathProgress: 0.0,
+                    mainPathExp: 0.0,
+                    secondaryPathRealm: 'Incarnation Early',
+                    secondaryPathRealmMajor: 'Incarnation',
+                    secondaryPathRealmMinor: 'Early',
+                    secondaryPathProgress: 0.0,
+                    secondaryPathExp: 0.0,
+                    pathFocus: 'Main Path',
+                    timegateDays: 30,
+                    vaseStars: '0 star',
+                    mirrorStars: '0 star',
+                    tokenStars: '0 star',
+                    goldPill: 0.0,
+                    purplePill: 0.0,
+                    bluePill: 20.0,
+                    elixir: 0.0,
+                    pillBonus: 0.0,
+                    fruitsCount: 0,
+                    weeklyFruits: 0,
+                    fruitsUsage: 'current',
+                    cosmoapsis: 130.0,
+                    gemBonus: 'Common',
+                    respiraAttemptsTotal: 10,
+                    respiraExp: 0
+                };
+            }
+
+
+			saveToLocalStorage() {
+				try {
+					const formData = {};
+					
+					// Get all input fields
+					const inputs = document.querySelectorAll('input[type="text"], input[type="number"], select, textarea');
+					inputs.forEach(input => {
+						if (input.id) {
+							formData[input.id] = input.value;
+						}
+					});
+					
+					// Get all select elements
+					const selects = document.querySelectorAll('select');
+					selects.forEach(select => {
+						if (select.id) {
+							formData[select.id] = select.value;
+						}
+					});
+					
+					localStorage.setItem(this.storageKey, JSON.stringify(formData));
+					console.log('Data saved to localStorage');
+					
+					// Simple notification
+					this.showSimpleNotification('Settings saved!');
+				} catch (error) {
+					console.error('Error saving to localStorage:', error);
+					this.showSimpleNotification('Error saving settings', true);
+				}
+			}
+			
+			loadFromLocalStorage() {
+				try {
+					const savedData = localStorage.getItem(this.storageKey);
+					if (savedData) {
+						const formData = JSON.parse(savedData);
+						
+						// Restore all saved values
+						Object.keys(formData).forEach(key => {
+							const element = document.getElementById(key);
+							if (element) {
+								element.value = formData[key];
+								
+								// Trigger change event for select elements
+								if (element.tagName === 'SELECT') {
+									element.dispatchEvent(new Event('change'));
+								}
+							}
+						});
+						
+						console.log('Data loaded from localStorage');
+						this.showSimpleNotification('Settings loaded from previous session');
+						return true;
+					}
+				} catch (error) {
+					console.error('Error loading from localStorage:', error);
+				}
+				return false;
+			}
+			
+			clearLocalStorage() {
+				localStorage.removeItem(this.storageKey);
+				console.log('LocalStorage cleared');
+				this.showSimpleNotification('Saved data cleared');
+			}
+			
+			showSimpleNotification(message, isError = false) {
+				// Remove any existing notification
+				const existingNotification = document.querySelector('.simple-notification');
+				if (existingNotification) {
+					existingNotification.remove();
+				}
+				
+				// Create notification element
+				const notification = document.createElement('div');
+				notification.className = `simple-notification ${isError ? 'error' : 'success'}`;
+				notification.textContent = message;
+				notification.style.cssText = `
+					position: fixed;
+					bottom: 20px;
+					right: 20px;
+					padding: 12px 20px;
+					border-radius: 8px;
+					color: white;
+					font-weight: 500;
+					z-index: 1000;
+					box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+					animation: slideIn 0.3s ease;
+					background-color: ${isError ? 'var(--accent)' : 'var(--success)'};
+					border-left: 4px solid ${isError ? '#A54545' : '#2E6B4F'};
+				`;
+				
+				// Add to page
+				document.body.appendChild(notification);
+				
+				// Remove after 3 seconds
+				setTimeout(() => {
+					notification.style.animation = 'slideOut 0.3s ease forwards';
+					setTimeout(() => {
+						if (notification.parentNode) {
+							notification.remove();
+						}
+					}, 300);
+				}, 3000);
+			}
+			
+			exportData() {
+				try {
+					const data = localStorage.getItem(this.storageKey);
+					if (data) {
+						// Create a prettified JSON string
+						const jsonData = JSON.stringify(JSON.parse(data), null, 2);
+						const blob = new Blob([jsonData], { type: 'application/json' });
+						const url = URL.createObjectURL(blob);
+						const a = document.createElement('a');
+						a.href = url;
+						a.download = `overmortal-settings-${new Date().toISOString().split('T')[0]}.json`;
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+						URL.revokeObjectURL(url);
+						this.showSimpleNotification('Data exported successfully!');
+					} else {
+						this.showSimpleNotification('No data to export', true);
+					}
+				} catch (error) {
+					console.error('Error exporting data:', error);
+					this.showSimpleNotification('Error exporting data', true);
+				}
+			}
+			
+			importData(jsonString) {
+				try {
+					const importedData = JSON.parse(jsonString);
+					localStorage.setItem(this.storageKey, JSON.stringify(importedData));
+					this.loadFromLocalStorage();
+					this.showSimpleNotification('Data imported successfully!');
+					
+					// Recalculate with new data
+					setTimeout(() => {
+						calculateAndUpdateUI();
+					}, 500);
+					
+					return true;
+				} catch (error) {
+					console.error('Error importing data:', error);
+					this.showSimpleNotification('Invalid file format', true);
+					return false;
+				}
+			}
+		
+            updateFromInputs() {
+                let mainPathRealm = document.getElementById('main-path-realm').value;
+                let mainPathRealmMajor = mainPathRealm.substring(0, mainPathRealm.indexOf(' '));
+                let mainPathRealmMinor = mainPathRealm.substring(mainPathRealm.indexOf(' ') + 1);
+                let mainPathProgress = parseFloat(document.getElementById('main-path-progress').value) || 0;
+                let secondaryPathRealm = document.getElementById('secondary-path-realm').value;
+                let secondaryPathRealmMajor = secondaryPathRealm.substring(0, secondaryPathRealm.indexOf(' '));
+                let secondaryPathRealmMinor = secondaryPathRealm.substring(secondaryPathRealm.indexOf(' ') + 1);
+                let secondaryPathProgress = parseFloat(document.getElementById('secondary-path-progress').value) || 0;
+                let mainPathExp = GameData.realms[mainPathRealm].xp * (mainPathProgress / 100);
+                let secondaryPathExp = GameData.realms[secondaryPathRealm].xp * (secondaryPathProgress / 100);
+
+                let pillBonusCurio = parseFloat(document.getElementById('pill-bonus-curio').value) || 0;
+                let pillBonusImmortalFriends = parseFloat(document.getElementById('pill-bonus-immortal-friends').value) || 0;
+                let pillBonusTechnique = parseFloat(document.getElementById('pill-bonus-technique').value) || 0;
+                let pillBonusNirvanaChariotMansion = parseFloat(document.getElementById('pill-nirvana-chariot-mansion').value) || 0;
+                let pillBonusNirvanaGhostMansion = parseFloat(document.getElementById('pill-nirvana-ghost-mansion').value) || 0;
+                let pillBonusNirvanaTurtleBeakMansion = parseFloat(document.getElementById('pill-nirvana-turtle-beak-mansion').value) || 0;
+                let pillBonus = (pillBonusCurio + pillBonusImmortalFriends + pillBonusTechnique) / 100;
+
+                let abodeBonusCurio = parseFloat(document.getElementById('abode-aura-curio').value) || 0;
+                let abodeBonusTechnique = parseFloat(document.getElementById('abode-aura-technique').value) || 0;
+                let abodeBonusSectLevel = parseFloat(document.getElementById('abode-sect-level').value) || 0;
+                let abodeBonusSectBarrier = parseFloat(document.getElementById('abode-sect-barrier').value) || 0;
+                let abodeBonusCelestialSpring = parseFloat(document.getElementById('abode-celestial-spring').value) || 0;
+                let abodeBonusEnergyArray = parseFloat(document.getElementById('abode-energy-array').value) || 0;
+                let abodeBonusSwordArray = parseFloat(document.getElementById('abode-sword-array').value) || 0;
+                let abodeBonusHeavenGate = parseFloat(document.getElementById('abode-heaven-gate').value) || 0;
+                let abodeBonusWholenessCitta = parseFloat(document.getElementById('abode-wholeness-citta').value) || 0;
+                let abodeBonusPerfectionWorldRift = parseFloat(document.getElementById('abode-perfection-world-rift').value) || 0;
+                let abodeBonusNirvanaPathofAscension = parseFloat(document.getElementById('abode-nirvana-path-of-ascension').value) || 0;
+                let abodeBonusNirvanaHornMansion = parseFloat(document.getElementById('abode-nirvana-horn-mansion').value) || 0;
+                let abodeBonusNirvanaNeckMansion = parseFloat(document.getElementById('abode-nirvana-neck-mansion').value) || 0;
+
+                let respiraAttemptsImmortalFriend = parseInt(document.getElementById('respira-attempt-immortal-friends').value) || 0;
+                let respiraAttemptsTechnique = parseInt(document.getElementById('respira-attempt-technique').value) || 0;
+                let respiraAttemptsCurio = parseInt(document.getElementById('respira-attempt-curio').value) || 0;
+                let respiraAttemptsTotal = (10 + respiraAttemptsImmortalFriend + respiraAttemptsCurio + respiraAttemptsTechnique);
+
+                let respiraBonusImmortalFriend = parseInt(document.getElementById('respira-bonus-immortal-friends').value) || 0;
+                let respiraBonusTechnique = parseInt(document.getElementById('respira-bonus-technique').value) || 0;
+                let respiraBonusCurio = parseInt(document.getElementById('respira-bonus-curio').value) || 0;
+                let respiraBonusTotal = 1 + ((respiraBonusCurio + respiraBonusImmortalFriend + respiraBonusTechnique) / 100);
+
+                let abodeAuraXPTotal = GameData.abodeBase * GameData.realms[mainPathRealm].absorption;
+
+                this.playerData = {
+                    mainPathRealm: mainPathRealm,
+                    mainPathRealmMajor: mainPathRealmMajor,
+                    mainPathRealmMinor: mainPathRealmMinor,
+                    mainPathProgress: parseFloat(document.getElementById('main-path-progress').value),
+                    mainPathExp: mainPathExp,
+                    secondaryPathRealm: secondaryPathRealm,
+                    secondaryPathRealmMajor: secondaryPathRealmMajor,
+                    secondaryPathRealmMinor: secondaryPathRealmMinor,
+                    secondaryPathProgress: parseFloat(document.getElementById('secondary-path-progress').value),
+                    secondaryPathExp: secondaryPathExp,
+                    pathFocus: document.getElementById('path-focus').value,
+                    timegateDays: parseFloat(document.getElementById('timegate-days').value),
+
+                    abodeBonusCurio: abodeBonusCurio,
+                    abodeBonusTechnique: abodeBonusTechnique,
+                    abodeBonusSectLevel: abodeBonusSectLevel,
+                    abodeBonusSectBarrier: abodeBonusSectBarrier,
+                    abodeBonusCelestialSpring: abodeBonusCelestialSpring,
+                    abodeBonusEnergyArray: abodeBonusEnergyArray,
+                    abodeBonusSwordArray: abodeBonusSwordArray,
+                    abodeBonusHeavenGate: abodeBonusHeavenGate,
+                    abodeBonusWholenessCitta: abodeBonusWholenessCitta,
+                    abodeBonusPerfectionWorldRift: abodeBonusPerfectionWorldRift,
+                    abodeBonusNirvanaPathofAscension: abodeBonusNirvanaPathofAscension,
+                    abodeBonusNirvanaHornMansion: abodeBonusNirvanaHornMansion,
+                    abodeBonusNirvanaNeckMansion: abodeBonusNirvanaNeckMansion,
+
+                    respiraAttemptsImmortalFriend: respiraAttemptsImmortalFriend,
+                    respiraAttemptsTechnique: respiraAttemptsTechnique,
+                    respiraAttemptsCurio: respiraAttemptsCurio,
+                    respiraAttemptsTotal: respiraAttemptsTotal,
+
+                    respiraBonusImmortalFriend: respiraBonusImmortalFriend,
+                    respiraBonusTechnique: respiraBonusTechnique,
+                    respiraBonusCurio: respiraBonusCurio,
+                    respiraBonusTotal: respiraBonusTotal,
+
+                    pillBonusNirvanaChariotMansion: pillBonusNirvanaChariotMansion,
+                    pillBonusNirvanaGhostMansion: pillBonusNirvanaGhostMansion,
+                    pillBonusNirvanaTurtleBeakMansion: pillBonusNirvanaTurtleBeakMansion,
+
+                    vaseStars: document.getElementById('vase-stars').value,
+                    mirrorStars: document.getElementById('mirror-stars').value,
+                    tokenStars: document.getElementById('token-stars').value,
+
+                    goldPill: parseFloat(document.getElementById('gold-pill').value),
+                    purplePill: parseFloat(document.getElementById('purple-pill').value),
+                    bluePill: parseFloat(document.getElementById('blue-pill').value),
+                    elixir: parseFloat(document.getElementById('elixir').value),
+
+                    fruitsCount: parseInt(document.getElementById('fruits-count').value),
+                    weeklyFruits: parseInt(document.getElementById('weekly-fruits').value),
+                    fruitsUsage: document.getElementById('fruits-usage').value,
+
+                    cosmoapsis: abodeAuraXPTotal,
+                    gemQuality: document.getElementById('gem-quality').value,
+
+                    respiraAttemptsTotal: respiraAttemptsTotal,
+                    respiraBonusTotal: respiraBonusTotal,
+                    pillBonus: pillBonus + 1
+                };
+            }
+			
+            calculateAll() {
+                this.updateFromInputs();
+                this.calculateDailyXP();
+                this.calculateRealmProgression();
+                return this.calculationResults;
+            }
+
+            calculateDailyXP() {
+                const p = this.playerData;
+                let abodeAuraXPTotalFinal = (p.cosmoapsis * (1 + ((p.abodeBonusCurio + p.abodeBonusTechnique + p.abodeBonusSectLevel + p.abodeBonusSectBarrier + p.abodeBonusCelestialSpring + p.abodeBonusEnergyArray + p.abodeBonusSwordArray +
+                    p.abodeBonusHeavenGate + p.abodeBonusWholenessCitta + p.abodeBonusPerfectionWorldRift + p.abodeBonusNirvanaPathofAscension + p.abodeBonusNirvanaHornMansion + p.abodeBonusNirvanaNeckMansion) / 100)));
+                abodeAuraXPTotalFinal = abodeAuraXPTotalFinal * 10800;
+
+                let gemBonusXPdaily = abodeAuraXPTotalFinal * GameData.gemQuality[p.gemQuality];
+
+                let vaseRedPill;
+                if (p.vaseStars == 'No artifact') {
+                    vaseRedPill = 0;
+                } else {
+                    vaseRedPill = ((GameData.artifactEnergyReplenishment[p.vaseStars] * GameData.taoistYearsPerDay) + 100) / 100;
+                }
+
+                let mirrorRedPill;
+                if (p.mirrorStars == 'No artifact') {
+                    mirrorRedPill = 0;
+                } else {
+                    mirrorRedPill = ((GameData.artifactEnergyReplenishment[p.mirrorStars] * GameData.taoistYearsPerDay) + 100) / (200 * (1 - GameData.mirrorTokenBonus[p.mirrorStars]));
+                }
+
+                let tokenRedPill;
+                if (p.tokenStars == 'No artifact') {
+                    tokenRedPill = 0;
+                } else {
+                    tokenRedPill = ((GameData.artifactEnergyReplenishment[p.tokenStars] * GameData.taoistYearsPerDay) + 100) / (200 * (1 - GameData.mirrorTokenBonus[p.tokenStars])) * .1225;
+                }
+
+                let numRedPills = vaseRedPill + mirrorRedPill + tokenRedPill;
+
+                const goldPillXP = XPData[p.mainPathRealmMajor + "XP"].gold * (1 + (p.pillBonusNirvanaChariotMansion / 100)) * p.goldPill;
+                const purplePillXP = XPData[p.mainPathRealmMajor + "XP"].purple * (1 + (p.pillBonusNirvanaTurtleBeakMansion / 100)) * p.purplePill;
+                const bluePillXP = XPData[p.mainPathRealmMajor + "XP"].blue * (1 + (p.pillBonusNirvanaGhostMansion / 100)) * p.bluePill;
+                const elixirXP = XPData[p.mainPathRealmMajor + "XP"].elixer * p.elixir;
+                const redPillXP = XPData[p.mainPathRealmMajor + "XP"].red * (1 + GameData.vaseBonus[p.vaseStars]) * numRedPills;
+
+                console.log(redPillXP);
+
+                let pillXPTotal = (goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP) * p.pillBonus * 1000;
+                this.calculationResults.pillXPTotal = pillXPTotal;
+
+                let respiraAttemptsGush = (p.respiraAttemptsTotal * .55) + (p.respiraAttemptsTotal * .30 * 2) + (p.respiraAttemptsTotal * .1475 * 5) + (p.respiraAttemptsTotal * .0025 * 10);
+                let respiraExp = respiraAttemptsGush * XPData[p.mainPathRealmMajor + "XP"].respira * 1000 * p.respiraBonusTotal;
+
+                const totalDailyXP = abodeAuraXPTotalFinal + gemBonusXPdaily + pillXPTotal + respiraExp;
+                return totalDailyXP;
+            }
+
+			calculateRealmProgression() {
+				const p = this.playerData;
+				const totalDailyXP = this.calculateDailyXP();
+
+				console.log("=== DEBUG calculateRealmProgression ===");
+				console.log("Player data:", p);
+				console.log("Total daily XP:", totalDailyXP);
+				console.log("Main path exp:", p.mainPathExp);
+				console.log("Main realm XP needed:", GameData.realms[p.mainPathRealm].xp);
+
+				let mainPathDailyXP, secondaryPathDailyXP;
+				if (p.pathFocus === 'Main Path') {
+					mainPathDailyXP = totalDailyXP;
+					secondaryPathDailyXP = 0;
+				} else {
+					secondaryPathDailyXP = totalDailyXP;
+					mainPathDailyXP = 0;
+				}
+
+				console.log("Main path daily XP:", mainPathDailyXP);
+				console.log("Secondary path daily XP:", secondaryPathDailyXP);
+
+				let timeToNextMainMinor = 0, timeToNextMainMajor = 0;
+				let progressPercentMajorMain = 0;
+				
+				if (mainPathDailyXP > 0) {
+					const mainRealmXP = GameData.realms[p.mainPathRealm].xp;
+					const xpNeededForMinor = mainRealmXP - p.mainPathExp;
+					timeToNextMainMinor = Math.max(0, xpNeededForMinor / mainPathDailyXP);
+
+					console.log("XP needed for next minor:", xpNeededForMinor);
+					console.log("Time to next minor (days):", timeToNextMainMinor);
+
+					// Calculate total XP earned in this major realm so far
+					let totalXpEarnedInMajorRealm = p.mainPathExp;
+					
+					if (p.mainPathRealmMinor === 'Mid' || p.mainPathRealmMinor === 'Late') {
+						const earlyRealm = p.mainPathRealmMajor + ' Early';
+						totalXpEarnedInMajorRealm += GameData.realms[earlyRealm].xp;
+					}
+					
+					if (p.mainPathRealmMinor === 'Late') {
+						const midRealm = p.mainPathRealmMajor + ' Mid';
+						totalXpEarnedInMajorRealm += GameData.realms[midRealm].xp;
+					}
+					
+					// Calculate XP needed for next major realm
+					if (p.mainPathRealmMinor === 'Late') {
+						timeToNextMainMajor = timeToNextMainMinor;
+					} else if (p.mainPathRealmMinor === 'Mid') {
+						const nextRealm = p.mainPathRealmMajor + ' Late';
+						const xpNeededForMajor = mainRealmXP + GameData.realms[nextRealm].xp - totalXpEarnedInMajorRealm;
+						timeToNextMainMajor = Math.max(0, xpNeededForMajor / mainPathDailyXP);
+						console.log("XP needed for next major:", xpNeededForMajor);
+					} else {
+						const midRealm = p.mainPathRealmMajor + ' Mid';
+						const lateRealm = p.mainPathRealmMajor + ' Late';
+						const xpNeededForMajor = mainRealmXP +
+							GameData.realms[midRealm].xp +
+							GameData.realms[lateRealm].xp -
+							totalXpEarnedInMajorRealm;
+						timeToNextMainMajor = Math.max(0, xpNeededForMajor / mainPathDailyXP);
+						console.log("XP needed for next major:", xpNeededForMajor);
+					}
+					
+					// Calculate progress percentage for major realm
+					const totalXpForMajorRealm = GameData.realmMajorTotalxp[p.mainPathRealmMajor];
+					progressPercentMajorMain = (totalXpEarnedInMajorRealm / totalXpForMajorRealm) * 100;
+					
+					console.log("Time to next major (days):", timeToNextMainMajor);
+					console.log("Total XP earned in major realm:", totalXpEarnedInMajorRealm);
+					console.log("Total XP for major realm:", totalXpForMajorRealm);
+					console.log("Major realm progress %:", progressPercentMajorMain);
+				}
+
+				let timeToNextSecondaryMinor = 0, timeToNextSecondaryMajor = 0;
+				let progressPercentMajorSecondary = 0;
+				
+				if (secondaryPathDailyXP > 0) {
+					const secondaryRealmXP = GameData.realms[p.secondaryPathRealm].xp;
+					const xpNeededForMinor = secondaryRealmXP - p.secondaryPathExp;
+					timeToNextSecondaryMinor = Math.max(0, xpNeededForMinor / secondaryPathDailyXP);
+
+					console.log("Secondary XP needed for next minor:", xpNeededForMinor);
+					console.log("Secondary time to next minor (days):", timeToNextSecondaryMinor);
+
+					// Calculate total XP earned in this major realm so far
+					let totalXpEarnedInMajorRealm = p.secondaryPathExp;
+					
+					if (p.secondaryPathRealmMinor === 'Mid' || p.secondaryPathRealmMinor === 'Late') {
+						const earlyRealm = p.secondaryPathRealmMajor + ' Early';
+						totalXpEarnedInMajorRealm += GameData.realms[earlyRealm].xp;
+					}
+					
+					if (p.secondaryPathRealmMinor === 'Late') {
+						const midRealm = p.secondaryPathRealmMajor + ' Mid';
+						totalXpEarnedInMajorRealm += GameData.realms[midRealm].xp;
+					}
+					
+					// Calculate XP needed for next major realm
+					if (p.secondaryPathRealmMinor === 'Late') {
+						timeToNextSecondaryMajor = timeToNextSecondaryMinor;
+					} else if (p.secondaryPathRealmMinor === 'Mid') {
+						const nextRealm = p.secondaryPathRealmMajor + ' Late';
+						const xpNeededForMajor = secondaryRealmXP + GameData.realms[nextRealm].xp - totalXpEarnedInMajorRealm;
+						timeToNextSecondaryMajor = Math.max(0, xpNeededForMajor / secondaryPathDailyXP);
+					} else {
+						const midRealm = p.secondaryPathRealmMajor + ' Mid';
+						const lateRealm = p.secondaryPathRealmMajor + ' Late';
+						const xpNeededForMajor = secondaryRealmXP +
+							GameData.realms[midRealm].xp +
+							GameData.realms[lateRealm].xp -
+							totalXpEarnedInMajorRealm;
+						timeToNextSecondaryMajor = Math.max(0, xpNeededForMajor / secondaryPathDailyXP);
+					}
+					
+					// Calculate progress percentage for major realm
+					const totalXpForMajorRealm = GameData.realmMajorTotalxp[p.secondaryPathRealmMajor];
+					progressPercentMajorSecondary = (totalXpEarnedInMajorRealm / totalXpForMajorRealm) * 100;
+					
+					console.log("Secondary time to next major (days):", timeToNextSecondaryMajor);
+					console.log("Secondary total XP earned in major realm:", totalXpEarnedInMajorRealm);
+					console.log("Secondary total XP for major realm:", totalXpForMajorRealm);
+					console.log("Secondary major realm progress %:", progressPercentMajorSecondary);
+				}
+				
+				this.calculationResults.realmProgression = {
+					mainPath: {
+						timeToNextMinor: timeToNextMainMinor,
+						timeToNextMajor: timeToNextMainMajor,
+						progressPercentMinorMain: p.mainPathProgress,
+						progressPercentMajorMain: progressPercentMajorMain
+					},
+					secondaryPath: {
+						timeToNextMinor: timeToNextSecondaryMinor,
+						timeToNextMajor: timeToNextSecondaryMajor,
+						progressPercentMinorSecondary: p.secondaryPathProgress,
+						progressPercentMajorSecondary: progressPercentMajorSecondary
+					}
+				};
+
+				console.log("Final results:", this.calculationResults.realmProgression);
+				console.log("=== END DEBUG ===");
+				return this.calculationResults.realmProgression;
+			}
+
+            formatTimeDays(days) {
+                if (days === undefined || days === null || isNaN(days) || days <= 0) {
+                    console.log("Invalid days value in formatTimeDays:", days);
+                    return 'Calculating...';
+                }
+                if (days === Infinity) {
+                    return '∞ (Never)';
+                }
+
+                const totalMinutes = days * 24 * 60;
+
+                if (totalMinutes < 60) {
+                    return `${Math.ceil(totalMinutes)}m`;
+                }
+
+                const totalHours = days * 24;
+
+                if (totalHours < 24) {
+                    const fullHours = Math.floor(totalHours);
+                    const remainingMinutes = Math.ceil((totalHours - fullHours) * 60);
+
+                    if (remainingMinutes === 0) {
+                        return `${fullHours}h`;
+                    } else {
+                        return `${fullHours}h ${remainingMinutes}m`;
+                    }
+                }
+
+                const fullDays = Math.floor(days);
+                const remainingHours = Math.round((days - fullDays) * 24);
+
+                if (remainingHours === 0) {
+                    return `${fullDays}d`;
+                } else {
+                    return `${fullDays}d ${remainingHours}h`;
+                }
+            }
+
+            formatDateFromDays(days) {
+                if (!days || days <= 0) return '--';
+                const date = new Date();
+                date.setDate(date.getDate() + Math.ceil(days));
+                return date.toLocaleDateString();
+            }
+        }
+		
+		// ==================== MAIN INITIALIZATION ====================
+let calculator; // Declare calculator globally
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Create calculator instance
+    calculator = new OvermortalCalculator();
+    
+    // Add event listeners
+    document.getElementById('calculate-btn').addEventListener('click', calculateAndUpdateUI);
+    document.getElementById('reset-btn').addEventListener('click', resetToDefaults);
+    
+    // Load from localStorage and calculate
+    if (calculator.loadFromLocalStorage()) {
+        calculator.updateFromInputs();
+    }
+    calculateAndUpdateUI();
+    
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            this.classList.add('active');
+            const sectionId = this.getAttribute('data-section');
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+    
+    // Add local storage auto-save listeners
+    calculator.saveToLocalStorage(); // Initial save
+    
+    document.addEventListener('input', function(event) {
+        if (event.target.matches('input, select, textarea')) {
+            clearTimeout(window.saveTimeout);
+            window.saveTimeout = setTimeout(() => {
+                calculator.saveToLocalStorage();
+            }, 500);
+        }
+    });
+    
+    document.addEventListener('change', function(event) {
+        if (event.target.matches('select')) {
+            clearTimeout(window.saveTimeout);
+            calculator.saveToLocalStorage();
+        }
+    });
+});
+// ==================== LOCAL STORAGE AUTO-SAVE ====================
+// Auto-save when any input changes
+document.addEventListener('input', function(event) {
+    if (event.target.matches('input, select, textarea')) {
+        // Debounce the save to avoid too many writes
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(() => {
+            calculator.saveToLocalStorage();
+        }, 500);
+    }
+});
+
+// Also save on select change events
+document.addEventListener('change', function(event) {
+    if (event.target.matches('select')) {
+        clearTimeout(window.saveTimeout);
+        calculator.saveToLocalStorage();
+    }
+});
+
+// Save on calculate button click
+document.getElementById('calculate-btn').addEventListener('click', () => {
+    calculator.saveToLocalStorage();
+});
+
+// Clear saved data button
+document.getElementById('clear-storage-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear all saved data? This cannot be undone.')) {
+        calculator.clearLocalStorage();
+        resetToDefaults();
+    }
+});
+
+// Export data button
+document.getElementById('export-data-btn').addEventListener('click', () => {
+    calculator.exportData();
+});
+
+// Import data button
+document.getElementById('import-data-btn').addEventListener('click', () => {
+    document.getElementById('import-file-input').click();
+});
+
+// Handle file import
+document.getElementById('import-file-input').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            calculator.importData(e.target.result);
+        };
+        reader.readAsText(file);
+    }
+    event.target.value = ''; // Reset file input
+});
+
+        function calculateAndUpdateUI() {
+            const calculateBtn = document.getElementById('calculate-btn');
+            const originalText = calculateBtn.innerHTML;
+            calculateBtn.innerHTML = '</i> Calculating...';
+            calculateBtn.disabled = true;
+
+            setTimeout(() => {
+                try {
+                    const results = calculator.calculateAll();
+                    updateDashboard(results);
+                    updateDebugInfo();
+                    alert('Calculation complete! Results updated.');
+                } catch (error) {
+                    console.error('Calculation error:', error);
+                    alert('Error during calculation: ' + error.message);
+                } finally {
+                    calculateBtn.innerHTML = originalText;
+                    calculateBtn.disabled = false;
+                }
+            }, 500);
+        }
+
+        function updateDashboard(results) {
+            const p = calculator.playerData;
+            const realmResults = results.realmProgression;
+
+            console.log("=== DEBUG updateDashboard ===");
+            console.log("Results received:", results);
+            console.log("Realm results:", realmResults);
+
+            if (!realmResults) {
+                console.log("No realm results found!");
+                return;
+            }
+
+            document.getElementById('main-path-realm-display').textContent = p.mainPathRealm;
+            document.getElementById('main-path-progress-display').textContent = p.mainPathProgress + '%';
+            document.getElementById('secondary-path-realm-display').textContent = p.secondaryPathRealm;
+            document.getElementById('secondary-path-progress-display').textContent = p.secondaryPathProgress + '%';
+            document.getElementById('path-focus-display').textContent = p.pathFocus;
+
+            if (realmResults.mainPath) {
+                const mp = realmResults.mainPath;
+                console.log("Main path results:", mp);
+
+                const minorTime = calculator.formatTimeDays(mp.timeToNextMinor);
+                const majorTime = calculator.formatTimeDays(mp.timeToNextMajor);
+
+                console.log("Formatted minor time:", minorTime);
+                console.log("Formatted major time:", majorTime);
+
+                document.getElementById('main-minor-time-display').textContent = minorTime;
+                document.getElementById('main-minor-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(mp.timeToNextMinor);
+
+                document.getElementById('main-major-time-display').textContent = majorTime;
+                document.getElementById('main-major-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(mp.timeToNextMajor);
+
+                document.getElementById('main-minor-progress-display').style.width = Math.min(100, mp.progressPercentMinorMain) + '%';
+                document.getElementById('main-minor-progress-display').textContent = Math.round(mp.progressPercentMinorMain) + '%';
+
+                document.getElementById('main-major-progress-display').style.width = Math.min(100, mp.progressPercentMajorMain ) + '%';
+                document.getElementById('main-major-progress-display').textContent = Math.round(mp.progressPercentMajorMain ) + '%';
+            }
+
+            if (realmResults.secondaryPath) {
+                const sp = realmResults.secondaryPath;
+                console.log("Secondary path results:", sp);
+
+                document.getElementById('secondary-minor-time-display').textContent = calculator.formatTimeDays(sp.timeToNextMinor);
+                document.getElementById('secondary-minor-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(sp.timeToNextMinor);
+                document.getElementById('secondary-minor-progress-display').style.width = Math.min(100, sp.progressPercentMinorSecondary) + '%';
+                document.getElementById('secondary-minor-progress-display').textContent = Math.round(sp.progressPercentMinorSecondary) + '%';
+
+                document.getElementById('secondary-major-time-display').textContent = calculator.formatTimeDays(sp.timeToNextMajor);
+                document.getElementById('secondary-major-date-display').textContent = 'Estimated: ' + calculator.formatDateFromDays(sp.timeToNextMajor);
+                document.getElementById('secondary-major-progress-display').style.width = Math.min(100, sp.progressPercentMajorSecondary) + '%';
+                document.getElementById('secondary-major-progress-display').textContent = Math.round(sp.progressPercentMajorSecondary) + '%';
+            }
+
+            console.log("=== END DEBUG updateDashboard ===");
+
+            const fruitResults = results.fruitScenarios;
+            if (fruitResults) {
+                if (fruitResults.mainPath.withFruits) {
+                    const f = fruitResults.mainPath.withFruits;
+                    document.getElementById('fruits-minor-main-display').textContent = calculator.formatTimeDays(f.timeToComplete);
+                    document.getElementById('fruits-minor-main-percent-display').textContent = f.canComplete ? 'Use Now' : f.percentLeft.toFixed(1) + '%';
+                }
+
+                if (fruitResults.secondaryPath.withFruits) {
+                    const f = fruitResults.secondaryPath.withFruits;
+                    document.getElementById('fruits-minor-secondary-display').textContent = calculator.formatTimeDays(f.timeToComplete);
+                    document.getElementById('fruits-minor-secondary-percent-display').textContent = f.canComplete ? 'Use Now' : f.percentLeft.toFixed(1) + '%';
+                }
+            }
+
+            document.getElementById('recommendation-display').innerHTML = `
+                <span><strong>Recommendation:</strong> ${results.recommendation || 'No recommendation available.'}</span>
+            `;
+        }
+
+        function updateDebugInfo() {
+            const gameDataStr = JSON.stringify(GameData, null, 2)
+                .replace(/\n/g, '<br>')
+                .replace(/ /g, '&nbsp;');
+            document.getElementById('debug-game-data').innerHTML = gameDataStr;
+
+            const playerDataStr = JSON.stringify(calculator.playerData, null, 2)
+                .replace(/\n/g, '<br>')
+                .replace(/ /g, '&nbsp;');
+            document.getElementById('debug-player-input').innerHTML = playerDataStr;
+
+            const calcStr = JSON.stringify(calculator.calculationResults, null, 2)
+                .replace(/\n/g, '<br>')
+                .replace(/ /g, '&nbsp;');
+            document.getElementById('debug-calculations').innerHTML = calcStr || 'No calculations performed yet.';
+        }
+
+        function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all inputs to default values?')) {
+                calculator.initializePlayerData();
+
+                document.getElementById('main-path-realm').value = calculator.playerData.mainPathRealm;
+                document.getElementById('main-path-progress').value = calculator.playerData.mainPathProgress;
+                document.getElementById('secondary-path-realm').value = calculator.playerData.secondaryPathRealm;
+                document.getElementById('secondary-path-progress').value = calculator.playerData.secondaryPathProgress;
+                document.getElementById('path-focus').value = calculator.playerData.pathFocus;
+                document.getElementById('timegate-days').value = calculator.playerData.timegateDays;
+                document.getElementById('vase-stars').value = calculator.playerData.vaseStars;
+                document.getElementById('mirror-stars').value = calculator.playerData.mirrorStars;
+                document.getElementById('gold-pill').value = calculator.playerData.goldPill;
+                document.getElementById('purple-pill').value = calculator.playerData.purplePill;
+                document.getElementById('blue-pill').value = calculator.playerData.bluePill;
+                document.getElementById('elixir').value = calculator.playerData.elixir;
+                document.getElementById('fruits-count').value = calculator.playerData.fruitsCount;
+                document.getElementById('weekly-fruits').value = calculator.playerData.weeklyFruits;
+                document.getElementById('fruits-usage').value = calculator.playerData.fruitsUsage;
+
+                calculateAndUpdateUI();
+                alert('Reset to default values complete.');
+            }
+        }
+    </script>
+</body>
+</html>
