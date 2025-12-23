@@ -13,7 +13,7 @@ Version 0.3.0 (BETA)
       This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 			Debug Data is not yet santitized and ready for player use. For example, cosmoapsis is not currently displaying properly.
 			Percentages exceeding 100% are not yet handled for major breakthroughs
-      NOTE - THIS IS NOT YET RELEASED: VIRYA, FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY
+      Mobile browser is largely untested, however backup and import functions do not seem to work there.
 
 Acknowledgments
 
