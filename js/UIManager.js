@@ -52,7 +52,7 @@ class UIManager {
         this.updateRequirementsDisplay(playerData, viryaInfo);
         
         // Update table rows and progress bars
-        const scenarios = ['Completion', 'Eminence', 'Perfection', 'Half-Step'];
+        const scenarios = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
         scenarios.forEach(scenario => {
             const scenarioKey = scenario.toLowerCase().replace('-', '');
             const rowId = `virya-row-${scenarioKey}`;
@@ -167,7 +167,7 @@ static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, virya
     
     // Special case: If we need to calculate time to Perfect from Eminence
     // and secondary is already at the right realm but not 100% progress
-    if (scenario === 'Perfection' && viryaInfo.scenario === 'Eminence') {
+    if (scenario === 'Perfect' && viryaInfo.scenario === 'Eminence') {
         console.log('Calculating Perfect from Eminence...');
         
         // Check if secondary is already at the required realm for Perfect
