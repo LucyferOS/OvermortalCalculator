@@ -416,7 +416,7 @@ class ViryaCalculator {
     
     static calculateperfectProgress(playerData) {
         if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor) {
-            const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' : 'Early';
+            const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' || ('Late' && playerData.secondaryPathProgress < 100) : 'Early' || 'Mid' ||  ('Late' && playerData.secondaryPathProgress < 100);
             const stageValue = { 'Early': 0, 'Mid': 50, 'Late': 100 };
             
             const currentStage = playerData.secondaryPathRealmMinor;
