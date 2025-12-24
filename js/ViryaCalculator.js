@@ -359,7 +359,7 @@ class ViryaCalculator {
         const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
         
         if (!previousMajor) return 0;
-		if (perfectMet === true || halfStepMet === true) return 100;
+		if (requirements.perfectMet === true || requirements.halfStepMet === true) return 100;
         
         if (playerData.secondaryPathRealmMajor === previousMajor) {
             const stageValue = { 'Early': 0, 'Mid': 50, 'Late': 100 };
