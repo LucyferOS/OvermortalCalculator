@@ -316,6 +316,29 @@ class ViryaCalculator {
         return requirements;
     }
 
+	 static checkPerfectionMet(playerData) {
+        const currentMainMajor = playerData.mainPathRealmMajor;
+        
+        if (currentMainMajor === 'Voidbreak') {
+            return (playerData.secondaryPathRealmMajor === currentMainMajor && 
+                    playerData.secondaryPathRealmMinor === 'Mid') ||
+                   (playerData.secondaryPathRealmMajor === currentMainMajor && 
+                    playerData.secondaryPathRealmMinor === 'Late' &&  
+                    playerData.secondaryPathProgress < 100);
+        } else {
+            return playerData.secondaryPathRealmMajor === currentMainMajor && 
+                   (playerData.secondaryPathRealmMinor != 'Late' && 
+                    playerData.secondaryPathProgress < 100);
+        }
+    }
+    
+    static checkHalfStepMet(playerData) {
+        return playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
+               playerData.secondaryPathRealmMinor === 'Late' &&
+               playerData.secondaryPathProgress >= 100;
+    }
+
+
     // Calculate progress percentages for each scenario
     static calculateScenarioProgress(playerData, scenario) {
         let progress = 0;
@@ -359,7 +382,10 @@ class ViryaCalculator {
         const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
         
         if (!previousMajor) return 0;
-		if (requirements.perfectMet === true || requirements.halfStepMet === true) return 100;
+		
+		const perfectMet = this.checkPerfectionMet(playerData);
+        const halfStepMet = this.checkHalfStepMet(playerData);
+        if (perfectMet || halfStepMet) return 100;
         
         if (playerData.secondaryPathRealmMajor === previousMajor) {
             const stageValue = { 'Early': 0, 'Mid': 50, 'Late': 100 };
