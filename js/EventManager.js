@@ -45,7 +45,7 @@ class EventManager {
     setupLocalStorageListeners() {
         // Debounced save on input
         const debouncedSave = CalculatorUtils.debounce(() => 
-            this.dataManager.saveToLocalStorage(), 500);
+            this.dataManager.saveToLocalStorage(), 2000);
         
         document.addEventListener('input', (event) => {
             if (event.target.matches('input, select, textarea')) {

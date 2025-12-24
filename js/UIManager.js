@@ -156,13 +156,6 @@ static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, virya
     if (playerData.pathFocus === 'Secondary Path') {
         secondaryDailyXP = dailyXP;
         console.log('Secondary path focused: using full daily XP:', secondaryDailyXP);
-    } else {
-        // When focusing on main path, estimate secondary path XP
-        // Secondary gets only abode aura XP (no pills, no respira)
-        // This is a rough estimate - about 30-50% of daily XP
-        const abodeFraction = 0.4; // Estimate: 40% of daily XP is from abode aura
-        secondaryDailyXP = dailyXP * abodeFraction;
-        console.log('Main path focused: estimated secondary XP:', secondaryDailyXP);
     }
     
     // Special case: If we need to calculate time to Perfect from Eminence

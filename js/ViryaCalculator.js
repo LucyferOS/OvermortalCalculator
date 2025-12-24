@@ -24,12 +24,11 @@ class ViryaCalculator {
             };
         }
         
-        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+        const realmOrderMajor = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
                            'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
         
-        const currentMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
-        const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
-        
+        const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
+        const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
         console.log('Realm Analysis:', {
             currentMajorIndex,
             currentMajor: playerData.mainPathRealmMajor,
@@ -58,27 +57,27 @@ class ViryaCalculator {
             };
         }
         
-        // Check Perfection
+        // Check perfect
         if (playerData.mainPathRealmMajor === 'Voidbreak') {
-            console.log('Perfection Check (Voidbreak special case)');
+            console.log('perfect Check (Voidbreak special case)');
             if (playerData.secondaryPathRealmMajor === 'Voidbreak' && 
                 playerData.secondaryPathRealmMinor === 'Mid') {
-                console.log('Result: Perfection (+0.2 absorption)');
+                console.log('Result: perfect (+0.2 absorption)');
                 console.groupEnd();
                 return {
-                    scenario: 'Perfection',
+                    scenario: 'perfect',
                     absorptionBonus: 0.2,
                     isActive: true
                 };
             }
         } else {
-            console.log('Perfection Check (standard)');
+            console.log('perfect Check (standard)');
             if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor && 
                 playerData.secondaryPathRealmMinor === 'Early') {
-                console.log('Result: Perfection (+0.2 absorption)');
+                console.log('Result: perfect (+0.2 absorption)');
                 console.groupEnd();
                 return {
-                    scenario: 'Perfection',
+                    scenario: 'perfect',
                     absorptionBonus: 0.2,
                     isActive: true
                 };
@@ -132,7 +131,7 @@ class ViryaCalculator {
         switch (scenario) {
             case 'Eminence':
                 return 'Breakthrough';
-            case 'Perfection':
+            case 'perfect':
                 return nextMajor ? `${nextMajor} Mid` : 'Max Realm Reached';
             case 'Half-Step':
                 return nextMajor ? `${nextMajor} Late` : 'Max Realm Reached';
@@ -172,12 +171,17 @@ class ViryaCalculator {
             return requirements;
         }
         
-        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+        const realmOrderMajor = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
                            'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+		const realmOrderMinor = ['Early', 'Mid', 'Late'];
         
         const currentMainMajor = playerData.mainPathRealmMajor;
-        const currentMainIndex = realmOrder.indexOf(currentMainMajor);
-        const previousMajor = currentMainIndex > 0 ? realmOrder[currentMainIndex - 1] : null;
+		const currentMainMinor = playerData.mainPathRealmMinor;
+		
+        const currentMainIndexMajor = realmOrderMajor.indexOf(currentMainMajor);
+        const previousMajor = currentMainIndex > 0 ? realmOrder[currentMainIndexMajor - 1] : null;
+		const currentMainIndexMinor = realmOrderMinor.indexOf(currentMainMajor);
+
         
         // Detect current scenario to understand progression
         const currentScenario = this.detectScenario(playerData).scenario;
@@ -194,20 +198,29 @@ class ViryaCalculator {
                     playerData.secondaryPathRealm, 
                     playerData.secondaryPathProgress
                 );
-                eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
-                             playerData.secondaryPathRealmMinor === 'Late';
+                eminenceMet = (
+					//inc late
+					(playerData.secondaryPathRealmMajor === previousMajor && 
+					 playerData.secondaryPathRealmMinor === 'Late') ||
+					//vb early
+					(playerData.secondaryPathRealmMajor === currentMajor && 
+					 playerData.secondaryPathRealmMinor === 'Early')
+				);
             } else {
                 eminenceRequired = `${previousMajor} Mid`;
                 eminenceCurrent = formatRealmInfo(
                     playerData.secondaryPathRealm, 
                     playerData.secondaryPathProgress
                 );
-                eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
-                             playerData.secondaryPathRealmMinor === 'Mid';
+                eminenceMet = (playerData.secondaryPathRealmMajor === previousMajor && 
+                             playerData.secondaryPathRealmMinor === 'Mid')||
+							 (playerData.secondaryPathRealmMajor === previousMajor && 
+                             playerData.secondaryPathRealmMinor === 'Late')
+							 );
             }
             
-            // Eminence is automatically met if we're at Perfection or Half-Step
-            if (currentScenario === 'Perfection' || currentScenario === 'Half-Step') {
+            // Eminence is automatically met if we're at perfect or Half-Step
+            if (currentScenario === 'perfect' || currentScenario === 'Half-Step') {
                 eminenceMet = true;
             }
             
@@ -231,41 +244,46 @@ class ViryaCalculator {
             });
         }
         
-        // 3. Perfection Requirement (Second at same major, early/mid)
-        let perfectionRequired = '';
-        let perfectionCurrent = '';
-        let perfectionMet = false;
+        // 3. perfect Requirement (Second at same major, early/mid)
+        let perfectRequired = '';
+        let perfectCurrent = '';
+        let perfectMet = false;
         
         if (currentMainMajor === 'Voidbreak') {
-            perfectionRequired = `${currentMainMajor} Mid`;
-            perfectionCurrent = formatRealmInfo(
+            perfectRequired = `${currentMainMajor} Mid`;
+            perfectCurrent = formatRealmInfo(
                 playerData.secondaryPathRealm, 
                 playerData.secondaryPathProgress
             );
-            perfectionMet = playerData.secondaryPathRealmMajor === currentMainMajor && 
-                           playerData.secondaryPathRealmMinor === 'Mid';
+            perfectMet = (playerData.secondaryPathRealmMajor === currentMainMajor && 
+                           playerData.secondaryPathRealmMinor === 'Mid') ||
+						   
+						   (playerData.secondaryPathRealmMajor === currentMainMajor && 
+                           playerData.secondaryPathRealmMinor === 'Late' &&  
+						   playerData.secondaryPathProgress < 100)
+						   );
         } else {
-            perfectionRequired = `${currentMainMajor} Early`;
-            perfectionCurrent = formatRealmInfo(
+            perfectRequired = `${currentMainMajor} Early`;
+            perfectCurrent = formatRealmInfo(
                 playerData.secondaryPathRealm, 
                 playerData.secondaryPathProgress
             );
-            perfectionMet = playerData.secondaryPathRealmMajor === currentMainMajor && 
-                           playerData.secondaryPathRealmMinor === 'Early';
+            perfectMet = playerData.secondaryPathRealmMajor === currentMainMajor && 
+                           (playerData.secondaryPathRealmMinor != 'Late' && playerData.secondaryPathProgress < 100);
         }
         
-        // Perfection is automatically met if we're at Half-Step
+        // perfect is automatically met if we're at Half-Step
         if (currentScenario === 'Half-Step') {
-            perfectionMet = true;
+            perfectMet = true;
         }
         
         requirements.push({
-            id: 'perfection',
-            description: `Perfection: Secondary at same major`,
-            current: `Currently: ${perfectionCurrent}`,
-            met: perfectionMet,
-            required: `Required: ${perfectionRequired}`,
-            icon: perfectionMet ? '✅' : '❌'
+            id: 'perfect',
+            description: `perfect: Secondary at same major`,
+            current: `Currently: ${perfectCurrent}`,
+            met: perfectMet,
+            required: `Required: ${perfectRequired}`,
+            icon: perfectMet ? '✅' : '❌'
         });
         
         // 4. Half-Step Requirement (Both at 100%+ Late in same major)
@@ -318,9 +336,9 @@ class ViryaCalculator {
                 details = this.getEminenceProgressDetails(playerData);
                 break;
                 
-            case 'Perfection':
-                progress = this.calculatePerfectionProgress(playerData);
-                details = this.getPerfectionProgressDetails(playerData);
+            case 'perfect':
+                progress = this.calculateperfectProgress(playerData);
+                details = this.getperfectProgressDetails(playerData);
                 break;
                 
             case 'Half-Step':
@@ -371,7 +389,7 @@ class ViryaCalculator {
         return `Need: ${previousMajor} ${requiredStage}`;
     }
     
-    static calculatePerfectionProgress(playerData) {
+    static calculateperfectProgress(playerData) {
         if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor) {
             const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' : 'Early';
             const stageValue = { 'Early': 0, 'Mid': 50, 'Late': 100 };
@@ -395,7 +413,7 @@ class ViryaCalculator {
         return 0;
     }
     
-    static getPerfectionProgressDetails(playerData) {
+    static getperfectProgressDetails(playerData) {
         const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' : 'Early';
         return `Need: ${playerData.mainPathRealmMajor} ${requiredStage}`;
     }
@@ -443,7 +461,7 @@ static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
     console.log('Target scenario:', targetScenario);
     
     // Define scenario order
-    const scenarioOrder = ['Completion', 'Eminence', 'Perfection', 'Half-Step'];
+    const scenarioOrder = ['Completion', 'Eminence', 'perfect', 'Half-Step'];
     const currentIndex = scenarioOrder.indexOf(currentScenario);
     const targetIndex = scenarioOrder.indexOf(targetScenario);
     
@@ -478,9 +496,9 @@ static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
             case 'Eminence':
                 xpNeeded = this.calculateXPForEminence(playerData);
                 break;
-            case 'Perfection':
-                // Special handling for Perfection
-                xpNeeded = this.calculateXPForPerfection(playerData);
+            case 'perfect':
+                // Special handling for perfect
+                xpNeeded = this.calculateXPForperfect(playerData);
                 
                 // If coming from Eminence, check if we're already at the right realm
                 if (currentScenario === 'Eminence') {
@@ -540,7 +558,7 @@ static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
 }
 
     static calculateXPForEminence(playerData) {
-        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'perfect', 
                            'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
         const currentMainMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
         const previousMajor = currentMainMajorIndex > 0 ? realmOrder[currentMainMajorIndex - 1] : null;
@@ -559,7 +577,7 @@ static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
                                       targetRealm, 100);
     }
 
-    static calculateXPForPerfection(playerData) {
+    static calculateXPForperfect(playerData) {
         let targetRealm;
         if (playerData.mainPathRealmMajor === 'Voidbreak') {
             targetRealm = `${playerData.mainPathRealmMajor} Mid`;

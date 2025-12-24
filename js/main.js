@@ -98,4 +98,3 @@ app.init();
 
 // Make debug manager available globally for testing
 window.DebugManager = DebugManager;
-window.CalculatorUtils = CalculatorUtils;
