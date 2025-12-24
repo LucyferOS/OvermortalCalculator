@@ -419,38 +419,125 @@ class ViryaCalculator {
         return `Both paths need 100%+ Late in ${playerData.mainPathRealmMajor}`;
     }
 
-    static calculateDaysToScenario(targetScenario, playerData, dailyXP) {
-        if (!(playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100)) {
-            return Infinity;
-        }
-        
-        const scenarioOrder = ['Completion', 'Eminence', 'Perfection', 'Half-Step'];
-        const currentScenario = this.detectScenario(playerData).scenario;
-        const currentIndex = scenarioOrder.indexOf(currentScenario);
-        const targetIndex = scenarioOrder.indexOf(targetScenario);
-        
-        if (targetIndex <= currentIndex) {
-            return 0;
-        }
-        
-        let xpNeeded = 0;
-        
+  // In ViryaCalculator.js, update the calculateDaysToScenario method:
+static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
+    console.group(`📅 Calculating days to ${targetScenario}`);
+    console.log('Player Data:', {
+        mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
+        secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`
+    });
+    console.log('Secondary Daily XP:', secondaryDailyXP);
+    
+    // First check if main path is eligible for any Virya
+    if (!(playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100)) {
+        console.log('Main path not at 100%+ Late - no Virya eligible');
+        console.groupEnd();
+        return Infinity;
+    }
+    
+    // Get current scenario
+    const currentScenarioInfo = this.detectScenario(playerData);
+    const currentScenario = currentScenarioInfo.scenario;
+    
+    console.log('Current scenario:', currentScenario);
+    console.log('Target scenario:', targetScenario);
+    
+    // Define scenario order
+    const scenarioOrder = ['Completion', 'Eminence', 'Perfection', 'Half-Step'];
+    const currentIndex = scenarioOrder.indexOf(currentScenario);
+    const targetIndex = scenarioOrder.indexOf(targetScenario);
+    
+    console.log('Scenario order:', scenarioOrder);
+    console.log('Current index:', currentIndex, 'Target index:', targetIndex);
+    
+    // Check if target is already achieved or passed
+    if (targetIndex < currentIndex) {
+        console.log('Target scenario already passed');
+        console.groupEnd();
+        return 0; // Already achieved
+    }
+    
+    if (targetIndex === currentIndex) {
+        console.log('Already at target scenario');
+        console.groupEnd();
+        return 0; // Already at this scenario
+    }
+    
+    // If no daily XP for secondary path
+    if (secondaryDailyXP <= 0) {
+        console.log('No secondary daily XP available');
+        console.groupEnd();
+        return Infinity;
+    }
+    
+    // Calculate XP needed based on target scenario
+    let xpNeeded = 0;
+    
+    try {
         switch(targetScenario) {
             case 'Eminence':
                 xpNeeded = this.calculateXPForEminence(playerData);
                 break;
             case 'Perfection':
+                // Special handling for Perfection
                 xpNeeded = this.calculateXPForPerfection(playerData);
+                
+                // If coming from Eminence, check if we're already at the right realm
+                if (currentScenario === 'Eminence') {
+                    const requiredRealm = playerData.mainPathRealmMajor === 'Voidbreak' ? 
+                        `${playerData.mainPathRealmMajor} Mid` : 
+                        `${playerData.mainPathRealmMajor} Early`;
+                    
+                    if (playerData.secondaryPathRealm === requiredRealm) {
+                        // Already at right realm, just need to reach 100%
+                        const realmXP = Realms[playerData.secondaryPathRealm]?.xp || 0;
+                        const currentXP = realmXP * (playerData.secondaryPathProgress / 100);
+                        xpNeeded = Math.max(0, realmXP - currentXP);
+                    }
+                }
                 break;
             case 'Half-Step':
                 xpNeeded = this.calculateXPForHalfStep(playerData);
                 break;
             default:
+                console.log('Unknown target scenario:', targetScenario);
+                console.groupEnd();
                 return Infinity;
         }
         
-        return dailyXP > 0 ? xpNeeded / dailyXP : Infinity;
+        console.log('XP needed:', xpNeeded);
+        
+        if (xpNeeded <= 0) {
+            console.log('No XP needed (already there)');
+            console.groupEnd();
+            return 0;
+        }
+        
+        const daysNeeded = xpNeeded / secondaryDailyXP;
+        console.log('Days needed:', daysNeeded);
+        
+        // Safety checks
+        if (isNaN(daysNeeded)) {
+            console.log('Days needed is NaN');
+            console.groupEnd();
+            return Infinity;
+        }
+        
+        if (!isFinite(daysNeeded)) {
+            console.log('Days needed is infinite');
+            console.groupEnd();
+            return Infinity;
+        }
+        
+        console.groupEnd();
+        return daysNeeded;
+        
+    } catch (error) {
+        console.error('Error calculating days to scenario:', error);
+        console.groupEnd();
+        return Infinity;
     }
+}
 
     static calculateXPForEminence(playerData) {
         const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 

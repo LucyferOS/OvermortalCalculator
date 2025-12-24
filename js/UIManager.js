@@ -121,43 +121,125 @@ class UIManager {
         }
     }
 
-    static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo) {
-        const format = CalculatorUtils.formatTimeDays;
-        const formatDate = CalculatorUtils.formatDateFromDays;
+static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo) {
+    console.group(`⏱️ Updating time for ${scenario}`);
+    console.log('Inputs:', {
+        scenario,
+        scenarioKey,
+        playerData: {
+            mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
+            secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`,
+            pathFocus: playerData.pathFocus
+        },
+        dailyXP,
+        currentViryaScenario: viryaInfo.scenario
+    });
+    
+    const format = CalculatorUtils.formatTimeDays;
+    const formatDate = CalculatorUtils.formatDateFromDays;
+    
+    const timeId = `virya-${scenarioKey}-time`;
+    const dateId = `virya-${scenarioKey}-date`;
+    
+    // If this is the current scenario
+    if (scenario === viryaInfo.scenario) {
+        console.log(`Scenario ${scenario} is currently active`);
+        this.updateElementText(timeId, '✅ Active Now');
+        this.updateElementText(dateId, '--');
+        console.groupEnd();
+        return;
+    }
+    
+    // Calculate secondary path daily XP
+    let secondaryDailyXP = 0;
+    
+    if (playerData.pathFocus === 'Secondary Path') {
+        secondaryDailyXP = dailyXP;
+        console.log('Secondary path focused: using full daily XP:', secondaryDailyXP);
+    } else {
+        // When focusing on main path, estimate secondary path XP
+        // Secondary gets only abode aura XP (no pills, no respira)
+        // This is a rough estimate - about 30-50% of daily XP
+        const abodeFraction = 0.4; // Estimate: 40% of daily XP is from abode aura
+        secondaryDailyXP = dailyXP * abodeFraction;
+        console.log('Main path focused: estimated secondary XP:', secondaryDailyXP);
+    }
+    
+    // Special case: If we need to calculate time to Perfect from Eminence
+    // and secondary is already at the right realm but not 100% progress
+    if (scenario === 'Perfection' && viryaInfo.scenario === 'Eminence') {
+        console.log('Calculating Perfect from Eminence...');
         
-        const timeId = `virya-${scenarioKey}-time`;
-        const dateId = `virya-${scenarioKey}-date`;
+        // Check if secondary is already at the required realm for Perfect
+        const requiredRealm = playerData.mainPathRealmMajor === 'Voidbreak' ? 
+            `${playerData.mainPathRealmMajor} Mid` : 
+            `${playerData.mainPathRealmMajor} Early`;
+            
+        const isAtRequiredRealm = playerData.secondaryPathRealm === requiredRealm;
         
-        if (scenario === viryaInfo.scenario) {
-            // Current scenario
-            this.updateElementText(timeId, '✅ Active Now');
-            this.updateElementText(dateId, '--');
-        } else {
-            // Calculate time to reach this scenario
-            // We need secondary path daily XP, not main path daily XP
-            let secondaryDailyXP = 0;
-            if (playerData.pathFocus === 'Secondary Path') {
-                secondaryDailyXP = dailyXP;
-            } else {
-                // When focusing on main path, secondary gets only abode aura XP
-                // This is a simplification - in reality it would need full calculation
-                secondaryDailyXP = dailyXP * 0.3; // Estimate: 30% of daily XP goes to secondary
+        console.log('Required realm for Perfect:', requiredRealm);
+        console.log('Current secondary realm:', playerData.secondaryPathRealm);
+        console.log('Is at required realm?', isAtRequiredRealm);
+        
+        if (isAtRequiredRealm) {
+            // Already at the right realm, just need to reach 100%
+            const realmXP = Realms[playerData.secondaryPathRealm]?.xp || 0;
+            const currentXP = realmXP * (playerData.secondaryPathProgress / 100);
+            const neededXP = realmXP - currentXP;
+            
+            if (neededXP <= 0) {
+                console.log('Already at 100%+ in required realm');
+                this.updateElementText(timeId, '✅ Ready Now');
+                this.updateElementText(dateId, '--');
+                console.groupEnd();
+                return;
             }
             
-            const daysToReach = ViryaCalculator.calculateDaysToScenario(scenario, playerData, secondaryDailyXP);
-            
-            if (daysToReach === 0) {
-                this.updateElementText(timeId, '✅ Already Met');
-                this.updateElementText(dateId, '--');
-            } else if (daysToReach === Infinity || daysToReach > 36500) {
-                this.updateElementText(timeId, 'Not Reachable');
-                this.updateElementText(dateId, '--');
-            } else {
-                this.updateElementText(timeId, format(daysToReach));
-                this.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
+            if (secondaryDailyXP > 0) {
+                const days = neededXP / secondaryDailyXP;
+                console.log('Days to reach 100%:', days);
+                this.updateElementText(timeId, format(days));
+                this.updateElementText(dateId, `Est: ${formatDate(days)}`);
+                console.groupEnd();
+                return;
             }
         }
     }
+    
+    // Use ViryaCalculator for standard calculation
+    const daysToReach = ViryaCalculator.calculateDaysToScenario(scenario, playerData, secondaryDailyXP);
+    
+    console.log('Days to reach scenario:', daysToReach);
+    
+    if (daysToReach === 0) {
+        console.log('Scenario already achieved');
+        this.updateElementText(timeId, '✅ Already Met');
+        this.updateElementText(dateId, '--');
+    } else if (daysToReach === Infinity || isNaN(daysToReach) || daysToReach > 36500) {
+        console.log('Scenario not reachable');
+        
+        // Provide more specific reason
+        let reason = 'Not reachable';
+        if (secondaryDailyXP <= 0) {
+            reason = 'No secondary path XP';
+        } else if (daysToReach > 36500) {
+            reason = 'Too far away';
+        }
+        
+        this.updateElementText(timeId, reason);
+        this.updateElementText(dateId, '--');
+    } else if (daysToReach < 0) {
+        console.log('Invalid negative days');
+        this.updateElementText(timeId, 'Error');
+        this.updateElementText(dateId, '--');
+    } else {
+        console.log('Valid time calculated');
+        this.updateElementText(timeId, format(daysToReach));
+        this.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
+    }
+    
+    console.groupEnd();
+}
 
     static updateProgressBar(elementId, percent) {
         const progress = Math.min(100, percent);
