@@ -592,9 +592,216 @@
 				console.log("Main path daily XP:", mainPathDailyXP);
 				console.log("Secondary path daily XP:", secondaryPathDailyXP);
 
+			// ================= VIRYA SCENARIO DETECTION =================
+			let viryaScenario = null;
+			let viryaBonus = 1.0; // Default: no bonus
+
+			// Check if main path is at 100% in late realm
+			const isMainPath100Late = p.mainPathRealmMinor === 'Late' && p.mainPathProgress === 100;
+
+			if (isMainPath100Late) {
+				console.log("Player is at 100% late in main path - checking Virya scenarios...");
+				
+				// Get major realm order for progression checks
+				const realmOrder = [
+					'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+					'Nirvana', 'Celestial', 'Eternal', 'Supreme'
+				];
+				
+				const currentMajorIndex = realmOrder.indexOf(p.mainPathRealmMajor);
+				const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
+				const nextMajor = currentMajorIndex < realmOrder.length - 1 ? realmOrder[currentMajorIndex + 1] : null;
+				
+				// Function to convert realm stage to numeric value for comparison
+				const getRealmStageValue = (major, minor) => {
+					const majorIndex = realmOrder.indexOf(major);
+					const minorValue = { 'Early': 0, 'Mid': 1, 'Late': 2 }[minor] || 0;
+					return majorIndex * 10 + minorValue; // Major is more significant than minor
+				};
+				
+				const mainStageValue = getRealmStageValue(p.mainPathRealmMajor, p.mainPathRealmMinor);
+				const secondaryStageValue = getRealmStageValue(p.secondaryPathRealmMajor, p.secondaryPathRealmMinor);
+				
+				console.log(`Main stage value: ${mainStageValue}, Secondary stage value: ${secondaryStageValue}`);
+				
+				// Define stage requirements for each Virya scenario
+				// Using stage values allows us to do "greater than/less than" comparisons
+				
+				// 1. Check Virya Half-Step - Highest requirement
+				// Both paths must be at 100% late in the SAME major realm
+				const isSecondary100Late = p.secondaryPathRealmMinor === 'Late' && 
+										   p.secondaryPathProgress === 100;
+				const isSameMajor = p.secondaryPathRealmMajor === p.mainPathRealmMajor;
+				
+				if (isSecondary100Late && isSameMajor) {
+					viryaScenario = 'Half-Step';
+					viryaBonus = 1.4; // 40% bonus
+					console.log("Virya Half-Step detected: Both paths at 100% late in same major realm");
+				}
+				// 2. Check Virya Perfection - Secondary is at same major but EARLIER stage
+				else if (isSameMajor) {
+					// For Voidbreak: requires Mid or better
+					if (p.mainPathRealmMajor === 'Voidbreak') {
+						const isVoidbreakMidOrBetter = p.secondaryPathRealmMinor === 'Mid' || 
+													   p.secondaryPathRealmMinor === 'Late';
+						if (isVoidbreakMidOrBetter) {
+							viryaScenario = 'Perfection';
+							viryaBonus = 1.2; // 20% bonus
+							console.log("Virya Perfection detected: Voidbreak main with Voidbreak Mid or Late secondary");
+						}
+					} 
+					// For other realms: requires Early or better
+					else {
+						const isEarlyOrBetter = p.secondaryPathRealmMinor === 'Early' || 
+												p.secondaryPathRealmMinor === 'Mid' || 
+												p.secondaryPathRealmMinor === 'Late';
+						if (isEarlyOrBetter) {
+							viryaScenario = 'Perfection';
+							viryaBonus = 1.2; // 20% bonus
+							console.log("Virya Perfection detected: Same major realm with Early/Mid/Late secondary");
+						}
+					}
+				}
+				// 3. Check Virya Eminence - Secondary is at PREVIOUS major
+				else if (previousMajor && p.secondaryPathRealmMajor === previousMajor) {
+					// For Voidbreak main: secondary must be at Late
+					if (p.mainPathRealmMajor === 'Voidbreak') {
+						const isPreviousLate = p.secondaryPathRealmMinor === 'Late';
+						if (isPreviousLate) {
+							viryaScenario = 'Eminence';
+							viryaBonus = 1.2; // 20% bonus
+							console.log(`Virya Eminence detected: Voidbreak main with ${previousMajor} Late secondary`);
+						}
+					} 
+					// For other realms: secondary must be at Mid or better
+					else {
+						const isMidOrBetter = p.secondaryPathRealmMinor === 'Mid' || 
+											  p.secondaryPathRealmMinor === 'Late';
+						if (isMidOrBetter) {
+							viryaScenario = 'Eminence';
+							viryaBonus = 1.2; // 20% bonus
+							console.log(`Virya Eminence detected: ${p.mainPathRealmMajor} main with ${previousMajor} Mid/Late secondary`);
+						}
+					}
+				}
+				
+				// 4. If none of the above, it's Virya Completion
+				if (!viryaScenario) {
+					viryaScenario = 'Completion';
+					viryaBonus = 1.0; // No bonus
+					console.log("Virya Completion detected: Main path at 100% late, no secondary path requirements met");
+				}
+				
+				// ============ BONUS DURATION LOGIC ============
+				// Determine when the Virya bonus ends based on the scenario
+				let bonusEndsAt = null;
+				
+				switch (viryaScenario) {
+					case 'Eminence':
+						// Eminence bonus lasts until Perfection is reached
+						// That is: until secondary reaches same major realm, early stage (mid for Voidbreak)
+						if (p.mainPathRealmMajor === 'Voidbreak') {
+							bonusEndsAt = `${p.mainPathRealmMajor} Mid`;
+						} else {
+							bonusEndsAt = `${p.mainPathRealmMajor} Early`;
+						}
+						break;
+						
+					case 'Perfection':
+						// Perfection bonus lasts until Half-Step is reached
+						// That is: until both are at 100% late in same major realm
+						bonusEndsAt = `${p.mainPathRealmMajor} Late (both at 100%)`;
+						break;
+						
+					case 'Half-Step':
+						// Half-Step bonus lasts until main path hits late realm of next major realm
+						if (nextMajor) {
+							bonusEndsAt = `${nextMajor} Late`;
+						} else {
+							bonusEndsAt = 'Max Realm Reached';
+						}
+						break;
+						
+					case 'Completion':
+						// No bonus, but still track when timegate ends
+						bonusEndsAt = 'Timegate Completion';
+						break;
+				}
+				
+				console.log(`Virya Scenario: ${viryaScenario}, Bonus: ${(viryaBonus * 100) - 100}%, Ends at: ${bonusEndsAt}`);
+					
+					// Apply Virya bonus to daily XP for main path
+					// Note: In reality, Virya only affects abode aura XP, not all XP
+					// For now, we'll apply it to the entire daily XP (simplified)
+					if (viryaScenario !== 'Completion' && mainPathDailyXP > 0) {
+						// We need to separate abode aura XP from other sources
+						// First, recalculate daily XP components to apply bonus correctly
+						
+						// Calculate abode aura XP portion
+						const abodeBonuses = [
+							p.abodeBonusCurio, p.abodeBonusTechnique, p.abodeBonusSectLevel,
+							p.abodeBonusSectBarrier, p.abodeBonusCelestialSpring, p.abodeBonusEnergyArray,
+							p.abodeBonusSwordArray, p.abodeBonusHeavenGate, p.abodeBonusWholenessCitta,
+							p.abodeBonusPerfectionWorldRift, p.abodeBonusNirvanaPathofAscension,
+							p.abodeBonusNirvanaHornMansion, p.abodeBonusNirvanaNeckMansion
+						];
+						
+						const totalAbodeBonus = abodeBonuses.reduce((sum, bonus) => sum + bonus, 0);
+						const baseAuraXP = p.cosmoapsis * (1 + (totalAbodeBonus / 100));
+						const abodeAuraXPTotalFinal = baseAuraXP * 10800;
+						
+						// Calculate gem bonus XP
+						const gemBonusXPdaily = abodeAuraXPTotalFinal * GameData.gemQuality[p.gemQuality];
+						
+						// Total abode-related XP (aura + gem)
+						const totalAbodeRelatedXP = abodeAuraXPTotalFinal + gemBonusXPdaily;
+						
+						// Apply Virya bonus ONLY to abode-related XP
+						const viryaBonusMultiplier = viryaBonus;
+						const boostedAbodeXP = totalAbodeRelatedXP * viryaBonusMultiplier;
+						
+						// Calculate pill XP (not affected by Virya)
+						const pillXPTotal = this.calculationResults.pillXPTotal || 0;
+						
+						// Calculate respira XP (not affected by Virya)
+						const respiraExp = (() => {
+							const probabilities = [0.55, 0.30, 0.1475, 0.0025];
+							const multipliers = [1, 2, 5, 10];
+							
+							let expectedGushValue = 0;
+							for (let i = 0; i < probabilities.length; i++) {
+								expectedGushValue += probabilities[i] * multipliers[i];
+							}
+							
+							const respiraAttemptsGush = p.respiraAttemptsTotal * expectedGushValue;
+							const realmRespiraXP = XPData[p.mainPathRealmMajor + "XP"].respira;
+							
+							return respiraAttemptsGush * realmRespiraXP * 1000 * p.respiraBonusTotal;
+						})();
+						
+						// Recalculate total daily XP with Virya bonus applied correctly
+						const totalDailyXPWithVirya = boostedAbodeXP + pillXPTotal + respiraExp;
+						
+						console.log(`Original daily XP: ${totalDailyXP}`);
+						console.log(`Abode-related XP: ${totalAbodeRelatedXP}`);
+						console.log(`Boosted abode XP (${viryaBonusMultiplier}x): ${boostedAbodeXP}`);
+						console.log(`Total daily XP with Virya: ${totalDailyXPWithVirya}`);
+						
+						// Update main path daily XP with Virya bonus
+						if (p.pathFocus === 'Main Path') {
+							mainPathDailyXP = totalDailyXPWithVirya;
+						} else {
+							// If focusing on secondary path, main path still gets Virya bonus
+							mainPathDailyXP = boostedAbodeXP + pillXPTotal + respiraExp;
+						}
+					}
+				}
+				// ================= END VIRYA DETECTION =================
+
 				let timeToNextMainMinor = 0, timeToNextMainMajor = 0;
 				let progressPercentMajorMain = 0;
 				
+				// Calculate main path exp - also calculate for virya if at 100% late.
 				if (mainPathDailyXP > 0) {
 					const mainRealmXP = GameData.realms[p.mainPathRealm].xp;
 					const xpNeededForMinor = mainRealmXP - p.mainPathExp;
@@ -696,6 +903,13 @@
 					console.log("Secondary major realm progress %:", progressPercentMajorSecondary);
 				}
 				
+				// Store Virya info in results
+				this.calculationResults.virya = {
+					scenario: viryaScenario,
+					bonus: viryaBonus,
+					isActive: isMainPath100Late
+				};
+				
 				this.calculationResults.realmProgression = {
 					mainPath: {
 						timeToNextMinor: timeToNextMainMinor,
@@ -712,6 +926,7 @@
 				};
 
 				console.log("Final results:", this.calculationResults.realmProgression);
+				console.log("Virya info:", this.calculationResults.virya);
 				console.log("=== END DEBUG ===");
 				return this.calculationResults.realmProgression;
 			}
@@ -917,6 +1132,10 @@
 				if (realmResults.secondaryPath) {
 					this.updateSecondaryPathResults(realmResults.secondaryPath);
 				}
+				// Update Virya Display
+				    if (results.virya) {
+					this.updateViryaDisplay(results.virya, results);
+				}
 
 				// Update fruit scenario results
 				const fruitResults = results.fruitScenarios;
@@ -925,9 +1144,10 @@
 				}
 
 				// Update recommendation
-				this.updateElementHTML('recommendation-display', 
-					`<span><strong>Recommendation:</strong> ${results.recommendation || 'No recommendation available.'}</span>`
-				);
+				if (results.virya) {
+					this.updateViryaDisplay(results.virya, results);
+					this.updateRecommendation(p, results.virya, results);
+				}
 			}
 
 			updateMainPathResults(mainPath) {
@@ -998,7 +1218,537 @@
 				const element = document.getElementById(elementId);
 				if (element) element.innerHTML = html;
 			}
+			
+			updateViryaDisplay(viryaInfo, results) {
+				if (!viryaInfo) {
+					console.log("No Virya info available");
+					return;
+				}
+				
+				const p = this.calculator.playerData;
+				const format = this.calculator.formatTimeDays;
+				const formatDate = this.calculator.formatDateFromDays;
+				
+				// Update status bar
+				this.updateElementText('current-virya-scenario', viryaInfo.scenario || 'None');
+				this.updateElementText('current-virya-bonus', `+${((viryaInfo.bonus || 1) * 100 - 100).toFixed(0)}%`);
+				this.updateElementText('current-virya-ends', viryaInfo.bonusEndsAt || 'N/A');
+				
+				// Update requirements display
+				this.updateRequirementsDisplay(p, viryaInfo);
+				
+				// Define scenarios array here so it's available to all methods
+				const scenarios = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
+				
+				// Update table rows - highlight current scenario
+				scenarios.forEach(scenario => {
+					const rowId = `virya-row-${scenario.toLowerCase().replace('-', '')}`;
+					const row = document.getElementById(rowId);
+					
+					if (row) {
+						// Remove active class from all rows
+						row.classList.remove('active');
+						
+						// Add active class to current scenario
+						if (scenario === viryaInfo.scenario) {
+							row.classList.add('active');
+						}
+						
+						// Update progress bars based on scenario
+						this.updateViryaProgress(scenario, rowId, p, viryaInfo);
+					}
+				});
+				
+				// Calculate and display times for each Virya scenario
+				this.calculateViryaTimes(scenarios, viryaInfo, results);
+			}
+			
+			updateRequirementsDisplay(playerData, viryaInfo) {
+				const requirementsElement = document.getElementById('virya-requirements-display');
+				if (!requirementsElement) return;
+				
+				let html = '<div class="requirements-list">';
+				html += '<strong>Requirements Status:</strong><br>';
+				
+				// Check each requirement
+				const requirements = this.checkAllViryaRequirements(playerData);
+				
+				requirements.forEach(req => {
+					const icon = req.met ? '✅' : '❌';
+					const className = req.met ? 'requirement-met' : 'requirement-not-met';
+					html += `<span class="${className}">${icon} ${req.description}</span><br>`;
+				});
+				
+				html += '</div>';
+				requirementsElement.innerHTML = html;
+			}
 
+			checkAllViryaRequirements(playerData) {
+				const requirements = [];
+				
+				// 1. Main path at 100% Late
+				const main100Late = playerData.mainPathRealmMinor === 'Late' && 
+								   playerData.mainPathProgress === 100;
+				requirements.push({
+					description: 'Main path at 100% Late',
+					met: main100Late
+				});
+				
+				if (!main100Late) {
+					// If main isn't at 100% Late, other requirements don't matter yet
+					return requirements;
+				}
+				
+				// Get realm order
+				const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+								   'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+				
+				const currentMainMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
+				const previousMajor = currentMainMajorIndex > 0 ? realmOrder[currentMainMajorIndex - 1] : null;
+				
+				// 2. Eminence requirement
+				let eminenceMet = false;
+				if (previousMajor) {
+					if (playerData.mainPathRealmMajor === 'Voidbreak') {
+						eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
+									 playerData.secondaryPathRealmMinor === 'Late';
+					} else {
+						eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
+									 playerData.secondaryPathRealmMinor === 'Mid';
+					}
+				}
+				requirements.push({
+					description: `Eminence: Secondary at ${previousMajor || 'N/A'} ${playerData.mainPathRealmMajor === 'Voidbreak' ? 'Late' : 'Mid'}`,
+					met: eminenceMet
+				});
+				
+				// 3. Perfection requirement
+				let perfectionMet = false;
+				if (playerData.mainPathRealmMajor === 'Voidbreak') {
+					perfectionMet = playerData.secondaryPathRealmMajor === 'Voidbreak' && 
+								   playerData.secondaryPathRealmMinor === 'Mid';
+				} else {
+					perfectionMet = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor && 
+								   playerData.secondaryPathRealmMinor === 'Early';
+				}
+				requirements.push({
+					description: `Perfection: Secondary at ${playerData.mainPathRealmMajor} ${playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' : 'Early'}`,
+					met: perfectionMet
+				});
+				
+				// 4. Half-Step requirement
+				const halfStepMet = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
+								   playerData.secondaryPathRealmMinor === 'Late' &&
+								   playerData.secondaryPathProgress === 100;
+				requirements.push({
+					description: 'Half-Step: Both paths at 100% Late in same major',
+					met: halfStepMet
+				});
+				
+				return requirements;
+			}
+
+			updateViryaProgress(scenario, rowId, playerData, viryaInfo) {
+				// Calculate progress percentage for each scenario
+				let progressPercent = 0;
+				
+				switch(scenario) {
+					case 'Completion':
+						// Completion progress is based on main path late progress
+						if (playerData.mainPathRealmMinor === 'Late') {
+							progressPercent = playerData.mainPathProgress;
+						}
+						break;
+						
+					case 'Eminence':
+						// Eminence progress depends on secondary path vs previous major
+						progressPercent = this.calculateEminenceProgress(playerData);
+						break;
+						
+					case 'Perfect':
+						// Perfection progress depends on secondary path vs same major
+						progressPercent = this.calculatePerfectionProgress(playerData);
+						break;
+						
+					case 'Half-Step':
+						// Half-Step progress depends on both paths being at 100% late
+						progressPercent = this.calculateHalfStepProgress(playerData);
+						break;
+				}
+				
+				// Update progress bar
+				const progressBar = document.getElementById(`${rowId}-progress`);
+				if (progressBar) {
+					progressBar.style.width = `${Math.min(100, progressPercent)}%`;
+					progressBar.textContent = `${Math.round(progressPercent)}%`;
+				}
+			}
+
+			calculateEminenceProgress(playerData) {
+				// Get realm order
+				const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+								   'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+				
+				const currentMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
+				const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
+				
+				if (!previousMajor) return 0;
+				
+				if (playerData.secondaryPathRealmMajor === previousMajor) {
+					// Secondary is in previous major, calculate stage progress
+					const stageValue = { 'Early': 0, 'Mid': 1, 'Late': 2 };
+					const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 2 : 1; // Late for Voidbreak, Mid for others
+					const currentStage = stageValue[playerData.secondaryPathRealmMinor] || 0;
+					
+					// Calculate percentage (0-100) based on stage and progress
+					const stageProgress = (currentStage / requiredStage) * 70; // 70% weight for stage
+					const progressInStage = (playerData.secondaryPathProgress / 100) * 30; // 30% weight for progress
+					
+					return stageProgress + progressInStage;
+				} else if (realmOrder.indexOf(playerData.secondaryPathRealmMajor) < currentMajorIndex) {
+					// Secondary is behind previous major
+					return 25; // Some progress made
+				}
+				
+				return 0;
+			}
+
+			calculatePerfectionProgress(playerData) {
+				if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor) {
+					// Same major realm
+					const stageValue = { 'Early': 0, 'Mid': 1, 'Late': 2 };
+					const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 1 : 0; // Mid for Voidbreak, Early for others
+					const currentStage = stageValue[playerData.secondaryPathRealmMinor] || 0;
+					
+					if (currentStage >= requiredStage) {
+						// Already at required stage or better
+						const stageProgress = 70; // 70% for reaching required stage
+						const progressInStage = (playerData.secondaryPathProgress / 100) * 30; // 30% for progress in stage
+						return Math.min(100, stageProgress + progressInStage);
+					} else {
+						// Not yet at required stage
+						return (currentStage / requiredStage) * 100;
+					}
+				} else if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor) {
+					// Different major but same? (edge case)
+					return 0;
+				}
+				
+				return 0;
+			}
+
+			calculateHalfStepProgress(playerData) {
+				if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
+					playerData.secondaryPathRealmMinor === 'Late' &&
+					playerData.mainPathRealmMinor === 'Late') {
+					
+					// Both in same major late realm
+					const mainProgress = playerData.mainPathProgress;
+					const secondaryProgress = playerData.secondaryPathProgress;
+					
+					// Average of both progresses
+					return (mainProgress + secondaryProgress) / 2;
+				}
+				
+				return 0;
+			}
+
+			calculateViryaTimes(scenarios, viryaInfo, results) {
+				const p = this.calculator.playerData;
+				const dailyXP = this.calculator.calculateDailyXP();
+				const format = this.calculator.formatTimeDays;
+				const formatDate = this.calculator.formatDateFromDays;
+				
+				// Calculate XP rates for each path
+				let mainDailyXP = 0;
+				let secondaryDailyXP = 0;
+				
+				if (p.pathFocus === 'Main Path') {
+					mainDailyXP = dailyXP;
+					secondaryDailyXP = 0;
+				} else {
+					secondaryDailyXP = dailyXP;
+					mainDailyXP = 0;
+				}
+				
+				scenarios.forEach(scenario => {
+					const scenarioKey = scenario.toLowerCase().replace('-', '');
+					const timeId = `virya-${scenarioKey}-time`;
+					const dateId = `virya-${scenarioKey}-date`;
+					
+					if (scenario === viryaInfo.scenario) {
+						// Current scenario - show as active
+						this.updateElementText(timeId, '✅ Active Now');
+						this.updateElementText(dateId, '--');
+					} else {
+						// Calculate time to reach this scenario
+						const estimatedDays = this.calculateDaysToViryaScenario(scenario, p, mainDailyXP, secondaryDailyXP);
+						
+						if (estimatedDays > 0) {
+							this.updateElementText(timeId, format(estimatedDays));
+							this.updateElementText(dateId, `Estimated: ${formatDate(estimatedDays)}`);
+						} else {
+							this.updateElementText(timeId, 'Cannot reach');
+							this.updateElementText(dateId, '--');
+						}
+					}
+				});
+			}
+
+			calculateDaysToViryaScenario(targetScenario, playerData, mainDailyXP, secondaryDailyXP) {
+				// Get realm order
+				const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+								   'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+				
+				const currentMainMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
+				const currentSecondaryMajorIndex = realmOrder.indexOf(playerData.secondaryPathRealmMajor);
+				
+				// If we need to calculate time, we need to consider XP requirements
+				// This is a simplified calculation - in reality, it's more complex
+				
+				switch(targetScenario) {
+					case 'Completion':
+						// Already at 100% late? Time is 0
+						if (playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress === 100) {
+							return 0;
+						}
+						// Calculate time for main to reach 100% late
+						return this.calculateTimeTo100Late(playerData.mainPathRealm, 
+														  playerData.mainPathProgress, 
+														  mainDailyXP);
+						
+					case 'Eminence':
+						return this.calculateTimeToEminence(playerData, mainDailyXP, secondaryDailyXP);
+						
+					case 'Perfect':
+						return this.calculateTimeToPerfection(playerData, mainDailyXP, secondaryDailyXP);
+						
+					case 'Half-Step':
+						return this.calculateTimeToHalfStep(playerData, mainDailyXP, secondaryDailyXP);
+						
+					default:
+						return 0;
+				}
+			}
+
+			calculateTimeTo100Late(currentRealm, currentProgress, dailyXP) {
+				if (dailyXP <= 0) return Infinity;
+				
+				const realmXP = GameData.realms[currentRealm].xp;
+				const currentXP = realmXP * (currentProgress / 100);
+				const neededXP = realmXP - currentXP;
+				
+				return neededXP / dailyXP;
+			}
+
+			calculateTimeToEminence(playerData, mainDailyXP, secondaryDailyXP) {
+				// First, main needs to be at 100% late if not already
+				let totalTime = 0;
+				
+				// Time for main to reach 100% late
+				if (!(playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress === 100)) {
+					totalTime += this.calculateTimeTo100Late(playerData.mainPathRealm, 
+															playerData.mainPathProgress, 
+															mainDailyXP);
+				}
+				
+				// Then secondary needs to reach required state
+				const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+								   'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+				
+				const currentMainMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
+				const requiredMajor = currentMainMajorIndex > 0 ? realmOrder[currentMainMajorIndex - 1] : null;
+				
+				if (!requiredMajor) return Infinity; // No previous major (Incarnation)
+				
+				// Determine required minor realm
+				let requiredMinor = 'Mid'; // Default for non-Voidbreak
+				if (playerData.mainPathRealmMajor === 'Voidbreak') {
+					requiredMinor = 'Late';
+				}
+				
+				// Calculate time for secondary to reach required state
+				totalTime += this.calculateTimeToRealm(playerData.secondaryPathRealm,
+													  playerData.secondaryPathProgress,
+													  `${requiredMajor} ${requiredMinor}`,
+													  secondaryDailyXP);
+				
+				return totalTime;
+			}
+
+			calculateTimeToPerfection(playerData, mainDailyXP, secondaryDailyXP) {
+				// Similar logic to Eminence but different requirements
+				let totalTime = 0;
+				
+				// Main to 100% late
+				if (!(playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress === 100)) {
+					totalTime += this.calculateTimeTo100Late(playerData.mainPathRealm, 
+															playerData.mainPathProgress, 
+															mainDailyXP);
+				}
+				
+				// Secondary to same major, early (mid for Voidbreak)
+				let requiredMinor = 'Early'; // Default for non-Voidbreak
+				if (playerData.mainPathRealmMajor === 'Voidbreak') {
+					requiredMinor = 'Mid';
+				}
+				
+				totalTime += this.calculateTimeToRealm(playerData.secondaryPathRealm,
+													  playerData.secondaryPathProgress,
+													  `${playerData.mainPathRealmMajor} ${requiredMinor}`,
+													  secondaryDailyXP);
+				
+				return totalTime;
+			}
+
+			calculateTimeToHalfStep(playerData, mainDailyXP, secondaryDailyXP) {
+				// Both need to be at 100% late in same major
+				let totalTime = 0;
+				
+				// Main to 100% late
+				if (!(playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress === 100)) {
+					totalTime += this.calculateTimeTo100Late(playerData.mainPathRealm, 
+															playerData.mainPathProgress, 
+															mainDailyXP);
+				}
+				
+				// Secondary to 100% late in same major
+				totalTime += this.calculateTimeToRealm(playerData.secondaryPathRealm,
+													  playerData.secondaryPathProgress,
+													  `${playerData.mainPathRealmMajor} Late`,
+													  secondaryDailyXP);
+				
+				return totalTime;
+			}
+
+			calculateTimeToRealm(currentRealm, currentProgress, targetRealm, dailyXP) {
+				if (dailyXP <= 0) return Infinity;
+				
+				// Get current XP
+				const currentRealmXP = GameData.realms[currentRealm].xp;
+				const currentXP = currentRealmXP * (currentProgress / 100);
+				
+				// Get target XP
+				const targetRealmXP = GameData.realms[targetRealm].xp;
+				const targetXP = targetRealmXP; // Assuming 100% progress for target
+				
+				// If already at or beyond target
+				if (currentXP >= targetXP) return 0;
+				
+				// Calculate XP needed
+				const neededXP = targetXP - currentXP;
+				
+				return neededXP / dailyXP;
+			}
+
+			estimateDaysToScenario(targetScenario, currentVirya, results) {
+				// Placeholder implementation
+				// In reality, you'd calculate based on:
+				// 1. Current XP rates
+				// 2. XP needed for secondary path to reach required state
+				// 3. Whether focusing on main or secondary path
+				
+				const scenarioOrder = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
+				const currentIndex = scenarioOrder.indexOf(currentVirya.scenario);
+				const targetIndex = scenarioOrder.indexOf(targetScenario);
+				
+				if (targetIndex <= currentIndex) {
+					return 0; // Already achieved or currently active
+				}
+				
+				// Estimate based on difference in difficulty
+				const difficultyDiff = targetIndex - currentIndex;
+				
+				// Base estimate: 30 days per step (this is just a placeholder)
+				return difficultyDiff * 30;
+			}
+			
+			updateRecommendation(playerData, viryaInfo, results) {
+				const recommendationElement = document.getElementById('recommendation-display');
+				if (!recommendationElement) return;
+				
+				let recommendation = '';
+				const timegateDays = playerData.timegateDays || 0;
+				
+				// Check if main path is at 100% late
+				const isMain100Late = playerData.mainPathRealmMinor === 'Late' && 
+									 playerData.mainPathProgress === 100;
+				
+				if (!isMain100Late) {
+					// Not yet at 100% late
+					const timeTo100Late = this.calculateTimeTo100Late(playerData.mainPathRealm, 
+																	 playerData.mainPathProgress, 
+																	 this.calculator.calculateDailyXP());
+					
+					if (timeTo100Late > timegateDays && timegateDays > 0) {
+						recommendation = `⚠️ Focus on Main Path! You won't reach 100% Late (${Math.ceil(timeTo100Late)}d) before timegate ends (${timegateDays}d). Consider using fruits or increasing cultivation rate.`;
+					} else if (timeTo100Late <= timegateDays && timegateDays > 0) {
+						recommendation = `🎯 Good progress! You'll reach 100% Late in ~${Math.ceil(timeTo100Late)}d, before timegate ends. Keep focusing on Main Path.`;
+					} else {
+						recommendation = `🎯 Focus on reaching 100% Late in Main Path (${Math.ceil(timeTo100Late)}d to go).`;
+					}
+				} else {
+					// Already at 100% late - check Virya scenarios
+					switch(viryaInfo.scenario) {
+						case 'Completion':
+							// At Completion, recommend working toward Eminence
+							const timeToEminence = this.calculateTimeToEminence(playerData, 
+																			   this.calculator.calculateDailyXP(), 
+																			   0);
+							
+							if (timeToEminence < 7) {
+								recommendation = `✨ Work on Secondary Path to reach Eminence! Only ~${Math.ceil(timeToEminence)}d to get +20% bonus.`;
+							} else if (timeToEminence < timegateDays) {
+								recommendation = `Consider working on Secondary Path to reach Eminence (~${Math.ceil(timeToEminence)}d). The +20% bonus will help future cultivation.`;
+							} else {
+								recommendation = `Maintain current focus. Reaching Eminence would take ~${Math.ceil(timeToEminence)}d - focus on breakthrough preparation.`;
+							}
+							break;
+							
+						case 'Eminence':
+							// At Eminence, recommend Perfection
+							const timeToPerfection = this.calculateTimeToPerfection(playerData, 
+																				   this.calculator.calculateDailyXP(), 
+																				   0);
+							
+							if (timeToPerfection < timegateDays) {
+								recommendation = `⚡ Upgrade to Perfection! Only ~${Math.ceil(timeToPerfection)}d to maintain +20% bonus longer.`;
+							} else {
+								recommendation = `Enjoy the +20% bonus from Eminence. Perfection would take ~${Math.ceil(timeToPerfection)}d.`;
+							}
+							break;
+							
+						case 'Perfection':
+							// At Perfection, recommend Half-Step
+							const timeToHalfStep = this.calculateTimeToHalfStep(playerData, 
+																			   this.calculator.calculateDailyXP(), 
+																			   0);
+							
+							if (timeToHalfStep < timegateDays * 2) {
+								recommendation = `🏆 Aim for Half-Step! ~${Math.ceil(timeToHalfStep)}d to get +40% bonus!`;
+							} else {
+								recommendation = `Maintain +20% bonus from Perfection. Half-Step would take ~${Math.ceil(timeToHalfStep)}d.`;
+							}
+							break;
+							
+						case 'Half-Step':
+							// At Half-Step, maximize benefit
+							recommendation = `🎊 Perfect! Enjoy the +40% bonus. Consider breaking through when ready.`;
+							break;
+							
+						default:
+							recommendation = `Complete Main Path to 100% Late to unlock Virya scenarios.`;
+					}
+				}
+				
+				// Check if we should consider switching path focus
+				if (playerData.pathFocus === 'Main Path' && isMain100Late) {
+					recommendation += ` Consider switching to Secondary Path focus to advance Virya.`;
+				}
+				
+				recommendationElement.innerHTML = `<span><strong>Recommendation:</strong> ${recommendation}</span>`;
+			}
+			
 			updateDebugInfo() {
 				// Game Data
 				const gameDataStr = this.formatJSONForDisplay(GameData);

@@ -128,51 +128,115 @@
                     <h2 class="card-title">Player Time to Virya</h2>
                     <div class="info">
                         <span>Player Path Focus Scenario chosen: <strong id="path-focus-display">Main Path</strong></span>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Scenario</th>
-                                    <th>Time to Cultivate</th>
-                                    <th>Completion Date</th>
-                                    <th>Differential XP vs Overflow</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Completion</strong></td>
-                                    <td id="virya-completion-time">⏲️ Calculating...</td>
-                                    <td id="virya-completion-date">--</td>
-                                    <td id="virya-completion-diff">+0% (Baseline)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Eminence</strong></td>
-                                    <td id="virya-eminence-time">⏲️ Calculating...</td>
-                                    <td id="virya-eminence-date">--</td>
-                                    <td id="virya-eminence-diff">--</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Perfect</strong></td>
-                                    <td id="virya-perfect-time">⏲️ Calculating...</td>
-                                    <td id="virya-perfect-date">--</td>
-                                    <td id="virya-perfect-diff">--</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Half-Step</strong></td>
-                                    <td id="virya-halfstep-time">⏲️ Calculating...</td>
-                                    <td id="virya-halfstep-date">--</td>
-                                    <td id="virya-halfstep-diff">--</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="warning" id="recommendation-display">
-                        <span><strong>Recommendation:</strong> Complete Main Path for better pills during dual cultivation before thinking about Virya. You will not reach any Virya without attaining Completion first.</span>
-                    </div>
-                </div>
-            </div>
-
+					</div>
+					
+					<!-- Virya Status Bar -->
+					<div id="virya-status-bar" class="virya-status-bar">
+						<div class="virya-status-content">
+							<span class="virya-status-label">🎯 Current Status:</span>
+							<span class="virya-scenario-badge" id="current-virya-scenario">None</span>
+							<span class="virya-bonus-badge" id="current-virya-bonus">+0%</span>
+							<span class="virya-status-text">Bonus ends when: <span id="current-virya-ends">N/A</span></span>
+						</div>
+						<div class="virya-requirements" id="virya-requirements-display">
+							Requirements met for: Completion
+						</div>
+					</div>
+					
+					<div class="table-container">
+						<table id="virya-table">
+							<thead>
+								<tr>
+									<th>
+										Scenario
+										<span class="tooltip-icon" title="Different Virya scenarios provide different bonuses and have different requirements">ℹ️</span>
+									</th>
+									<th>Time to Cultivate</th>
+									<th>Completion Date</th>
+									<th>
+										Bonus
+										<span class="tooltip-icon" title="Percentage bonus to Abode Aura XP">ℹ️</span>
+									</th>
+									<th>
+										Progress
+										<span class="tooltip-icon" title="How close you are to achieving this Virya scenario">ℹ️</span>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="virya-row-completion" class="virya-row">
+									<td>
+										<strong>Completion</strong>
+										<span class="tooltip-icon" title="Requirements: Main path at 100% Late. Provides no bonus but required for breakthrough.">ℹ️</span>
+									</td>
+									<td id="virya-completion-time">⏲️ Calculating...</td>
+									<td id="virya-completion-date">--</td>
+									<td><span class="bonus-badge bonus-0">+0%</span></td>
+									<td>
+										<div class="progress-container">
+											<div class="progress-bar">
+												<div class="progress-fill" id="virya-completion-progress" style="width: 0%">0%</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+								<tr id="virya-row-eminence" class="virya-row">
+									<td>
+										<strong>Eminence</strong>
+										<span class="tooltip-icon" title="Requirements: Main path at 100% Late + Secondary at previous major Mid (Late for Voidbreak). Provides +20% bonus until Perfection.">ℹ️</span>
+									</td>
+									<td id="virya-eminence-time">⏲️ Calculating...</td>
+									<td id="virya-eminence-date">--</td>
+									<td><span class="bonus-badge bonus-20">+20%</span></td>
+									<td>
+										<div class="progress-container">
+											<div class="progress-bar">
+												<div class="progress-fill" id="virya-eminence-progress" style="width: 0%">0%</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+								<tr id="virya-row-perfect" class="virya-row">
+									<td>
+										<strong>Perfect</strong>
+										<span class="tooltip-icon" title="Requirements: Main path at 100% Late + Secondary at same major Early (Mid for Voidbreak). Provides +20% bonus until Half-Step.">ℹ️</span>
+									</td>
+									<td id="virya-perfect-time">⏲️ Calculating...</td>
+									<td id="virya-perfect-date">--</td>
+									<td><span class="bonus-badge bonus-20">+20%</span></td>
+									<td>
+										<div class="progress-container">
+											<div class="progress-bar">
+												<div class="progress-fill" id="virya-perfect-progress" style="width: 0%">0%</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+								<tr id="virya-row-halfstep" class="virya-row">
+									<td>
+										<strong>Half-Step</strong>
+										<span class="tooltip-icon" title="Requirements: Both paths at 100% Late in same major. Provides +40% bonus until next major's Late.">ℹ️</span>
+									</td>
+									<td id="virya-halfstep-time">⏲️ Calculating...</td>
+									<td id="virya-halfstep-date">--</td>
+									<td><span class="bonus-badge bonus-40">+40%</span></td>
+									<td>
+										<div class="progress-container">
+											<div class="progress-bar">
+												<div class="progress-fill" id="virya-halfstep-progress" style="width: 0%">0%</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div class="warning" id="recommendation-display">
+						<span><strong>Recommendation:</strong> Complete Main Path for better pills during dual cultivation before thinking about Virya. You will not reach any Virya without attaining Completion first.</span>
+					</div>
+				</div>
+			</div>
             <!-- PLAYER INPUT SECTION -->
             <div id="player-input" class="section">
                 <div class="card">
@@ -617,7 +681,12 @@
 			<div id="Release Notes" class="section active">
 				 <div class="card">
 					<h2 class="card-title">Release Notes</h2>
-					<strong>Version 3.0.0</strong>
+					<strong>Version 0.3.1</strong>
+					<ul>
+					<li>Refactored scripts for readability</li>
+					</ul>
+					
+					<strong>Version 0.3.0</strong>
 					<ul>
 						<li>Released first web version of old sheets</li>
 						<li>Implemented backup and restore functionality using json.</li> 
