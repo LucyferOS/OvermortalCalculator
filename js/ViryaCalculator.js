@@ -203,7 +203,7 @@ class ViryaCalculator {
 					(playerData.secondaryPathRealmMajor === previousMajor && 
 					 playerData.secondaryPathRealmMinor === 'Late') ||
 					//vb early
-					(playerData.secondaryPathRealmMajor === currentMajor && 
+					(playerData.secondaryPathRealmMajor === currentMainMajor && 
 					 playerData.secondaryPathRealmMinor === 'Early')
 				);
             } else {
