@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverMortal Realm Breakthrough Calculator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-	<link rel="stylesheet" href="style.css">
-	<script src="script.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <script type="module" src="js/main.js"></script>
 </head>
 <body>
     <div class="container">
@@ -158,8 +159,8 @@
 										<span class="tooltip-icon" title="Percentage bonus to Abode Aura XP">ℹ️</span>
 									</th>
 									<th>
-										Progress
-										<span class="tooltip-icon" title="How close you are to achieving this Virya scenario">ℹ️</span>
+										XP by Timegate
+										<span class="tooltip-icon" title="Total XP gained by main path before timegate ends (compared to current scenario)">ℹ️</span>
 									</th>
 								</tr>
 							</thead>
@@ -172,13 +173,7 @@
 									<td id="virya-completion-time">⏲️ Calculating...</td>
 									<td id="virya-completion-date">--</td>
 									<td><span class="bonus-badge bonus-0">+0%</span></td>
-									<td>
-										<div class="progress-container">
-											<div class="progress-bar">
-												<div class="progress-fill" id="virya-completion-progress" style="width: 0%">0%</div>
-											</div>
-										</div>
-									</td>
+									<td id="virya-completion-xp">--</td>
 								</tr>
 								<tr id="virya-row-eminence" class="virya-row">
 									<td>
@@ -188,13 +183,7 @@
 									<td id="virya-eminence-time">⏲️ Calculating...</td>
 									<td id="virya-eminence-date">--</td>
 									<td><span class="bonus-badge bonus-20">+20%</span></td>
-									<td>
-										<div class="progress-container">
-											<div class="progress-bar">
-												<div class="progress-fill" id="virya-eminence-progress" style="width: 0%">0%</div>
-											</div>
-										</div>
-									</td>
+									<td id="virya-eminence-xp">--</td>
 								</tr>
 								<tr id="virya-row-perfect" class="virya-row">
 									<td>
@@ -204,13 +193,7 @@
 									<td id="virya-perfect-time">⏲️ Calculating...</td>
 									<td id="virya-perfect-date">--</td>
 									<td><span class="bonus-badge bonus-20">+20%</span></td>
-									<td>
-										<div class="progress-container">
-											<div class="progress-bar">
-												<div class="progress-fill" id="virya-perfect-progress" style="width: 0%">0%</div>
-											</div>
-										</div>
-									</td>
+									<td id="virya-perfect-xp">--</td>
 								</tr>
 								<tr id="virya-row-halfstep" class="virya-row">
 									<td>
@@ -220,16 +203,11 @@
 									<td id="virya-halfstep-time">⏲️ Calculating...</td>
 									<td id="virya-halfstep-date">--</td>
 									<td><span class="bonus-badge bonus-40">+40%</span></td>
-									<td>
-										<div class="progress-container">
-											<div class="progress-bar">
-												<div class="progress-fill" id="virya-halfstep-progress" style="width: 0%">0%</div>
-											</div>
-										</div>
-									</td>
+									<td id="virya-halfstep-xp">--</td>
 								</tr>
 							</tbody>
 						</table>
+
 					</div>
 					
 					<div class="warning" id="recommendation-display">
