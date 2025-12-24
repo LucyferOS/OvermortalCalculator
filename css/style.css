@@ -548,7 +548,7 @@ tr:hover {
     margin: 8px 0;
     padding: 8px;
     border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 1);
 }
 
 .requirement-icon {
