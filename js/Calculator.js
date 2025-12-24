@@ -197,26 +197,37 @@ class OvermortalCalculator {
     }
 
     calculateAll() {
-        this.updateFromInputs();
-        
-        // Calculate daily XP with Virya bonus
-        const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
-        const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
-        
-        // Calculate realm progression
-        const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
-        
-        // Complete Virya info
-        viryaInfo.bonusEndsAt = ViryaCalculator.calculateBonusEndsAt(viryaInfo.scenario, this.playerData);
-        
-        this.calculationResults = {
-            dailyXP,
-            realmProgression,
-            virya: viryaInfo
-        };
-        
-        return this.calculationResults;
+    this.updateFromInputs();
+    
+    if (this.debugEnabled) {
+        console.clear();
+        console.log('=== OVERMORTAL CALCULATOR DEBUG ===');
+        console.log('Player Data:', this.playerData);
     }
+    
+    // Calculate daily XP with Virya bonus
+    const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
+    const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
+    
+    // Calculate realm progression
+    const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
+    
+    // Complete Virya info
+    viryaInfo.bonusEndsAt = ViryaCalculator.calculateBonusEndsAt(viryaInfo.scenario, this.playerData);
+    
+    this.calculationResults = {
+        dailyXP,  // Include dailyXP in results
+        realmProgression,
+        virya: viryaInfo
+    };
+    
+    if (this.debugEnabled) {
+        console.log('Calculation Results:', this.calculationResults);
+        console.log('=== END DEBUG ===');
+    }
+    
+    return this.calculationResults;
+}
 
     loadSavedData() {
         return this.dataManager.loadFromLocalStorage();

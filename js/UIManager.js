@@ -1,4 +1,5 @@
 import { CalculatorUtils } from './utils.js';
+import { ViryaCalculator } from './ViryaCalculator.js';
 
 class UIManager {
     static updateDashboard(results, playerData) {
@@ -22,7 +23,7 @@ class UIManager {
 
         // Update Virya display
         if (results.virya) {
-            this.updateViryaDisplay(results.virya, playerData);
+            this.updateViryaDisplay(results.virya, playerData, results.dailyXP);
         }
     }
 
@@ -41,7 +42,7 @@ class UIManager {
         this.updateProgressBar(`${prefix}-major-progress-display`, pathData.progressPercentMajor);
     }
 
-    static updateViryaDisplay(viryaInfo, playerData) {
+    static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0) {
         // Update status bar
         this.updateElementText('current-virya-scenario', viryaInfo.scenario || 'None');
         this.updateElementText('current-virya-bonus', `+${(viryaInfo.absorptionBonus || 0).toFixed(1)} absorption`);
@@ -50,18 +51,26 @@ class UIManager {
         // Update requirements display
         this.updateRequirementsDisplay(playerData, viryaInfo);
         
-        // Update table rows
+        // Update table rows and progress bars
         const scenarios = ['Completion', 'Eminence', 'Perfection', 'Half-Step'];
         scenarios.forEach(scenario => {
-            const rowId = `virya-row-${scenario.toLowerCase().replace('-', '')}`;
-            const row = document.getElementById(rowId);
+            const scenarioKey = scenario.toLowerCase().replace('-', '');
+            const rowId = `virya-row-${scenarioKey}`;
             
+            // Highlight active row
+            const row = document.getElementById(rowId);
             if (row) {
                 row.classList.remove('active');
                 if (scenario === viryaInfo.scenario) {
                     row.classList.add('active');
                 }
             }
+            
+            // Update progress bars
+            this.updateViryaProgress(scenario, rowId, playerData, viryaInfo);
+            
+            // Update time estimates
+            this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo);
         });
     }
 
@@ -69,15 +78,85 @@ class UIManager {
         const requirementsElement = document.getElementById('virya-requirements-display');
         if (!requirementsElement) return;
         
-        // This would be populated by ViryaCalculator.checkRequirements
-        // For now, show basic info
-        let html = '<div class="requirements-list">';
-        html += '<strong>Requirements Status:</strong><br>';
-        html += `Main Path: ${playerData.mainPathProgress.toFixed(1)}% ${playerData.mainPathRealm}<br>`;
-        html += `Secondary Path: ${playerData.secondaryPathProgress.toFixed(1)}% ${playerData.secondaryPathRealm}`;
-        html += '</div>';
+        const requirements = ViryaCalculator.checkRequirements(playerData);
         
+        let html = '<div class="requirements-list">';
+        html += '<strong>Virya Requirements Status:</strong><br>';
+        
+        requirements.forEach(req => {
+            const statusClass = req.met ? 'requirement-met' : 'requirement-not-met';
+            const checkIcon = req.icon || (req.met ? '✅' : '❌');
+            
+            html += `<div class="requirement-item ${statusClass}">`;
+            html += `<span class="requirement-icon">${checkIcon}</span> `;
+            html += `<span class="requirement-desc">${req.description}</span><br>`;
+            
+            if (req.current) {
+                html += `<span class="requirement-current">${req.current}</span><br>`;
+            }
+            
+            if (req.required && req.required !== 'N/A') {
+                html += `<span class="requirement-needed">${req.required}</span><br>`;
+            }
+            
+            html += '</div>';
+        });
+        
+        html += '</div>';
         requirementsElement.innerHTML = html;
+    }
+
+    static updateViryaProgress(scenario, rowId, playerData, viryaInfo) {
+        const progressInfo = ViryaCalculator.calculateScenarioProgress(playerData, scenario);
+        const progressPercent = progressInfo.progress;
+        
+        // Update progress bar
+        const progressBar = document.getElementById(`${rowId}-progress`);
+        if (progressBar) {
+            progressBar.style.width = `${Math.min(100, progressPercent)}%`;
+            progressBar.textContent = `${Math.round(progressPercent)}%`;
+            
+            // Add tooltip with details
+            progressBar.title = progressInfo.details || `Progress toward ${scenario}`;
+        }
+    }
+
+    static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo) {
+        const format = CalculatorUtils.formatTimeDays;
+        const formatDate = CalculatorUtils.formatDateFromDays;
+        
+        const timeId = `virya-${scenarioKey}-time`;
+        const dateId = `virya-${scenarioKey}-date`;
+        
+        if (scenario === viryaInfo.scenario) {
+            // Current scenario
+            this.updateElementText(timeId, '✅ Active Now');
+            this.updateElementText(dateId, '--');
+        } else {
+            // Calculate time to reach this scenario
+            // We need secondary path daily XP, not main path daily XP
+            let secondaryDailyXP = 0;
+            if (playerData.pathFocus === 'Secondary Path') {
+                secondaryDailyXP = dailyXP;
+            } else {
+                // When focusing on main path, secondary gets only abode aura XP
+                // This is a simplification - in reality it would need full calculation
+                secondaryDailyXP = dailyXP * 0.3; // Estimate: 30% of daily XP goes to secondary
+            }
+            
+            const daysToReach = ViryaCalculator.calculateDaysToScenario(scenario, playerData, secondaryDailyXP);
+            
+            if (daysToReach === 0) {
+                this.updateElementText(timeId, '✅ Already Met');
+                this.updateElementText(dateId, '--');
+            } else if (daysToReach === Infinity || daysToReach > 36500) {
+                this.updateElementText(timeId, 'Not Reachable');
+                this.updateElementText(dateId, '--');
+            } else {
+                this.updateElementText(timeId, format(daysToReach));
+                this.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
+            }
+        }
     }
 
     static updateProgressBar(elementId, percent) {

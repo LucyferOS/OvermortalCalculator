@@ -3,10 +3,20 @@ import { CalculatorUtils } from './utils.js';
 
 class ViryaCalculator {
     static detectScenario(playerData) {
+        console.group('🔍 ViryaCalculator.detectScenario');
+        console.log('Input:', {
+            mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
+            secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`
+        });
+        
         const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && 
                                  playerData.mainPathProgress >= 100;
         
+        console.log('Is Main Path 100%+ Late?', isMainPath100Late);
+        
         if (!isMainPath100Late) {
+            console.log('Result: No Virya (main path not at 100%+ Late)');
+            console.groupEnd();
             return {
                 scenario: null,
                 absorptionBonus: 0.0,
@@ -20,12 +30,27 @@ class ViryaCalculator {
         const currentMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
         const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
         
+        console.log('Realm Analysis:', {
+            currentMajorIndex,
+            currentMajor: playerData.mainPathRealmMajor,
+            previousMajor
+        });
+        
         // Check Half-Step
         const isSecondary100Late = playerData.secondaryPathRealmMinor === 'Late' && 
                                    playerData.secondaryPathProgress >= 100;
         const isSameMajor = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor;
         
+        console.log('Half-Step Check:', {
+            isSecondary100Late,
+            isSameMajor,
+            secondaryRealmMinor: playerData.secondaryPathRealmMinor,
+            secondaryProgress: playerData.secondaryPathProgress
+        });
+        
         if (isSecondary100Late && isSameMajor) {
+            console.log('Result: Half-Step (+0.4 absorption)');
+            console.groupEnd();
             return {
                 scenario: 'Half-Step',
                 absorptionBonus: 0.4,
@@ -35,8 +60,11 @@ class ViryaCalculator {
         
         // Check Perfection
         if (playerData.mainPathRealmMajor === 'Voidbreak') {
+            console.log('Perfection Check (Voidbreak special case)');
             if (playerData.secondaryPathRealmMajor === 'Voidbreak' && 
                 playerData.secondaryPathRealmMinor === 'Mid') {
+                console.log('Result: Perfection (+0.2 absorption)');
+                console.groupEnd();
                 return {
                     scenario: 'Perfection',
                     absorptionBonus: 0.2,
@@ -44,8 +72,11 @@ class ViryaCalculator {
                 };
             }
         } else {
+            console.log('Perfection Check (standard)');
             if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor && 
                 playerData.secondaryPathRealmMinor === 'Early') {
+                console.log('Result: Perfection (+0.2 absorption)');
+                console.groupEnd();
                 return {
                     scenario: 'Perfection',
                     absorptionBonus: 0.2,
@@ -56,9 +87,12 @@ class ViryaCalculator {
         
         // Check Eminence
         if (previousMajor) {
+            console.log('Eminence Check');
             if (playerData.mainPathRealmMajor === 'Voidbreak') {
                 if (playerData.secondaryPathRealmMajor === previousMajor && 
                     playerData.secondaryPathRealmMinor === 'Late') {
+                    console.log('Result: Eminence (+0.2 absorption)');
+                    console.groupEnd();
                     return {
                         scenario: 'Eminence',
                         absorptionBonus: 0.2,
@@ -68,6 +102,8 @@ class ViryaCalculator {
             } else {
                 if (playerData.secondaryPathRealmMajor === previousMajor && 
                     playerData.secondaryPathRealmMinor === 'Mid') {
+                    console.log('Result: Eminence (+0.2 absorption)');
+                    console.groupEnd();
                     return {
                         scenario: 'Eminence',
                         absorptionBonus: 0.2,
@@ -78,6 +114,8 @@ class ViryaCalculator {
         }
         
         // Completion (no bonus)
+        console.log('Result: Completion (no absorption bonus)');
+        console.groupEnd();
         return {
             scenario: 'Completion',
             absorptionBonus: 0.0,
@@ -105,77 +143,280 @@ class ViryaCalculator {
         }
     }
 
+    // NEW: Complete requirements checking method
     static checkRequirements(playerData) {
         const requirements = [];
         
-        // Main path at 100% Late (or more)
-        const main100Late = playerData.mainPathRealmMinor === 'Late' && 
-                           playerData.mainPathProgress >= 100;
+        // Helper function to format realm info
+        const formatRealmInfo = (realm, progress) => {
+            return `${realm} (${progress.toFixed(1)}%)`;
+        };
+        
+        // 1. Main path at 100%+ Late (Base requirement for ANY Virya)
+        const mainPath = playerData.mainPathRealm;
+        const mainProgress = playerData.mainPathProgress;
+        const isMainLate = playerData.mainPathRealmMinor === 'Late';
+        const isMain100Late = isMainLate && mainProgress >= 100;
+        
         requirements.push({
-            description: `Main path at ${playerData.mainPathProgress.toFixed(1)}% Late${playerData.mainPathProgress > 100 ? ' (Overflow)' : ''}`,
-            met: main100Late
+            id: 'main-100-late',
+            description: `Main Path at 100%+ Late Realm`,
+            current: `Currently: ${formatRealmInfo(mainPath, mainProgress)}`,
+            met: isMain100Late,
+            required: '100%+ in Late realm',
+            icon: isMain100Late ? '✅' : isMainLate ? '⏳' : '❌'
         });
         
-        if (!main100Late) {
+        if (!isMain100Late) {
+            // Can't check other requirements if main isn't at 100%+ Late
             return requirements;
         }
         
-        // Get current Virya scenario
-        const currentVirya = this.detectScenario(playerData).scenario;
+        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+                           'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
         
-        // Eminence requirement
+        const currentMainMajor = playerData.mainPathRealmMajor;
+        const currentMainIndex = realmOrder.indexOf(currentMainMajor);
+        const previousMajor = currentMainIndex > 0 ? realmOrder[currentMainIndex - 1] : null;
+        
+        // Detect current scenario to understand progression
+        const currentScenario = this.detectScenario(playerData).scenario;
+        
+        // 2. Eminence Requirement (Second at previous major)
+        let eminenceRequired = '';
+        let eminenceCurrent = '';
         let eminenceMet = false;
-        if (currentVirya === 'Perfection' || currentVirya === 'Half-Step') {
-            eminenceMet = true;
-        } else {
-            const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
-                               'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-            const currentMainMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
-            const previousMajor = currentMainMajorIndex > 0 ? realmOrder[currentMainMajorIndex - 1] : null;
-            
-            if (previousMajor) {
-                if (playerData.mainPathRealmMajor === 'Voidbreak') {
-                    eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
-                                 playerData.secondaryPathRealmMinor === 'Late';
-                } else {
-                    eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
-                                 playerData.secondaryPathRealmMinor === 'Mid';
-                }
-            }
-        }
-        requirements.push({
-            description: 'Eminence: Secondary at required previous major realm',
-            met: eminenceMet
-        });
         
-        // Perfection requirement
-        let perfectionMet = false;
-        if (currentVirya === 'Half-Step') {
-            perfectionMet = true;
-        } else {
-            if (playerData.mainPathRealmMajor === 'Voidbreak') {
-                perfectionMet = playerData.secondaryPathRealmMajor === 'Voidbreak' && 
-                               playerData.secondaryPathRealmMinor === 'Mid';
+        if (previousMajor) {
+            if (currentMainMajor === 'Voidbreak') {
+                eminenceRequired = `${previousMajor} Late`;
+                eminenceCurrent = formatRealmInfo(
+                    playerData.secondaryPathRealm, 
+                    playerData.secondaryPathProgress
+                );
+                eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
+                             playerData.secondaryPathRealmMinor === 'Late';
             } else {
-                perfectionMet = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor && 
-                               playerData.secondaryPathRealmMinor === 'Early';
+                eminenceRequired = `${previousMajor} Mid`;
+                eminenceCurrent = formatRealmInfo(
+                    playerData.secondaryPathRealm, 
+                    playerData.secondaryPathProgress
+                );
+                eminenceMet = playerData.secondaryPathRealmMajor === previousMajor && 
+                             playerData.secondaryPathRealmMinor === 'Mid';
             }
+            
+            // Eminence is automatically met if we're at Perfection or Half-Step
+            if (currentScenario === 'Perfection' || currentScenario === 'Half-Step') {
+                eminenceMet = true;
+            }
+            
+            requirements.push({
+                id: 'eminence',
+                description: `Eminence: Secondary at previous major`,
+                current: `Currently: ${eminenceCurrent}`,
+                met: eminenceMet,
+                required: `Required: ${eminenceRequired}`,
+                icon: eminenceMet ? '✅' : '❌'
+            });
+        } else {
+            // No previous major (Incarnation)
+            requirements.push({
+                id: 'eminence',
+                description: `Eminence: Secondary at previous major`,
+                current: 'No previous major (Incarnation)',
+                met: true, // Automatically met for Incarnation
+                required: 'N/A',
+                icon: '✅'
+            });
         }
+        
+        // 3. Perfection Requirement (Second at same major, early/mid)
+        let perfectionRequired = '';
+        let perfectionCurrent = '';
+        let perfectionMet = false;
+        
+        if (currentMainMajor === 'Voidbreak') {
+            perfectionRequired = `${currentMainMajor} Mid`;
+            perfectionCurrent = formatRealmInfo(
+                playerData.secondaryPathRealm, 
+                playerData.secondaryPathProgress
+            );
+            perfectionMet = playerData.secondaryPathRealmMajor === currentMainMajor && 
+                           playerData.secondaryPathRealmMinor === 'Mid';
+        } else {
+            perfectionRequired = `${currentMainMajor} Early`;
+            perfectionCurrent = formatRealmInfo(
+                playerData.secondaryPathRealm, 
+                playerData.secondaryPathProgress
+            );
+            perfectionMet = playerData.secondaryPathRealmMajor === currentMainMajor && 
+                           playerData.secondaryPathRealmMinor === 'Early';
+        }
+        
+        // Perfection is automatically met if we're at Half-Step
+        if (currentScenario === 'Half-Step') {
+            perfectionMet = true;
+        }
+        
         requirements.push({
-            description: 'Perfection: Secondary at same major (Early/Mid)',
-            met: perfectionMet
+            id: 'perfection',
+            description: `Perfection: Secondary at same major`,
+            current: `Currently: ${perfectionCurrent}`,
+            met: perfectionMet,
+            required: `Required: ${perfectionRequired}`,
+            icon: perfectionMet ? '✅' : '❌'
         });
         
-        // Half-Step requirement
-        const halfStepMet = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
+        // 4. Half-Step Requirement (Both at 100%+ Late in same major)
+        const halfStepRequired = `${currentMainMajor} Late (100%+)`;
+        const halfStepCurrent = formatRealmInfo(
+            playerData.secondaryPathRealm, 
+            playerData.secondaryPathProgress
+        );
+        const halfStepMet = playerData.secondaryPathRealmMajor === currentMainMajor &&
                            playerData.secondaryPathRealmMinor === 'Late' &&
                            playerData.secondaryPathProgress >= 100;
+        
         requirements.push({
-            description: 'Half-Step: Both paths at 100%+ Late in same major',
-            met: halfStepMet
+            id: 'halfstep',
+            description: `Half-Step: Both at 100%+ Late in same major`,
+            current: `Currently: ${halfStepCurrent}`,
+            met: halfStepMet,
+            required: `Required: ${halfStepRequired}`,
+            icon: halfStepMet ? '✅' : '❌'
+        });
+        
+        // 5. Current Scenario Status
+        requirements.push({
+            id: 'current-scenario',
+            description: `Current Virya Scenario`,
+            current: currentScenario || 'None (not eligible)',
+            met: currentScenario !== null,
+            required: 'Detected based on requirements',
+            icon: currentScenario ? '🎯' : '➖'
         });
         
         return requirements;
+    }
+
+    // NEW: Calculate progress percentages for each scenario
+    static calculateScenarioProgress(playerData, scenario) {
+        let progress = 0;
+        let details = '';
+        
+        switch(scenario) {
+            case 'Completion':
+                if (playerData.mainPathRealmMinor === 'Late') {
+                    progress = Math.min(100, playerData.mainPathProgress);
+                    details = `Main Path: ${playerData.mainPathProgress.toFixed(1)}% Late`;
+                }
+                break;
+                
+            case 'Eminence':
+                progress = this.calculateEminenceProgress(playerData);
+                details = this.getEminenceProgressDetails(playerData);
+                break;
+                
+            case 'Perfection':
+                progress = this.calculatePerfectionProgress(playerData);
+                details = this.getPerfectionProgressDetails(playerData);
+                break;
+                
+            case 'Half-Step':
+                progress = this.calculateHalfStepProgress(playerData);
+                details = this.getHalfStepProgressDetails(playerData);
+                break;
+        }
+        
+        return {
+            progress: Math.min(100, Math.max(0, progress)),
+            details
+        };
+    }
+    
+    static calculateEminenceProgress(playerData) {
+        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+                           'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+        
+        const currentMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
+        const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
+        
+        if (!previousMajor) return 0;
+        
+        if (playerData.secondaryPathRealmMajor === previousMajor) {
+            const stageValue = { 'Early': 0, 'Mid': 50, 'Late': 100 };
+            const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Late' : 'Mid';
+            const currentStage = playerData.secondaryPathRealmMinor;
+            
+            const stageProgress = stageValue[currentStage] || 0;
+            const progressInStage = (playerData.secondaryPathProgress / 100) * 50;
+            
+            return Math.min(100, stageProgress + progressInStage);
+        }
+        
+        return 0;
+    }
+    
+    static getEminenceProgressDetails(playerData) {
+        const realmOrder = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 
+                           'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+        
+        const currentMajorIndex = realmOrder.indexOf(playerData.mainPathRealmMajor);
+        const previousMajor = currentMajorIndex > 0 ? realmOrder[currentMajorIndex - 1] : null;
+        
+        if (!previousMajor) return 'No previous major (Incarnation)';
+        
+        const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Late' : 'Mid';
+        return `Need: ${previousMajor} ${requiredStage}`;
+    }
+    
+    static calculatePerfectionProgress(playerData) {
+        if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor) {
+            const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' : 'Early';
+            const stageValue = { 'Early': 0, 'Mid': 50, 'Late': 100 };
+            
+            const currentStage = playerData.secondaryPathRealmMinor;
+            const currentStageValue = stageValue[currentStage] || 0;
+            
+            if (currentStage === requiredStage || 
+                (requiredStage === 'Early' && currentStage === 'Mid') ||
+                (requiredStage === 'Mid' && currentStage === 'Late')) {
+                // At or beyond required stage
+                const stageProgress = 50; // 50% for reaching required stage
+                const progressInStage = (playerData.secondaryPathProgress / 100) * 50;
+                return stageProgress + progressInStage;
+            } else {
+                // Not yet at required stage
+                return (currentStageValue / stageValue[requiredStage]) * 100;
+            }
+        }
+        
+        return 0;
+    }
+    
+    static getPerfectionProgressDetails(playerData) {
+        const requiredStage = playerData.mainPathRealmMajor === 'Voidbreak' ? 'Mid' : 'Early';
+        return `Need: ${playerData.mainPathRealmMajor} ${requiredStage}`;
+    }
+    
+    static calculateHalfStepProgress(playerData) {
+        if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
+            playerData.secondaryPathRealmMinor === 'Late' &&
+            playerData.mainPathRealmMinor === 'Late') {
+            
+            const mainProgress = playerData.mainPathProgress;
+            const secondaryProgress = playerData.secondaryPathProgress;
+            
+            // Both need to be at 100%+ Late
+            return (mainProgress + secondaryProgress) / 2;
+        }
+        
+        return 0;
+    }
+    
+    static getHalfStepProgressDetails(playerData) {
+        return `Both paths need 100%+ Late in ${playerData.mainPathRealmMajor}`;
     }
 
     static calculateDaysToScenario(targetScenario, playerData, dailyXP) {
