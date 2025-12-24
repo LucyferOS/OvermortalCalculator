@@ -179,7 +179,7 @@ class ViryaCalculator {
 		const currentMainMinor = playerData.mainPathRealmMinor;
 		
         const currentMainIndexMajor = realmOrderMajor.indexOf(currentMainMajor);
-        const previousMajor = currentMainIndexMajor > 0 ? realmOrder[currentMainIndexMajor - 1] : null;
+        const previousMajor = currentMainIndexMajor > 0 ? realmOrderMajor[currentMainIndexMajor - 1] : null;
 		const currentMainIndexMinor = realmOrderMinor.indexOf(currentMainMajor);
 
         
