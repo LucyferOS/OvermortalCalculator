@@ -44,32 +44,35 @@ class UIManager {
 
     static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0) {
         // Update status bar
-        this.updateElementText('current-virya-scenario', viryaInfo.scenario || 'None');
-        this.updateElementText('current-virya-bonus', `+${(viryaInfo.absorptionBonus || 0).toFixed(1)} absorption`);
-        this.updateElementText('current-virya-ends', viryaInfo.bonusEndsAt || 'N/A');
-        
-        // Update table rows and progress bars
-        const scenarios = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
-        scenarios.forEach(scenario => {
-            const scenarioKey = scenario.toLowerCase().replace('-', '');
-            const rowId = `virya-row-${scenarioKey}`;
-            
-            // Highlight active row
-            const row = document.getElementById(rowId);
-            if (row) {
-                row.classList.remove('active');
-                if (scenario === viryaInfo.scenario) {
-                    row.classList.add('active');
-                }
-            }
-            
-            // Update progress bars
-           // this.updateViryaProgress(scenario, rowId, playerData, viryaInfo);
-            
-            // Update time estimates
-            this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo);
-        });
-    }
+		this.updateElementText('current-virya-scenario', viryaInfo.scenario || 'None');
+		
+		// Only show bonus if it's a bonus scenario (not No Virya or Completion)
+		const bonusText = viryaInfo.scenario === 'No Virya' || viryaInfo.scenario === 'Completion' 
+			? 'No Bonus' 
+			: `+${(viryaInfo.absorptionBonus || 0).toFixed(1)} absorption`;
+		this.updateElementText('current-virya-bonus', bonusText);
+		
+		// this.updateElementText('current-virya-ends', viryaInfo.bonusEndsAt || 'N/A');
+		
+		// Update table rows and progress bars
+		const scenarios = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
+		scenarios.forEach(scenario => {
+			const scenarioKey = scenario.toLowerCase().replace('-', '');
+			const rowId = `virya-row-${scenarioKey}`;
+			
+			// Highlight active row (skip highlighting for "No Virya")
+			const row = document.getElementById(rowId);
+			if (row) {
+				row.classList.remove('active');
+				if (scenario === viryaInfo.scenario) {
+					row.classList.add('active');
+				}
+			}
+			
+			// Update time estimates
+			this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo);
+		});
+	}
 
 
 	static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo) {

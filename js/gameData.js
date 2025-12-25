@@ -11,7 +11,10 @@ export const XPData = {
 };
 
 export const Realms = {
-    'Incarnation Early': { xp: 12326300, absorption: 0.317 },
+    'Nascent Early': { xp: 1818600, absorption: 0.0 },
+    'Nascent Mid': { xp: 3858900, absorption: 0.0 },
+    'Nascent Late': { xp: 11070200, absorption: 0.0 },
+	'Incarnation Early': { xp: 12326300, absorption: 0.317 },
     'Incarnation Mid': { xp: 26155400, absorption: 0.358 },
     'Incarnation Late': { xp: 61792200, absorption: 0.4 },
     'Voidbreak Early': { xp: 68014736, absorption: 0.5 },
@@ -38,7 +41,8 @@ export const Realms = {
 };
 
 export const RealmMajorTotalXP = {
-    'Incarnation': 100273900,
+    'Nascent': 16747700,
+	'Incarnation': 100273900,
     'Voidbreak': 517823683,
     'Wholeness': 755215365,
     'Perfection': 2076090882,

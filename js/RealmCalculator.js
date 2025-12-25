@@ -106,7 +106,7 @@ class RealmCalculator {
         return neededXP / dailyXP;
     }
 	static calculateRealmIndex(realmName) {
-		const realmOrderMajor = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+		const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
 		const realmOrderMinor = ['Early', 'Mid', 'Late'];
 
 		// Parse the realm name
@@ -136,7 +136,7 @@ class RealmCalculator {
 	}	
 	
 	static calculateRealmProgression(startIndex, endIndex) {
-	  const realmOrderMajor = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+	  const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
 	  const realmOrderMinor = ['Early', 'Mid', 'Late'];
 	  let total = 0;
 	  

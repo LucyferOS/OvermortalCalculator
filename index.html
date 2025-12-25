@@ -139,8 +139,8 @@
 							<span class="virya-bonus-badge" id="current-virya-bonus">+0%</span>
 							<span class="virya-status-text">Bonus ends when: <span id="current-virya-ends">N/A</span></span>
 						</div>
-						<div class="virya-requirements" id="virya-requirements-display">
-							Requirements met for: Completion
+						<div class="virya-recommendation" id="virya-recommendation-display">
+							TODO: IMPLEMENT RECOMMENDATIONS (VIA DECISION TREE?)
 						</div>
 					</div>
 					
@@ -159,12 +159,8 @@
 										<span class="tooltip-icon" title="Percentage bonus to Abode Aura XP">ℹ️</span>
 									</th>
 									<th>
-										XP by Timegate
-										<span class="tooltip-icon" title="Total XP gained by main path before timegate ends (compared to current scenario)">ℹ️</span>
-									</th>
-									<th>
-										Percentage to scenario
-										<span class="tooltip-icon" title="Total percentage of the way to the scenario">ℹ️</span>
+										XP compared to overflow
+										<span class="tooltip-icon" title="Compare Completion (overflow only) to current Virya, calculated to next realm timegate">ℹ️</span>
 									</th>
 								</tr>
 							</thead>
@@ -178,11 +174,6 @@
 									<td id="virya-completion-date">--</td>
 									<td><span class="bonus-badge bonus-0">+0%</span></td>
 									<td id="virya-completion-xp">--</td>
-									    <td>
-											<div class="progress-bar" style="margin: 5px 0;">
-												<div class="progress-fill" id="virya-row-completion-progress" style="width: 0%">0%</div>
-											</div>
-										</td>
 								</tr>
 								<tr id="virya-row-eminence" class="virya-row">
 									<td>
@@ -193,11 +184,6 @@
 									<td id="virya-eminence-date">--</td>
 									<td><span class="bonus-badge bonus-20">+20%</span></td>
 									<td id="virya-eminence-xp">--</td>
-									    <td>
-											<div class="progress-bar" style="margin: 5px 0;">
-												<div class="progress-fill" id="virya-row-eminence-progress" style="width: 0%">0%</div>
-											</div>
-										</td>
 								</tr>
 								<tr id="virya-row-perfect" class="virya-row">
 									<td>
@@ -208,11 +194,6 @@
 									<td id="virya-perfect-date">--</td>
 									<td><span class="bonus-badge bonus-20">+20%</span></td>
 									<td id="virya-perfect-xp">--</td>
-									    <td>
-											<div class="progress-bar" style="margin: 5px 0;">
-												<div class="progress-fill" id="virya-row-perfect-progress" style="width: 0%">0%</div>
-											</div>
-										</td>
 								</tr>
 								<tr id="virya-row-halfstep" class="virya-row">
 									<td>
@@ -223,11 +204,6 @@
 									<td id="virya-halfstep-date">--</td>
 									<td><span class="bonus-badge bonus-40">+40%</span></td>
 									<td id="virya-halfstep-xp">--</td>
-									    <td>
-											<div class="progress-bar" style="margin: 5px 0;">
-												<div class="progress-fill" id="virya-row-halfstep-progress" style="width: 0%">0%</div>
-											</div>
-										</td>
 								</tr>
 							</tbody>
 						</table>
@@ -278,6 +254,9 @@
                         <div class="input-group required">
                             <label for="secondary-path-realm">Current Secondary Path minor realm</label>
                             <select id="secondary-path-realm">
+								<option value="Nascent Early">Nascent Soul Early</option>
+                                <option value="Nascent Mid">Nascent Soul Mid</option>
+                                <option value="Nascent Late">Nascent Soul Late</option>
                                 <option value="Incarnation Early">Incarnation Early</option>
                                 <option value="Incarnation Mid">Incarnation Mid</option>
                                 <option value="Incarnation Late">Incarnation Late</option>
