@@ -21,7 +21,7 @@ class XPCalculator {
         const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP;
         console.log('Total Daily XP:', total);
         console.groupEnd();
-        
+		
         return total;
     }
 

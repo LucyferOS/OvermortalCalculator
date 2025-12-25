@@ -25,7 +25,8 @@ class OvermortalCalculator {
             secondaryPathRealmMinor: 'Early',
             secondaryPathProgress: 0.0,
             secondaryPathExp: 0.0,
-            pathFocus: 'Main Path',
+            dailyXP: 0.0,
+			pathFocus: 'Main Path',
             timegateDays: 30,
             vaseStars: '0 star',
             mirrorStars: '0 star',
@@ -207,16 +208,16 @@ class OvermortalCalculator {
     
     // Calculate daily XP with Virya bonus
     const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
+	//this.playerData.viryaRequirements = viryaRequirements;
+    this.playerData.viryaScenario = viryaInfo.scenario;
+    this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus
     const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
-    
+    this.playerData.dailyXP = dailyXP;
     // Calculate realm progression
     const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
-    
-    // Complete Virya info
-    viryaInfo.bonusEndsAt = ViryaCalculator.calculateBonusEndsAt(viryaInfo.scenario, this.playerData);
-    
+     
     this.calculationResults = {
-        dailyXP,  // Include dailyXP in results
+        dailyXP,
         realmProgression,
         virya: viryaInfo
     };

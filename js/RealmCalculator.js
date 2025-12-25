@@ -105,6 +105,59 @@ class RealmCalculator {
         
         return neededXP / dailyXP;
     }
+	static calculateRealmIndex(realmName) {
+		const realmOrderMajor = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+		const realmOrderMinor = ['Early', 'Mid', 'Late'];
+
+		// Parse the realm name
+		const parts = realmName.split(' ');
+		
+		// Handle the format: "Major Minor"
+		let major, minor;
+		if (parts.length === 2) {
+			[major, minor] = parts;
+		} else {
+			// Handle potential format issues
+			console.error('Invalid realm format:', realmName);
+			return -1;
+		}
+		
+		// Find the indices
+		const majorIndex = realmOrderMajor.indexOf(major);
+		const minorIndex = realmOrderMinor.indexOf(minor);
+		
+		// Check if realm was found
+		if (majorIndex === -1 || minorIndex === -1) {
+			console.error('Realm not found:', realmName);
+			return -1;
+		}
+		
+		return majorIndex * realmOrderMinor.length + minorIndex;
+	}	
+	
+	static calculateRealmProgression(startIndex, endIndex) {
+	  const realmOrderMajor = ['Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+	  const realmOrderMinor = ['Early', 'Mid', 'Late'];
+	  let total = 0;
+	  
+	  // Convert to single index (0-23) for easier stepping
+	  let current = startIndex;
+	  const target = endIndex;
+	  
+	  while (current <= target) {
+		// Convert single index back to major/minor indices
+		const majorIndex = Math.floor(current / realmOrderMinor.length);
+		const minorIndex = current % realmOrderMinor.length;
+		// Construct the realm name key
+		const realmName = `${realmOrderMajor[majorIndex]} ${realmOrderMinor[minorIndex]}`;
+		// Use the key to fetch xp
+		const XP = Realms[realmName].xp;
+		total += XP;
+		
+		current++;
+	  }
+		return total;
+	}
 }
 
 export { RealmCalculator };

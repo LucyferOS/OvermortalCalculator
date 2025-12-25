@@ -25,7 +25,7 @@ export const Realms = {
     'Perfection Late': { xp: 915460544, absorption: 1.8 },
     'Nirvana Early': { xp: 1119067845, absorption: 2.0 },
     'Nirvana Mid': { xp: 1430384212, absorption: 2.2 },
-    'Nirvana late': { xp: 1795072703, absorption: 2.4 },
+    'Nirvana Late': { xp: 1795072703, absorption: 2.4 },
     'Celestial Early': { xp: 2923599210, absorption: 2.6 },
     'Celestial Mid': { xp: 3856472371, absorption: 2.8 },
     'Celestial Late': { xp: 5215416675, absorption: 3.0 },
