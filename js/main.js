@@ -1,3 +1,4 @@
+import { MarkdownLoader } from './markdownLoader.js';
 import { OvermortalCalculator } from './Calculator.js';
 import { EventManager } from './EventManager.js';
 import { UIManager } from './UIManager.js';
@@ -8,6 +9,8 @@ class OvermortalApp {
         this.calculator = new OvermortalCalculator();
         this.eventManager = new EventManager(this);
         this.originalCalculateBtnText = '';
+		this.markdownLoader = new MarkdownLoader(); // Add this line
+
     }
 
     init() {
@@ -19,6 +22,13 @@ class OvermortalApp {
         this.eventManager.setupEventListeners();
         this.loadSavedData();
         this.calculateAndUpdateUI();
+		this.loadReleaseNotes();
+    }
+
+	async loadReleaseNotes() {
+        setTimeout(async () => {
+            await this.markdownLoader.loadFromDefaultPath();
+        }, 100);
     }
 
     loadSavedData() {
