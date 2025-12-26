@@ -1,5 +1,8 @@
 ## Release notes
 
+#### Version 0.3.2.1
+  * Fixed calculation bug which was caused by applying absorption twice. Values now match the reference.
+
 #### Version 0.3.2
 
   * Refined Virya.
