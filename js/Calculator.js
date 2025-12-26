@@ -190,6 +190,10 @@ class OvermortalCalculator {
             fruitsCount: getIntegerValue('fruits-count'),
             weeklyFruits: getIntegerValue('weekly-fruits'),
             fruitsUsage: getStringValue('fruits-usage'),
+			extractorQualityLevel:getIntegerValue('extractor-quality'),
+			extractorXPLevel:getIntegerValue('extractor-experience'),
+			extractorGushLevel:getIntegerValue('extractor-gush'),
+			extractorRank:getStringValue('extractor-rank'),
             
             // Miscellaneous
             cosmoapsis: abodeAuraXPTotal,
@@ -208,12 +212,12 @@ class OvermortalCalculator {
     
     // Calculate daily XP with Virya bonus
     const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
-	//this.playerData.viryaRequirements = viryaRequirements;
     this.playerData.viryaScenario = viryaInfo.scenario;
     this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus
     const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
     this.playerData.dailyXP = dailyXP;
-    // Calculate realm progression
+    
+	// Calculate realm progression
     const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
      
     this.calculationResults = {

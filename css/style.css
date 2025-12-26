@@ -129,6 +129,7 @@ h1 {
     background-color: var(--card-bg);
     border-radius: 12px;
     padding: 28px;
+	margin-bottom: 8px;
     box-shadow: 0 2px 12px rgba(42, 59, 71, 0.05);
     border-left: 4px solid var(--secondary);
     border: 1px solid var(--border);
@@ -364,7 +365,6 @@ tr:hover {
     font-weight: 300;
 }
 
-/* Virya Status Bar */
 .virya-status-bar {
     background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
     border-radius: 10px;
@@ -420,7 +420,6 @@ tr:hover {
     padding-top: 10px;
 }
 
-/* Virya Table Styling */
 #virya-table {
     margin-top: 10px;
 }
@@ -430,7 +429,7 @@ tr:hover {
 }
 
 .virya-row.active {
-    background-color: rgba(74, 139, 110, 0.1) !important;
+    background-color: rgba(74, 139, 110, 0.2) !important;
     border-left: 4px solid var(--success);
 }
 
@@ -438,7 +437,6 @@ tr:hover {
     opacity: 0.7;
 }
 
-/* Bonus Badges */
 .bonus-badge {
     padding: 4px 10px;
     border-radius: 12px;
@@ -450,17 +448,22 @@ tr:hover {
 }
 
 .bonus-0 {
-    background-color: var(--gray);
+    background-color: #82C8E5;
+    color: white;
+}
+
+.bonus-20-eminence {
+    background-color: #C8A2C8;
     color: white;
 }
 
 .bonus-20 {
-    background-color: var(--warning);
-    color: var(--dark);
+    background-color: #daa520;
+    color: white;
 }
 
 .bonus-40 {
-    background-color: var(--accent);
+    background-color: #990000;
     color: white;
 }
 
@@ -479,7 +482,6 @@ tr:hover {
     color: var(--accent);
 }
 
-/* Add styling for the XP values */
 .xp-value {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-weight: 600;
@@ -494,7 +496,7 @@ tr:hover {
 }
 }
 
-/* Tooltip Styles */
+
 .tooltip-icon {
     display: inline-block;
     margin-left: 5px;
@@ -509,7 +511,26 @@ tr:hover {
     opacity: 1;
 }
 
-/* Requirements List */
+.tooltip-icon:hover::after {
+
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(30, 42, 50, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    white-space: normal;
+    width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    line-height: 1.4;
+}
+
+
 .requirements-list {
     font-size: 0.9em;
     line-height: 1.6;
@@ -575,7 +596,11 @@ tr:hover {
         width: 80px;
     }
     
-
+    .tooltip-icon:hover::after {
+        width: 200px;
+        font-size: 0.8em;
+    }
+}
 
 .section {
     display: none;
@@ -587,7 +612,7 @@ tr:hover {
 }
 
 
-}
+
 
 .debug-section {
     background-color: #FAFBFC;

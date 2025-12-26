@@ -45,7 +45,9 @@ class UIManager {
     static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0) {
         // Update status bar
 		this.updateElementText('current-virya-scenario', viryaInfo.scenario || 'None');
-		
+		if (viryaInfo.scenario === 'Eminence') {document.getElementById('current-virya-scenario').style.background='#C8A2C8'};
+		if (viryaInfo.scenario === 'Perfect') {document.getElementById('current-virya-scenario').style.background='#daa520'};
+		if (viryaInfo.scenario === 'Half-Step') {document.getElementById('current-virya-scenario').style.background='#990000'};
 		// Only show bonus if it's a bonus scenario (not No Virya or Completion)
 		const bonusText = viryaInfo.scenario === 'No Virya' || viryaInfo.scenario === 'Completion' 
 			? 'No Bonus' 
@@ -98,7 +100,7 @@ class UIManager {
 		// If this is the current scenario
 		if (scenario === viryaInfo.scenario) {
 			console.log(`Scenario ${scenario} is currently active`);
-			this.updateElementText(timeId, '✅ Active Now');
+			this.updateElementText(timeId, ' Active Now');
 			this.updateElementText(dateId, '--');
 			console.groupEnd();
 			return;
@@ -110,7 +112,7 @@ class UIManager {
 		
 		if (daysToReach === 0) {
 			console.log('Scenario already achieved');
-			this.updateElementText(timeId, '✅ Already Met');
+			this.updateElementText(timeId, ' Already Met');
 			this.updateElementText(dateId, '--');
 		} else if (daysToReach === Infinity || isNaN(daysToReach) || daysToReach > 36500) {
 			console.log('Scenario not reachable');

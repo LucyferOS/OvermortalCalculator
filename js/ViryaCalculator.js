@@ -11,7 +11,7 @@ class ViryaCalculator {
         const isSecondary100Late = playerData.secondaryPathRealmMinor === 'Late' && playerData.secondaryPathProgress >= 100;
         const isSameMajor = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor;
 
-        console.group('🔍 ViryaCalculator.detectScenario');
+        console.group(' ViryaCalculator.detectScenario');
         console.log('Input:', {
             mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
             secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`
@@ -135,7 +135,7 @@ class ViryaCalculator {
         const currentScenarioInfo = this.detectScenario(playerData);
         const currentScenario = currentScenarioInfo.scenario;
 
-        console.group(`📅 Calculating days to ${targetScenario}`);
+        console.group(` Calculating days to ${targetScenario}`);
         console.log('Player Data:', {
             mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
             secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`
@@ -248,7 +248,7 @@ class ViryaCalculator {
     }
 
 	static calculateXPForCompletion(playerData) {
-		console.group('📊 Calculating XP for Completion scenario');
+		console.group(' Calculating XP for Completion scenario');
 		
 		// Check if main path is already at 100%+ Late
 		const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
@@ -321,17 +321,29 @@ class ViryaCalculator {
 					targetRealm = `${playerData.mainPathRealmMajor} Mid`;
 				} else {
 					targetRealm = `${playerData.mainPathRealmMajor} Early`;
-				}    
+				}
+				if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion') {
+				return this.calculateXPForEminence(playerData) + this.calculateXPToReach(playerData.secondaryPathRealm,
+															playerData.secondaryPathProgress,
+															targetRealm, 100);
+				} else {
         return this.calculateXPToReach(playerData.secondaryPathRealm,
                                       playerData.secondaryPathProgress,
                                       targetRealm, 100);
+				}
 			}
 		}
     static calculateXPForHalfStep(playerData) {
         const targetRealm = `${playerData.mainPathRealmMajor} Late`;
-        return this.calculateXPToReach(playerData.secondaryPathRealm,
-                                      playerData.secondaryPathProgress,
-                                      targetRealm, 100);
+		if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion' || playerData.viryaScenario === 'Eminence' ) {
+			return this.calculateXPForPerfect(playerData) + this.calculateXPToReach(playerData.secondaryPathRealm,
+														playerData.secondaryPathProgress,
+														targetRealm, 100);
+		} else {
+			return this.calculateXPToReach(playerData.secondaryPathRealm,
+											playerData.secondaryPathProgress,
+										targetRealm, 100);
+		}
     }
     static calculateXPToReach(currentRealm, currentProgress, targetRealm, targetProgress) {
 		//What is our realm, current xp, and where we are aiming for?

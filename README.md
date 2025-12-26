@@ -1,5 +1,10 @@
 ## Release notes
 
+#### Version 0.3.3
+  * Another tooltip fix
+  * Introduced some backend for fruits - these will not be visible until recommendations are implemented. Has not been tested, debugged, or attached to UI.
+  * Virya should now properly catch all edge cases.
+
 #### Version 0.3.2.1
   * Fixed calculation bug which was caused by applying absorption twice. Values now match the reference.
   * Fixed Info popping up in two places when hovered by mouse.
@@ -8,7 +13,7 @@
 #### Version 0.3.2
 
   * Refined Virya.
-	*It is still not catching all edge cases, but further work is planned.
+	* It is still not catching all edge cases, but further work is planned.
   * Added markdown loader (AI generated) to make it easier to maintain release notes.
   * Added debugging features. These will be feature flagged upon release for a Dev Build which can be used to support the tool.
   
@@ -28,7 +33,7 @@
 
 ## Limitations / Known issues
 
-	   ** NOTE - THIS IS NOT YET RELEASED: VIRYA, FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY **			
+	   ** NOTE - THIS IS NOT YET RELEASED: FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY **			
     * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. 
 	It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 	* Debug Data is not yet santitized and ready for player use. For example, cosmoapsis is not currently displaying properly.

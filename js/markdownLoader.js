@@ -156,7 +156,7 @@ export class MarkdownLoader {
         
         container.innerHTML = `
             <div class="error-message">
-                <h3>⚠️ Unable to Load Release Notes</h3>
+                <h3> Unable to Load Release Notes</h3>
                 <p>Failed to load the release notes markdown file.</p>
                 <p><strong>Error:</strong> ${errorMessage}</p>
                 <p>Please check that the <code>readme.md</code> file exists in the project root.</p>
@@ -195,7 +195,7 @@ export class MarkdownLoader {
         
         if (container) {
             container.innerHTML = `
-                <h3>📝 Release Notes</h3>
+                <h3> Release Notes</h3>
                 <p>No markdown file found. Using default content.</p>
                 <p>Create a <code>README.md</code> file in the project root to display custom release notes.</p>
             `;
