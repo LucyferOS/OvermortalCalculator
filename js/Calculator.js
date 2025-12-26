@@ -118,7 +118,7 @@ class OvermortalCalculator {
         const respiraBonusCurio = getNumberValue('respira-bonus-curio');
         const respiraBonusTotal = 1 + ((respiraBonusCurio + respiraBonusImmortalFriend + respiraBonusTechnique) / 100);
         
-        const abodeAuraXPTotal = 130 * (Realms[mainPathRealm]?.absorption || 0);
+        const abodeAuraXPTotal = 130;
         
         this.playerData = {
             // Main Path

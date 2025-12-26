@@ -2,7 +2,7 @@ import { XPData, GameConstants, Realms } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
 
 class XPCalculator {
-    static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus = 0) {
+    static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {
         console.group('🧮 XPCalculator.calculateDailyXPWithAbsorptionBonus');
         console.log('Input:', { absorptionBonus, mainRealm: playerData.mainPathRealm });
         
@@ -10,6 +10,7 @@ class XPCalculator {
         console.log('Abode Aura XP:', abodeAuraXP);
         
         const gemBonusXP = abodeAuraXP * GameConstants.gemQuality[playerData.gemQuality];
+		console.log(GameConstants.gemQuality[playerData.gemQuality]);
         console.log('Gem Bonus XP:', gemBonusXP);
         
         const pillXP = this.calculatePillXP(playerData);
@@ -25,7 +26,7 @@ class XPCalculator {
         return total;
     }
 
-    static calculateAbodeAuraXP(playerData, absorptionBonus = 0) {
+    static calculateAbodeAuraXP(playerData, absorptionBonus) {
         const abodeBonuses = [
             playerData.abodeBonusCurio, playerData.abodeBonusTechnique, playerData.abodeBonusSectLevel,
             playerData.abodeBonusSectBarrier, playerData.abodeBonusCelestialSpring, playerData.abodeBonusEnergyArray,
@@ -39,9 +40,10 @@ class XPCalculator {
         const baseAbsorption = Realms[playerData.mainPathRealm]?.absorption || 0;
         const effectiveAbsorption = baseAbsorption + absorptionBonus;
         
-        const baseAuraXP = playerData.cosmoapsis * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
-        const dailyAuraXP = baseAuraXP * 10800;
-        
+        playerData.cosmoapsis = playerData.cosmoapsis * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
+		console.log('comsoapsis:', playerData.cosmoapsis);
+        const dailyAuraXP = playerData.cosmoapsis * 10800;
+        console.log('dailyAuraXP:', dailyAuraXP);
         return dailyAuraXP;
     }
 
