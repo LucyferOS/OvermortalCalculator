@@ -509,25 +509,6 @@ tr:hover {
     opacity: 1;
 }
 
-.tooltip-icon:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(30, 42, 50, 0.95);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.9em;
-    white-space: normal;
-    width: 300px;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    pointer-events: none;
-    line-height: 1.4;
-}
-
 /* Requirements List */
 .requirements-list {
     font-size: 0.9em;
@@ -594,11 +575,7 @@ tr:hover {
         width: 80px;
     }
     
-    .tooltip-icon:hover::after {
-        width: 200px;
-        font-size: 0.8em;
-    }
-}
+
 
 .section {
     display: none;

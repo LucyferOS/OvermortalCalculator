@@ -2,6 +2,8 @@
 
 #### Version 0.3.2.1
   * Fixed calculation bug which was caused by applying absorption twice. Values now match the reference.
+  * Fixed Info popping up in two places when hovered by mouse.
+  * Fixed release notes displaying at the bottom of the dashboard on initial load
 
 #### Version 0.3.2
 
@@ -49,11 +51,10 @@
   ***lucyfer_os***
   
   ## TODO:
-    * Investigate accuracy of existing calculations
-    * Add Fruits / Myrimon
 	* Add Elixers and Benediction 
+    * Add Fruits / Myrimon
 	* Add Recommendations
 	* Add XP Compared to overflow
-	*Investigate Virya Bugs
-	* Fix Info popping up in two places when hovered by mouse.
+	* Investigate Virya Bugs
+
 	
