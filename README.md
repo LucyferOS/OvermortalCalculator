@@ -1,16 +1,14 @@
-## Release notes
-
-#### Version 0.3.3
+#### Version 0.3.3 (BETA)
   * Another tooltip fix
   * Introduced some backend for fruits - these will not be visible until recommendations are implemented. Has not been tested, debugged, or attached to UI.
   * Virya should now properly catch all edge cases.
 
-#### Version 0.3.2.1
+#### Version 0.3.2.1 (BETA)
   * Fixed calculation bug which was caused by applying absorption twice. Values now match the reference.
   * Fixed Info popping up in two places when hovered by mouse.
   * Fixed release notes displaying at the bottom of the dashboard on initial load
 
-#### Version 0.3.2
+#### Version 0.3.2 (BETA)
 
   * Refined Virya.
 	* It is still not catching all edge cases, but further work is planned.
@@ -18,7 +16,7 @@
   * Added debugging features. These will be feature flagged upon release for a Dev Build which can be used to support the tool.
   
 
-#### Version 0.3.1
+#### Version 0.3.1 (BETA)
 
   * Refactored code for readability
   * index.html is now split into several smaller js and css files. This ensures that as the project grows, readability is maintained.
@@ -36,9 +34,9 @@
 	   ** NOTE - THIS IS NOT YET RELEASED: FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY **			
     * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. 
 	It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
-	* Debug Data is not yet santitized and ready for player use. For example, cosmoapsis is not currently displaying properly.
-	* Virya bugs related to certain scenarios which are uncommon - for example, being voidbreak mid on main path and voidbreak mid on secondary path.
-		*Time to cultivate is also still a WIP. It does not properly add previous times to cultivate across all use cases, other than completion -> Eminence.
+	* Debug Data is not yet santitized and ready for player use. For example, some things have not been rounded correctly, and junk values are not hidden.
+	* Although largely handled, Virya was a real pain... if the UI looks like something might not be right, inform me.
+		*XP compared to overflow is not yet handled. will need to add more logic to fix this.
     * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browser related bug,
 	feel free to report it, but it may be downprioritized.
 	
