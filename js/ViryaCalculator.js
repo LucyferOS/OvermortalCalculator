@@ -129,7 +129,6 @@ class ViryaCalculator {
             bonusEndsAt: 'Eminence'
         };
     }
-
     static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
         const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
         const currentScenarioInfo = this.detectScenario(playerData);
@@ -246,7 +245,6 @@ class ViryaCalculator {
             return Infinity;
         }
     }
-
 	static calculateXPForCompletion(playerData) {
 		console.group(' Calculating XP for Completion scenario');
 		
@@ -278,9 +276,8 @@ class ViryaCalculator {
 		console.log('XP needed for Completion:', xpNeeded);
 		console.groupEnd();
 		return xpNeeded;
-	}
- 
-   static calculateXPForEminence(playerData) {
+	} 
+    static calculateXPForEminence(playerData) {
 		const realmOrderMajor = ['Nascent','Incarnation', 'Voidbreak', 'Wholeness', 'Perfection','Nirvana', 'Celestial', 'Eternal', 'Supreme'];
 		const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
 		const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;

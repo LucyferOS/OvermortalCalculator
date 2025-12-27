@@ -1,9 +1,10 @@
-import { XPCalculator } from './XPCalculator.js';
-import { RealmCalculator } from './RealmCalculator.js';
-import { ViryaCalculator } from './ViryaCalculator.js';
-import { Realms } from './gameData.js';
-import { CalculatorUtils } from './utils.js';
-import { DataManager } from './DataManager.js';
+import { XPCalculator } 	from './XPCalculator.js';
+import { RealmCalculator }	from './RealmCalculator.js';
+import { ViryaCalculator }	from './ViryaCalculator.js';
+import { Realms } 			from './gameData.js';
+import { CalculatorUtils } 	from './utils.js';
+import { DataManager } 		from './DataManager.js';
+import { FruitCalculator } 	from './FruitCalculator.js'; 
 
 class OvermortalCalculator {
     constructor() {
@@ -120,6 +121,8 @@ class OvermortalCalculator {
         
         const abodeAuraXPTotal = 130;
         
+		
+		
         this.playerData = {
             // Main Path
             mainPathRealm,
@@ -197,7 +200,8 @@ class OvermortalCalculator {
             
             // Miscellaneous
             cosmoapsis: abodeAuraXPTotal,
-            gemQuality: getStringValue('gem-quality')
+            gemQuality: getStringValue('gem-quality'),
+			timegate: getNumberValue('timegate-days')
         };
     }
 
@@ -216,13 +220,16 @@ class OvermortalCalculator {
     this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus
     const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
     this.playerData.dailyXP = dailyXP;
-    
+    const fruitXPSingle = FruitCalculator.fruitXP(this.playerData);
+	const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
+	console.log('Fruit XP:', fruitXPTotal);
 	// Calculate realm progression
     const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
      
     this.calculationResults = {
         dailyXP,
         realmProgression,
+		fruitXPTotal,
         virya: viryaInfo
     };
     

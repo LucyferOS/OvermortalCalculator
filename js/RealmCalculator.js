@@ -32,7 +32,6 @@ class RealmCalculator {
             secondaryPath: secondaryPathProgression
         };
     }
-
     static calculatePathProgression(currentRealm, currentProgress, currentExp, dailyXP, majorRealm) {
         if (dailyXP <= 0) {
             return {
@@ -90,7 +89,6 @@ class RealmCalculator {
             progressPercentMajor
         };
     }
-
     static calculateTimeTo100Late(currentRealm, currentProgress, dailyXP) {
         if (dailyXP <= 0) return Infinity;
         
@@ -105,6 +103,7 @@ class RealmCalculator {
         
         return neededXP / dailyXP;
     }
+
 	static calculateRealmIndex(realmName) {
 		const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
 		const realmOrderMinor = ['Early', 'Mid', 'Late'];
@@ -134,7 +133,6 @@ class RealmCalculator {
 		
 		return majorIndex * realmOrderMinor.length + minorIndex;
 	}	
-	
 	static calculateRealmProgression(startIndex, endIndex) {
 	  const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
 	  const realmOrderMinor = ['Early', 'Mid', 'Late'];

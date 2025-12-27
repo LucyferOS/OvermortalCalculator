@@ -1,3 +1,6 @@
+#### Version 0.3.3.1 (BETA)
+  * Fixed some fruits stuff to make it accurate. Attached to existing placeholder UI elements. Proper recommendations not implemented yet. Virya doesnt use fruits yet.
+
 #### Version 0.3.3 (BETA)
   * Another tooltip fix
   * Introduced some backend for fruits - these will not be visible until recommendations are implemented. Has not been tested, debugged, or attached to UI.
@@ -31,7 +34,7 @@
 
 ## Limitations / Known issues
 
-	   ** NOTE - THIS IS NOT YET RELEASED: FRUITS, ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY **			
+	   ** NOTE - THIS IS NOT YET RELEASED: ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY **			
     * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. 
 	It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 	* Debug Data is not yet santitized and ready for player use. For example, some things have not been rounded correctly, and junk values are not hidden.
@@ -55,9 +58,8 @@
   
   ## TODO:
 	* Add Elixers and Benediction 
-    * Add Fruits / Myrimon
 	* Add Recommendations
 	* Add XP Compared to overflow
-	* Investigate Virya Bugs
+	
 
 	

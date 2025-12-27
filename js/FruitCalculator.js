@@ -1,51 +1,51 @@
 import { GameConstants } from './gameData.js';
 
-//Fruit calculation strategy: take the values from the player extractor and compare against gameData to get the average amount of xp per fruit. Example of object:
-
-		//{ 
-		//  level: 0,
-		//  xpBonus: 0.00,
-		//  gushMultiplier: 150.00,
-		//  gushChance: 0.00,
-		//  qualityChance: {
-		//	common: 100.00,
-		//	uncommon: 0.00,
-		//	rare: 0.00,
-		//	epic: 0.00,
-		//	legendary: 0.00,
-		//	mythic: 0.00
-		//  }
-		//}
-
-export class fruitCalculator(playerdata) {
+class FruitCalculator {
 	
-	const extractorRank = playerData.extractorRank;
-	const extractorQualityLevel = GameConstants.flatExtractorLevels['playerData.extractorQualityLevel'].qualityChance;
-	const extractorXPLevel = GameConstants.flatExtractorLevels['playerData.extractorXPLevel'].xpBonus;
-	const extractorGushLevel = GameConstants.flatExtractorLevels['playerData.extractorGushLevel'].gushChance + 10; //10 is the base gush value)
-	const baseFruitXP = GameConstants.fruitRealmData[playerData.mainPathRealmMajor];
-	const modifiedFruitXP = baseFruitXP + (baseFruitXP * extractorXPLevel);
-	const fruitQualityModifier = GameConstants.fruitQualityModifier[extractorQualityLevel];
-	const gushMultiplier = GameConstants.flatExtractorLevels['playerData.extractorGushLevel'].gushMultiplier;
-	//math stack exchange gave a formula for calculating probability with a percentage and pity, (1-p-(1-p)^n)/p , where p is percentage and n is pity.
-	const gushProbability = (1 - extractorGushLevel - Math.pow(1 - extractorGushLevel, 6)) / extractorGushLevel;
-	
-	quality
-	
-	
-	
-	if (playerData.timegate <= 0){
-		const fruitxpWithoutGush = modifiedFruitXP * fruitQualityModifier;
-		const fruitXPWithGush = fruitxpWithoutGush * gushMultiplier;
-		const finalFruitXP = (fruitXPWithoutGush * (100 - gushProbability)) + (fruitXPWithGush * gushProbability) * 1000
-
-		return finalFruitXP;
-	
-	} else {
-		const fruitXPWithoutGush = modifiedFruitXP * 1.5 * fruitQualityModifier;
-		const fruitXPWithGush = fruitxpWithoutGush * gushMultiplier;
-		const finalFruitXP = (fruitXPWithoutGush * (100 - gushProbability)) + (fruitXPWithGush * gushProbability) * 1000
-
-		return finalFruitXP;
-	}
+  static fruitXP(playerData) {
+    const extractorXPLevel = GameConstants.flatExtractorLevels.levels[playerData.extractorXPLevel].xpBonus;
+    const extractorGushLevel = (GameConstants.flatExtractorLevels.levels[playerData.extractorGushLevel].gushChance + 10) / 100;
+    const baseFruitXP = GameConstants.fruitRealmData[playerData.mainPathRealmMajor];
+    const modifiedFruitXP = baseFruitXP + (baseFruitXP * extractorXPLevel);
+    const gushMultiplier = GameConstants.flatExtractorLevels.levels[playerData.extractorGushLevel].gushMultiplier;
+    
+    // Get quality distribution
+    const qualityLevelObj = GameConstants.flatExtractorLevels.levels[playerData.extractorQualityLevel];
+    const qualityChances = qualityLevelObj.qualityChance;
+    
+    // Calculate weighted average quality modifier
+    let weightedQualityModifier = 0;
+    for (const [quality, chance] of Object.entries(qualityChances)) {
+      const modifier = GameConstants.fruitQualityModifier[quality];
+      if (modifier !== undefined && chance > 0) {
+        weightedQualityModifier += (chance / 100) * modifier;
+      }
+    }
+    
+    console.log('weightedQualityModifier:', weightedQualityModifier);
+    
+    // Calculate gush probability with safety check
+    let gushProbability;
+    if (extractorGushLevel > 0 && extractorGushLevel < 1) {
+      gushProbability = extractorGushLevel / (1 - Math.pow(1 - extractorGushLevel, 6));
+    } else {
+      gushProbability = .1 / (1 - Math.pow(1 - .1, 6));
+    }
+    
+    if (playerData.timegate <= 0) {
+      const fruitXPWithoutGush = modifiedFruitXP * weightedQualityModifier;
+      const fruitXPWithGush = fruitXPWithoutGush * (gushMultiplier / 100);
+      const finalFruitXP = (fruitXPWithoutGush * (1 - gushProbability)) + (fruitXPWithGush * gushProbability);
+      
+      return finalFruitXP * 1000;
+    } else {
+      const fruitXPWithoutGush = modifiedFruitXP * 1.5 * weightedQualityModifier;
+      const fruitXPWithGush = fruitXPWithoutGush * (gushMultiplier / 100);
+      const finalFruitXP = (fruitXPWithoutGush * (1 - gushProbability)) + (fruitXPWithGush * gushProbability);
+      
+      return finalFruitXP * 1000;
+    }
+  }
 }
+
+export { FruitCalculator };
