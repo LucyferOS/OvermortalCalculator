@@ -131,7 +131,7 @@ export const GameConstants = {
 		  gushMultiplier: 150.00,
 		  gushChance: 0.00,
 		  qualityChance: {
-			common:   100.00,
+			common:   70.00,
 			uncommon: 0.00,
 			rare: 	  0.00,
 			epic: 	  0.00,
@@ -145,7 +145,7 @@ export const GameConstants = {
 		  gushMultiplier: 154.00,
 		  gushChance: 0.00,
 		  qualityChance: {
-			common:   95.00,
+			common:   65.00,
 			uncommon: 5.00,
 			rare: 	  0.00,
 			epic: 	  0.00,
@@ -159,7 +159,7 @@ export const GameConstants = {
 		  gushMultiplier: 158.00,
 		  gushChance: 0.00,
 		  qualityChance: {
-			common: 90.00,
+			common: 60.00,
 			uncommon: 10.00,
 			rare: 0.00,
 			epic: 0.00,
@@ -173,7 +173,7 @@ export const GameConstants = {
 		  gushMultiplier: 162.00,
 		  gushChance: 0.00,
 		  qualityChance: {
-			common: 85.00,
+			common: 55.00,
 			uncommon: 15.00,
 			rare: 0.00,
 			epic: 0.00,
@@ -187,7 +187,7 @@ export const GameConstants = {
 		  gushMultiplier: 166.00,
 		  gushChance: 0.00,
 		  qualityChance: {
-			common: 80.00,
+			common: 50.00,
 			uncommon: 20.00,
 			rare: 0.00,
 			epic: 0.00,
@@ -201,7 +201,7 @@ export const GameConstants = {
 		  gushMultiplier: 170.00,
 		  gushChance: 0.00,
 		  qualityChance: {
-			common: 75.00,
+			common: 45.00,
 			uncommon: 25.00,
 			rare: 0.00,
 			epic: 0.00,
@@ -215,8 +215,8 @@ export const GameConstants = {
 		  gushMultiplier: 174.00,
 		  gushChance: 5.00,
 		  qualityChance: {
-			common: 0.00,
-			uncommon: 50.00,
+			common: 40.00,
+			uncommon: 30.00,
 			rare: 0.00,
 			epic: 0.00,
 			legendary: 0.00,
@@ -229,8 +229,8 @@ export const GameConstants = {
 		  gushMultiplier: 178.00,
 		  gushChance: 5.00,
 		  qualityChance: {
-			common: 0.00,
-			uncommon: 55.00,
+			common: 35.00,
+			uncommon: 35.00,
 			rare: 0.00,
 			epic: 0.00,
 			legendary: 0.00,
@@ -243,8 +243,8 @@ export const GameConstants = {
 		  gushMultiplier: 182.00,
 		  gushChance: 5.00,
 		  qualityChance: {
-			common: 0.00,
-			uncommon: 60.00,
+			common: 30.00,
+			uncommon: 40.00,
 			rare: 0.00,
 			epic: 0.00,
 			legendary: 0.00,
@@ -257,8 +257,8 @@ export const GameConstants = {
 		  gushMultiplier: 186.00,
 		  gushChance: 5.00,
 		  qualityChance: {
-			common: 0.00,
-			uncommon: 65.00,
+			common: 25.00,
+			uncommon: 45.00,
 			rare: 0.00,
 			epic: 0.00,
 			legendary: 0.00,
@@ -271,8 +271,8 @@ export const GameConstants = {
 		  gushMultiplier: 190.00,
 		  gushChance: 5.00,
 		  qualityChance: {
-			common: 0.00,
-			uncommon: 70.00,
+			common: 20.00,
+			uncommon: 50.00,
 			rare: 0.00,
 			epic: 0.00,
 			legendary: 0.00,
