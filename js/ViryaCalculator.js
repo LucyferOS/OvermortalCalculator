@@ -1,7 +1,6 @@
 import { GameConstants, Realms, RealmMajorTotalXP } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
 import { RealmCalculator } from './RealmCalculator.js';
-//TODO: Fix so that calcuates time between no virya and eminence correctly, eminence and perfect correctly, etc. good enough for now.
 class ViryaCalculator {
     static detectScenario(playerData) {
         const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
@@ -151,16 +150,10 @@ class ViryaCalculator {
         console.log('Current index:', currentIndex, 'Target index:', targetIndex);
 
         // Check if target is already achieved or passed
-        if (targetIndex < currentIndex) {
-            console.log('Already beyond target scenario');
+        if (targetIndex <= currentIndex) {
+            console.log('Already at or beyond target scenario');
             console.groupEnd();
-            return 0; // Already achieved
-        }
-
-        if (targetIndex === currentIndex) {
-            console.log('Already at target scenario');
-            console.groupEnd();
-            return 0; // Already at this scenario
+            return { daysNeeded: 0, xpNeeded: 0 };
         }
 
         // Special handling for "No Virya" to "Completion" transition
@@ -173,20 +166,20 @@ class ViryaCalculator {
             if (mainPathDailyXP <= 0) {
                 console.log('No main path daily XP available');
                 console.groupEnd();
-                return Infinity;
+                return { daysNeeded: Infinity, xpNeeded:  Infinity };
             }
             
             const daysNeeded = xpNeeded / mainPathDailyXP;
             console.log('Days needed:', daysNeeded);
             console.groupEnd();
-            return daysNeeded;
+            return { daysNeeded, xpNeeded };
         }
 
         // For other transitions, we need secondary path XP
         if (secondaryDailyXP <= 0) {
             console.log('No secondary daily XP available for this transition');
             console.groupEnd();
-            return Infinity;
+            return { daysNeeded: Infinity, xpNeeded:  Infinity };
         }
 
         // Calculate XP needed based on target scenario
@@ -209,7 +202,7 @@ class ViryaCalculator {
                 default:
                     console.log('Unknown target scenario:', targetScenario);
                     console.groupEnd();
-                    return Infinity;
+                    return { daysNeeded: Infinity, xpNeeded:  Infinity };
             }
 
             console.log('XP needed:', xpNeeded);
@@ -217,7 +210,7 @@ class ViryaCalculator {
             if (xpNeeded <= 0) {
                 console.log('No XP needed (already there)');
                 console.groupEnd();
-                return 0;
+                return { daysNeeded: 0, xpNeeded: 0 };
             }
 
             const daysNeeded = xpNeeded / secondaryDailyXP;
@@ -227,22 +220,22 @@ class ViryaCalculator {
             if (isNaN(daysNeeded)) {
                 console.log('Days needed is NaN');
                 console.groupEnd();
-                return Infinity;
+                return { daysNeeded: Infinity, xpNeeded:  Infinity };
             }
 
             if (!isFinite(daysNeeded)) {
                 console.log('Days needed is infinite');
                 console.groupEnd();
-                return Infinity;
+                return { daysNeeded: Infinity, xpNeeded:  Infinity };
             }
 
             console.groupEnd();
-            return daysNeeded;
+            return { daysNeeded, xpNeeded };
 
         } catch (error) {
             console.error('Error calculating days to scenario:', error);
             console.groupEnd();
-            return Infinity;
+            return { daysNeeded: Infinity, xpNeeded:  Infinity };
         }
     }
 	static calculateXPForCompletion(playerData) {

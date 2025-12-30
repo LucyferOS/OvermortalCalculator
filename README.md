@@ -1,3 +1,9 @@
+#### Version 0.3.4 (BETA)
+  * Recommendations giga-update - I have implemented a lot of logic for both virya and a possible fruits feature. 
+		* The fruits feature is feature toggled within dev testing. 
+		* The virya feature has only been spot tested, but not fully stepped through to validate accuracy.use with caution for the time being.
+  * Debug logging in this build is broken as I have moved many things to console for my testing as it is easier for me to follow. I will fix this in a future update.
+
 #### Version 0.3.3.1 (BETA)
   * Fixed some fruits stuff to make it accurate. Attached to existing placeholder UI elements. Proper recommendations not implemented yet. Virya doesnt use fruits yet.
 
@@ -59,7 +65,5 @@
   ## TODO:
 	* Add Elixers and Benediction 
 	* Add Recommendations
-	* Add XP Compared to overflow
-	
 
 	

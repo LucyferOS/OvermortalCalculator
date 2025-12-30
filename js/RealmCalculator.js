@@ -158,4 +158,6 @@ class RealmCalculator {
 	}
 }
 
+
+
 export { RealmCalculator };

@@ -52,6 +52,17 @@ export const RealmMajorTotalXP = {
     'Supreme': 80533128224
 };
 
+export const timegateLength = {
+	'Incarnation':	34.00,
+	'Voidbreak':	55.00,
+	'Wholeness':	100.00,
+	'Perfection':	90.00,
+	'Nirvana':		120.00,
+	'Celestial':	180.00,
+	'Eternal':		183.00,
+	'Supreme':		200.00
+}
+
 export const GameConstants = {
     minPerTaoistYear: 	15,
     taoistYearsPerDay: 	96,

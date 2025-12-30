@@ -40,9 +40,10 @@ class XPCalculator {
         const baseAbsorption = Realms[playerData.mainPathRealm]?.absorption || 0;
         const effectiveAbsorption = baseAbsorption + absorptionBonus;
         
-        playerData.cosmoapsis = playerData.cosmoapsis * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
-		console.log('comsoapsis:', playerData.cosmoapsis);
-        const dailyAuraXP = playerData.cosmoapsis * 10800;
+        // FIXED: Don't mutate playerData, use local variable
+        const cosmoapsisValue = playerData.cosmoapsis * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
+		console.log('cosmoapsis:', cosmoapsisValue);
+        const dailyAuraXP = cosmoapsisValue * 10800;
         console.log('dailyAuraXP:', dailyAuraXP);
         return dailyAuraXP;
     }

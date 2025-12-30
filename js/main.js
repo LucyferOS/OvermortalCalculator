@@ -2,7 +2,7 @@ import { MarkdownLoader } from './markdownLoader.js';
 import { OvermortalCalculator } from './Calculator.js';
 import { EventManager } from './EventManager.js';
 import { UIManager } from './UIManager.js';
-import { DebugManager } from './DebugManager.js';
+
 
 class OvermortalApp {
     constructor() {
@@ -44,11 +44,7 @@ class OvermortalApp {
             try {
                 const results = this.calculator.calculateAll();
                 const playerData = this.calculator.getPlayerData();
-                UIManager.updateDashboard(results, playerData);
-                
-                // Update debug information
-                DebugManager.updateDebugInfo(this.calculator);
-                
+                UIManager.updateDashboard(results, playerData);              
                 UIManager.showNotification('Calculation complete! Results updated.');
             } catch (error) {
                 console.error('Calculation error:', error);
@@ -107,4 +103,3 @@ const app = new OvermortalApp();
 app.init();
 
 // Make debug manager available globally for testing
-window.DebugManager = DebugManager;

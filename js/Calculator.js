@@ -5,6 +5,10 @@ import { Realms } 			from './gameData.js';
 import { CalculatorUtils } 	from './utils.js';
 import { DataManager } 		from './DataManager.js';
 import { FruitCalculator } 	from './FruitCalculator.js'; 
+import { recommendations } 	from './Recommendations.js';
+import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
+import { ViryaScenarioComparator } from './ViryaScenarioComparator.js';
+
 
 class OvermortalCalculator {
     constructor() {
@@ -205,7 +209,7 @@ class OvermortalCalculator {
         };
     }
 
-    calculateAll() {
+calculateAll() {
     this.updateFromInputs();
     
     if (this.debugEnabled) {
@@ -217,23 +221,142 @@ class OvermortalCalculator {
     // Calculate daily XP with Virya bonus
     const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
     this.playerData.viryaScenario = viryaInfo.scenario;
-    this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus
+    this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus;
     const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
     this.playerData.dailyXP = dailyXP;
+    
     const fruitXPSingle = FruitCalculator.fruitXP(this.playerData);
-	const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
-	console.log('Fruit XP:', fruitXPTotal);
-	// Calculate realm progression
+    const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
+    
+    // Calculate secondary path daily XP for Virya calculations
+    let secondaryDailyXP = 0;
+    if (this.playerData.pathFocus === 'Secondary Path') {
+        secondaryDailyXP = dailyXP;
+    }
+    
+    // Get XP needed for different Virya scenarios
+    const scenarioOrder = ['No Virya', 'Completion', 'Eminence', 'Perfect', 'Half-Step'];
+    const scenarioXPNeeded = {};
+    const scenarioFruitResults = {};
+    
+    // Get the current scenario index
+    const currentIndex = scenarioOrder.indexOf(viryaInfo.scenario);
+    
+	const scenarioComparisons = {};
+    const comparator = new ViryaScenarioComparator(this.playerData, dailyXP);
+    
+    // Compare Completion (baseline) with other scenarios
+    const comparisonScenarios = ['Eminence', 'Perfect', 'Half-Step'];
+    for (const targetScenario of comparisonScenarios) {
+        try {
+            const comparison = comparator.compareScenarios('Completion', targetScenario);
+            scenarioComparisons[targetScenario] = comparison;
+        } catch (error) {
+            console.error(`Error comparing Completion vs ${targetScenario}:`, error);
+        }
+    }
+	
+	
+    console.log('\n=== VIRYA SCENARIO ANALYSIS ===');
+    console.log('Current scenario:', viryaInfo.scenario, '(index:', currentIndex + ')');
+    
+    // Calculate fruit recommendations for ALL scenarios that come AFTER the current one
+    for (let i = currentIndex; i < scenarioOrder.length; i++) {
+        const scenario = scenarioOrder[i];
+        
+        // Skip "No Virya" scenario - it doesn't need fruits to reach
+        if (scenario === 'No Virya') continue;
+        
+        // Calculate XP needed for this scenario
+        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, this.playerData, secondaryDailyXP);
+        scenarioXPNeeded[scenario] = scenarioInfo.xpNeeded;
+        
+        console.log(`\n--- ${scenario} Scenario ---`);
+        console.log('XP needed:', scenarioInfo.xpNeeded);
+        console.log('Days needed:', scenarioInfo.daysNeeded);
+        
+        // Only calculate fruit recommendations if:
+        // 1. Player has fruits
+        // 2. XP needed is > 0 (not already achieved)
+        // 3. XP needed is finite (can actually be reached)
+        if (this.playerData.fruitsCount > 0 && 
+            scenarioInfo.xpNeeded > 0 && 
+            isFinite(scenarioInfo.xpNeeded)) {
+            
+            console.log(`Calculating fruit recommendations for ${scenario}...`);
+            const fruitResult = recommendations.findMinLevelsFruitFromCurrent(this.playerData, scenarioInfo.xpNeeded, 30);
+            scenarioFruitResults[scenario] = fruitResult;
+            
+            if (fruitResult && fruitResult.recommendedSolution) {
+                console.log(`✅ ${scenario} fruit solution found!`);
+                console.log('Recommended levels:', fruitResult.recommendedSolution);
+                console.log('Efficiency:', fruitResult.comparison.singleXPPercentOfMax, 'of max XP');
+            } else {
+                console.log(`❌ No fruit solution found for ${scenario}`);
+            }
+        } else {
+            console.log(`Skipping fruit recommendations for ${scenario}:`);
+            if (this.playerData.fruitsCount <= 0) console.log('- No fruits available');
+            if (scenarioInfo.xpNeeded <= 0) console.log('- Already achieved or no XP needed');
+            if (!isFinite(scenarioInfo.xpNeeded)) console.log('- XP needed is infinite (unreachable)');
+        }
+    }
+    
+    // Determine next scenario for backward compatibility
+    const nextScenario = currentIndex < scenarioOrder.length - 1 ? scenarioOrder[currentIndex + 1] : null;
+    
+    console.log('\n=== FRUIT CALCULATIONS ===');
+    console.log('Fruit XP per fruit:', fruitXPSingle);
+    console.log('Total Fruit XP (', this.playerData.fruitsCount, 'fruits):', fruitXPTotal);
+    
+    // Calculate realm progression
     const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
-     
+    
+    // Calculate scenario comparisons (Completion as baseline)
+    
+    console.log('\n=== SCENARIO COMPARISONS (Completion as baseline) ===');
+    for (const targetScenario of comparisonScenarios) {
+        console.log(`\n--- Comparing Completion vs ${targetScenario} ---`);
+        
+        try {
+            const comparison = recommendations.comparedScenarioToOverflow('Completion', targetScenario, this.playerData);
+            
+            if (comparison) {
+                scenarioComparisons[targetScenario] = comparison;
+                
+                console.log(`Total XP by next timegate end:`);
+                console.log(`- Completion: ${comparison.scenario1.totalXP.toLocaleString()}`);
+                console.log(`- ${targetScenario}: ${comparison.scenario2.totalXP.toLocaleString()}`);
+                console.log(`Better scenario: ${comparison.comparison.betterScenario}`);
+                console.log(`Difference: ${comparison.comparison.difference.toLocaleString()} XP (${comparison.comparison.percentage})`);
+                console.log(`Total days until next timegate: ${comparison.comparison.totalDaysUntilNextTimegateEnd}`);
+            } else {
+                console.log(`Comparison failed for ${targetScenario}`);
+            }
+        } catch (error) {
+            console.error(`Error comparing Completion vs ${targetScenario}:`, error);
+        }
+    }
+    
     this.calculationResults = {
         dailyXP,
         realmProgression,
-		fruitXPTotal,
-        virya: viryaInfo
+        fruitXPSingle,
+        fruitXPTotal,
+        virya: viryaInfo,
+        scenarioXPNeeded,
+        nextScenario,
+        // NEW: Store fruit results for ALL scenarios
+        scenarioFruitResults: scenarioFruitResults,
+        // NEW: Store scenario comparisons
+        scenarioComparisons: scenarioComparisons,
+        // For backward compatibility, also store the next scenario's fruit result
+        fruitResult: scenarioFruitResults[nextScenario] || null,
+        recommendedFruits: scenarioFruitResults[nextScenario] ? scenarioFruitResults[nextScenario].recommendedSolution : null
     };
     
     if (this.debugEnabled) {
+        console.log('\n=== FINAL CALCULATION RESULTS ===');
         console.log('Calculation Results:', this.calculationResults);
         console.log('=== END DEBUG ===');
     }

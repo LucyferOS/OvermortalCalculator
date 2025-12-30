@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +18,7 @@
                     <h1>OverMortal Realm Breakthrough Calculator</h1>
                     <div class="subtitle">Plan your cultivation journey and optimize your breakthrough strategy</div>
                 </div>
-                <div class="version">v0.3.3 (BETA)</div>
+                <div class="version">v0.3.4 (BETA)</div>
             </div>
         </header>
         <div class="sidebar">
@@ -27,6 +28,9 @@
             <div class="nav-item" data-section="player-input">
                 <span>Player Input</span>
             </div>
+		<!--<div class="nav-item" data-section="recommendations">
+			<span>Recommendations</span>
+		</div>-->
             <div class="nav-item" data-section="debug">
                 <span>Debug Data</span>
             </div>
@@ -125,7 +129,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="card">
                     <h2 class="card-title">Player Time to Virya</h2>
                     <div class="info">
                         <span>Player Path Focus Scenario chosen: <strong id="path-focus-display">Main Path</strong></span>
@@ -137,7 +140,7 @@
 							<span class="virya-status-label"> Current Status:</span>
 							<span class="virya-scenario-badge" id="current-virya-scenario">None</span>
 							<span class="virya-bonus-badge" id="current-virya-bonus">+0%</span>
-							<span class="virya-status-text">Bonus ends when: <span id="current-virya-ends">N/A</span></span>
+							<!-- <span class="virya-status-text">Bonus ends when: <span id="current-virya-ends">N/A</span></span> -->
 						</div>
 						<div class="virya-recommendation" id="virya-recommendation-display">
 							TODO: IMPLEMENT RECOMMENDATIONS (VIA DECISION TREE?)
@@ -145,6 +148,7 @@
 					</div>
 					
 					<div class="table-container">
+						<div class="table-container">
 						<table id="virya-table">
 							<thead>
 								<tr>
@@ -162,6 +166,17 @@
 										XP compared to overflow
 										<span class="tooltip-icon" title="Compare Completion (overflow only) to current Virya, calculated to next realm timegate"><i class="fa-solid fa-circle-info"></i></span>
 									</th>
+									<!-- COMMENTED OUT OR REMOVED EXTRACTOR COLUMNS -->
+									<!-- 
+									<th>
+										With Current Extractor
+										<span class="tooltip-icon" title="XP comparison if using fruits at current extractor levels"><i class="fa-solid fa-circle-info"></i></span>
+									</th>
+									<th>
+										With Max Extractor  
+										<span class="tooltip-icon" title="XP comparison if using fruits at max extractor levels"><i class="fa-solid fa-circle-info"></i></span>
+									</th>
+									-->
 								</tr>
 							</thead>
 							<tbody>
@@ -174,6 +189,11 @@
 									<td id="virya-completion-date">--</td>
 									<td><span class="bonus-badge bonus-0">+0%</span></td>
 									<td id="virya-completion-xp">--</td>
+									<!-- COMMENTED OUT EXTRACTOR CELLS -->
+									<!-- 
+									<td id="virya-completion-current-extractor">--</td>
+									<td id="virya-completion-max-extractor">--</td>
+									-->
 								</tr>
 								<tr id="virya-row-eminence" class="virya-row">
 									<td>
@@ -184,6 +204,11 @@
 									<td id="virya-eminence-date">--</td>
 									<td><span class="bonus-badge bonus-20-eminence">+20%</span></td>
 									<td id="virya-eminence-xp">--</td>
+									<!-- COMMENTED OUT EXTRACTOR CELLS -->
+									<!-- 
+									<td id="virya-eminence-current-extractor">--</td>
+									<td id="virya-eminence-max-extractor">--</td>
+									-->
 								</tr>
 								<tr id="virya-row-perfect" class="virya-row">
 									<td>
@@ -194,6 +219,11 @@
 									<td id="virya-perfect-date">--</td>
 									<td><span class="bonus-badge bonus-20">+20%</span></td>
 									<td id="virya-perfect-xp">--</td>
+									<!-- COMMENTED OUT EXTRACTOR CELLS -->
+									<!-- 
+									<td id="virya-perfect-current-extractor">--</td>
+									<td id="virya-perfect-max-extractor">--</td>
+									-->
 								</tr>
 								<tr id="virya-row-halfstep" class="virya-row">
 									<td>
@@ -204,6 +234,11 @@
 									<td id="virya-halfstep-date">--</td>
 									<td><span class="bonus-badge bonus-40">+40%</span></td>
 									<td id="virya-halfstep-xp">--</td>
+									<!-- COMMENTED OUT EXTRACTOR CELLS -->
+									<!-- 
+									<td id="virya-halfstep-current-extractor">--</td>
+									<td id="virya-halfstep-max-extractor">--</td>
+									-->
 								</tr>
 							</tbody>
 						</table>
@@ -636,6 +671,76 @@
 				<input type="file" id="import-file-input" accept=".json" style="display: none;">
             </div>
 
+            <!-- RECOMMENDATIONS SECTION -->
+            <div id="recommendations" class="section">
+                <div class="card">
+                    <h2 class="card-title">When is best to eat my fruits?</h2>
+                    <div class="table-container">
+                        <table id="fruits-recommendation-table">
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th colspan="3">Minimum Extractor Levels</th>
+                                    <th>Minimum XP</th>
+                                    <th>Maximum XP</th>
+                                    <th>Amount of XP compared to overflow</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>Gush</th>
+                                    <th>XP</th>
+                                    <th>Quality</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="fruits-row-completion" class="fruits-recommendation-row">
+                                    <td><strong>Completion</strong></td>
+                                    <td id="completion-gush">--</td>
+                                    <td id="completion-xp">--</td>
+                                    <td id="completion-quality">--</td>
+                                    <td id="completion-min-xp">--</td>
+                                    <td id="completion-max-xp">--</td>
+                                    <td id="completion-overflow-xp">--</td>
+                                </tr>
+                                <tr id="fruits-row-eminence" class="fruits-recommendation-row">
+                                    <td><strong>Eminence</strong></td>
+                                    <td id="eminence-gush">--</td>
+                                    <td id="eminence-xp">--</td>
+                                    <td id="eminence-quality">--</td>
+                                    <td id="eminence-min-xp">--</td>
+                                    <td id="eminence-max-xp">--</td>
+                                    <td id="eminence-overflow-xp">--</td>
+                                </tr>
+                                <tr id="fruits-row-perfect" class="fruits-recommendation-row">
+                                    <td><strong>Perfect</strong></td>
+                                    <td id="perfect-gush">--</td>
+                                    <td id="perfect-xp">--</td>
+                                    <td id="perfect-quality">--</td>
+                                    <td id="perfect-min-xp">--</td>
+                                    <td id="perfect-max-xp">--</td>
+                                    <td id="perfect-overflow-xp">--</td>
+                                </tr>
+                                <tr id="fruits-row-halfstep" class="fruits-recommendation-row">
+                                    <td><strong>Half-Step</strong></td>
+                                    <td id="halfstep-gush">--</td>
+                                    <td id="halfstep-xp">--</td>
+                                    <td id="halfstep-quality">--</td>
+                                    <td id="halfstep-min-xp">--</td>
+                                    <td id="halfstep-max-xp">--</td>
+                                    <td id="halfstep-overflow-xp">--</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="info-note">
+                        <p><i class="fas fa-info-circle"></i> If you are already at or beyond a scenario, that row will display "Already at or beyond scenario" and calculations will be skipped for that scenario.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- DEBUG SECTION -->
             <div id="debug" class="section">
                 <div class="card">
@@ -672,7 +777,7 @@
 		</div>
 		
             <div class="footer">
-                <p>OverMortal Realm Breakthrough Calculator v0.3.3 (BETA)</p>
+                <p>OverMortal Realm Breakthrough Calculator v0.3.4 (BETA)</p>
                 <p>Coded by LucyferOS (Endless) | <a href="https://docs.google.com/spreadsheets/d/19xuznnncxhgHlUFwawAt8DPCu7YgwdGSP7mdHXGWTdk/edit?gid=1602589637#gid=1602589637" target="_blank">Based on original work by Zild and the Eternal Palace community, as well as Yutsu (Abyssal Hunt)</a></p>
                 <p>Last updated: 23/12/2025</p>
             </div>
