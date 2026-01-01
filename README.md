@@ -52,12 +52,11 @@
 
 ## Limitations / Known issues
 
-	   ** NOTE - THIS IS NOT YET RELEASED: ELIXERS, BENEDICTION AND RECOMMENDATIONS ARE NOT YET READY **			
+	   ** NOTE - THIS IS STILL BEING TESTED FOR ACCCURACY!!!		
     * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. 
 	It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 	* Debug Data is not yet santitized and ready for player use. For example, some things have not been rounded correctly, and junk values are not hidden.
 	* Although largely handled, Virya was a real pain... if the UI looks like something might not be right, inform me.
-		*XP compared to overflow is not yet handled. will need to add more logic to fix this.
     * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browser related bug,
 	feel free to report it, but it may be downprioritized.
 	
