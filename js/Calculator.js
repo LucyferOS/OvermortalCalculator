@@ -15,6 +15,7 @@ class OvermortalCalculator {
         this.dataManager = new DataManager();
         this.playerData = {};
         this.calculationResults = {};
+        this.debugEnabled = false;
         this.initializePlayerData();
     }
 
@@ -390,6 +391,11 @@ calculateAll() {
 
     getResults() {
         return this.calculationResults;
+    }
+
+    toggleDebug() {
+        this.debugEnabled = !this.debugEnabled;
+        return this.debugEnabled;
     }
 }
 

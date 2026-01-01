@@ -312,27 +312,75 @@ class ViryaCalculator {
 				} else {
 					targetRealm = `${playerData.mainPathRealmMajor} Early`;
 				}
+				
+				// #region agent log
+				fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:300',message:'calculateXPForPerfect - starting',data:{currentScenario:playerData.viryaScenario,mainPathRealmMajor:playerData.mainPathRealmMajor,targetRealm,secondaryPathRealm:playerData.secondaryPathRealm,secondaryPathProgress:playerData.secondaryPathProgress},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
+				// #endregion
+				
 				if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion') {
-				return this.calculateXPForEminence(playerData) + this.calculateXPToReach(playerData.secondaryPathRealm,
+				const eminenceXP = this.calculateXPForEminence(playerData);
+				const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
 															playerData.secondaryPathProgress,
 															targetRealm, 100);
+				const totalXP = eminenceXP + perfectXP;
+				
+				// #region agent log
+				fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:316',message:'calculateXPForPerfect - calculated (from Completion/No Virya)',data:{currentScenario:playerData.viryaScenario,eminenceXP,perfectXP,totalXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
+				// #endregion
+				
+				return totalXP;
 				} else {
-        return this.calculateXPToReach(playerData.secondaryPathRealm,
+        const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
                                       playerData.secondaryPathProgress,
                                       targetRealm, 100);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:320',message:'calculateXPForPerfect - calculated (from Eminence)',data:{currentScenario:playerData.viryaScenario,perfectXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
+        // #endregion
+        
+        return perfectXP;
 				}
 			}
 		}
     static calculateXPForHalfStep(playerData) {
         const targetRealm = `${playerData.mainPathRealmMajor} Late`;
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:326',message:'calculateXPForHalfStep - starting',data:{currentScenario:playerData.viryaScenario,mainPathRealmMajor:playerData.mainPathRealmMajor,targetRealm,secondaryPathRealm:playerData.secondaryPathRealm,secondaryPathProgress:playerData.secondaryPathProgress},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
+        // #endregion
+        
 		if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion' || playerData.viryaScenario === 'Eminence' ) {
-			return this.calculateXPForPerfect(playerData) + this.calculateXPToReach(playerData.secondaryPathRealm,
-														playerData.secondaryPathProgress,
+			const perfectXP = this.calculateXPForPerfect(playerData);
+			
+			// After reaching Perfect, secondary path is at the Perfect target realm (mainPathRealmMajor Mid/Early)
+			// So we need to calculate XP from that position to Half-Step target (mainPathRealmMajor Late)
+			let perfectTargetRealm;
+			if (playerData.mainPathRealmMajor === 'Voidbreak') {
+				perfectTargetRealm = `${playerData.mainPathRealmMajor} Mid`;
+			} else {
+				perfectTargetRealm = `${playerData.mainPathRealmMajor} Early`;
+			}
+			
+			const halfStepXP = this.calculateXPToReach(perfectTargetRealm,
+														100, // After Perfect, we're at 100% of the Perfect target realm
 														targetRealm, 100);
+			const totalXP = perfectXP + halfStepXP;
+			
+			// #region agent log
+			fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:352',message:'calculateXPForHalfStep - calculated',data:{currentScenario:playerData.viryaScenario,perfectXP,perfectTargetRealm,halfStepXP,totalXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
+			// #endregion
+			
+			return totalXP;
 		} else {
-			return this.calculateXPToReach(playerData.secondaryPathRealm,
+			const halfStepXP = this.calculateXPToReach(playerData.secondaryPathRealm,
 											playerData.secondaryPathProgress,
 										targetRealm, 100);
+			
+			// #region agent log
+			fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:333',message:'calculateXPForHalfStep - calculated (already Perfect)',data:{currentScenario:playerData.viryaScenario,halfStepXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
+			// #endregion
+			
+			return halfStepXP;
 		}
     }
     static calculateXPToReach(currentRealm, currentProgress, targetRealm, targetProgress) {

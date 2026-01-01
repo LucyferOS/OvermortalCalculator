@@ -257,6 +257,23 @@ h1 {
     background: linear-gradient(135deg, #3A7A5E, #2E6B4F);
 }
 
+/* Sticky buttons container for player input section */
+.sticky-buttons-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+    padding: 20px;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 -4px 20px rgba(42, 59, 71, 0.1);
+    border-top: 2px solid var(--border);
+    position: sticky;
+    bottom: 20px;
+    z-index: 100;
+    margin-bottom: 0;
+}
+
 .result-box {
     background: linear-gradient(135deg, #F8F9FA, #FFFFFF);
     border-radius: 10px;

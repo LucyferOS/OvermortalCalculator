@@ -21,6 +21,10 @@ class OvermortalApp {
         this.originalCalculateBtnText = document.getElementById('calculate-btn').innerHTML;
         this.eventManager.setupEventListeners();
         this.loadSavedData();
+        
+        // Hide debug menu item initially (debug starts as disabled)
+        UIManager.updateDebugMenuVisibility(this.calculator.debugEnabled);
+        
         this.calculateAndUpdateUI();
 		this.loadReleaseNotes();
     }
@@ -44,7 +48,13 @@ class OvermortalApp {
             try {
                 const results = this.calculator.calculateAll();
                 const playerData = this.calculator.getPlayerData();
-                UIManager.updateDashboard(results, playerData);              
+                UIManager.updateDashboard(results, playerData);
+                
+                // Update debug display if debug is enabled
+                if (this.calculator.debugEnabled) {
+                    UIManager.updateDebugDisplay(playerData, results);
+                }
+                
                 UIManager.showNotification('Calculation complete! Results updated.');
             } catch (error) {
                 console.error('Calculation error:', error);

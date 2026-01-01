@@ -1,5 +1,6 @@
 import { DataManager } from './DataManager.js';
 import { CalculatorUtils } from './utils.js';
+import { UIManager } from './UIManager.js';
 
 class EventManager {
     constructor(app) {
@@ -36,6 +37,11 @@ class EventManager {
         
         document.getElementById('clear-storage-btn').addEventListener('click', () => 
             this.handleClearStorage()
+        );
+
+        // Debug toggle button
+        document.getElementById('debug-toggle-btn').addEventListener('click', () => 
+            this.handleDebugToggle()
         );
 
         // Navigation
@@ -118,6 +124,34 @@ class EventManager {
         this.dataManager.clearLocalStorage();
         this.app.resetToDefaults();
         this.app.showNotification('Saved data cleared');
+    }
+
+    handleDebugToggle() {
+        const enabled = this.app.calculator.toggleDebug();
+        const button = document.getElementById('debug-toggle-btn');
+        if (button) {
+            if (enabled) {
+                button.innerHTML = '<i class="fas fa-bug"></i> Debug ON';
+                button.style.backgroundColor = 'var(--success)';
+            } else {
+                button.innerHTML = '<i class="fas fa-bug"></i> Toggle Debug';
+                button.style.backgroundColor = 'var(--warning)';
+            }
+        }
+        
+        // Show/hide debug menu item
+        UIManager.updateDebugMenuVisibility(enabled);
+        
+        this.app.showNotification(`Debug mode ${enabled ? 'enabled' : 'disabled'}`);
+        
+        // Update debug display if enabled
+        if (enabled) {
+            const results = this.app.calculator.getResults();
+            const playerData = this.app.calculator.getPlayerData();
+            if (results && playerData) {
+                UIManager.updateDebugDisplay(playerData, results);
+            }
+        }
     }
 }
 

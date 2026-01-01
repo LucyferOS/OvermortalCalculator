@@ -1,6 +1,7 @@
 import { CalculatorUtils } from './utils.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
 import { Logger } from './Logger.js';
+import { Realms, XPData, GameConstants, RealmMajorTotalXP, timegateLength } from './gameData.js';
 
 class UIManager {
     static updateDashboard(results, playerData) {
@@ -550,14 +551,29 @@ class UIManager {
                 return;
             }
             
-            const diff = comp.comparison.difference;
-            const percStr = comp.comparison.percentage;
-            const totalXP = comp.scenario2.totalXP;
+            // Get raw values
+            const scenario1TotalXP = comp.scenario1.totalXP;
+            const scenario2TotalXP = comp.scenario2.totalXP;
+            const scenario1XPLost = comp.scenario1.xpLostDuringFocus || 0;
+            const scenario2XPLost = comp.scenario2.xpLostDuringFocus || 0;
+            
+            // Compare total XP directly - no need to subtract "lost XP" as it's already accounted for
+            // The totalXP already reflects the actual XP gained (including 0 XP during transition if focusing secondary path)
+            // The comparison should be: scenario2TotalXP vs scenario1TotalXP
+            // xpLostDuringFocus is just informational and should NOT be subtracted from totalXP
+            const scenario1NetXP = scenario1TotalXP; // Completion's total XP (no transition, so no loss)
+            const scenario2NetXP = scenario2TotalXP; // Other scenario's total XP (already accounts for transition)
+            
+            // Calculate difference using total XP values directly
+            const netDiff = scenario2NetXP - scenario1NetXP;
+            const netPercentage = scenario1NetXP > 0 ? (netDiff / scenario1NetXP) * 100 : 0;
+            
             const daysToReach = comp.scenario2.daysToReach;
             const reachedBeforeTimegate = comp.scenario2.reachedBeforeTimegate;
+            const totalDaysUntilNextTimegateEnd = comp.comparison.totalDaysUntilNextTimegateEnd || 0;
             
-            // Parse the percentage string to get the signed value
-            const percValue = parsePercentage(percStr);
+            // Use net values for display
+            const totalXP = scenario2NetXP;
             
             let percentageText = '';
             let xpDiffText = '';
@@ -565,30 +581,35 @@ class UIManager {
             let daysText = '';
             let title = '';
             
-            if (diff > 0) {
-                // This scenario is better than Completion
-                percentageText = `+${Math.abs(percValue).toFixed(2)}%`;
-                xpDiffText = `+${format(diff)} XP`;
-                title = `${scenario} yields ${Math.abs(percValue).toFixed(2)}% more main path XP than Completion`;
-            } else if (diff < 0) {
-                // Completion is better than this scenario
-                percentageText = `${percValue.toFixed(2)}%`;
-                xpDiffText = `${format(diff)} XP`;
-                title = `${scenario} yields ${Math.abs(percValue).toFixed(2)}% LESS main path XP than Completion`;
+            if (netDiff > 0) {
+                // This scenario is better than Completion (after accounting for transition cost)
+                percentageText = `+${Math.abs(netPercentage).toFixed(2)}%`;
+                xpDiffText = `+${format(netDiff)} XP`;
+                title = `${scenario} yields ${Math.abs(netPercentage).toFixed(2)}% more main path XP than Completion (after transition cost)`;
+            } else if (netDiff < 0) {
+                // Completion is better than this scenario (after accounting for transition cost)
+                percentageText = `${netPercentage.toFixed(2)}%`;
+                xpDiffText = `${format(netDiff)} XP`;
+                title = `${scenario} yields ${Math.abs(netPercentage).toFixed(2)}% LESS main path XP than Completion (after transition cost)`;
             } else {
                 percentageText = `0%`;
                 xpDiffText = `0 XP`;
-                title = `${scenario} yields the same main path XP as Completion`;
+                title = `${scenario} yields the same main path XP as Completion (after transition cost)`;
             }
             
-            // Add total XP information
+            // Add total XP information (net after subtracting transition cost)
             totalXPText = `Total: ${format(totalXP)} XP`;
             
             // Add days to reach information
+            // Check if scenario cannot be reached by next realm timegate
+            const cannotReachByTimegate = daysToReach === Infinity || 
+                                         !reachedBeforeTimegate || 
+                                         (daysToReach > 0 && totalDaysUntilNextTimegateEnd > 0 && daysToReach > totalDaysUntilNextTimegateEnd);
+            
             if (daysToReach === 0) {
                 daysText = `Already reached`;
-            } else if (daysToReach === Infinity || !reachedBeforeTimegate) {
-                daysText = `Not reached before timegate`;
+            } else if (cannotReachByTimegate) {
+                daysText = `Not reachable by next realm timegate`;
             } else {
                 daysText = `Days to reach: ${formatTime(daysToReach)}`;
             }
@@ -601,10 +622,14 @@ class UIManager {
             // Color code the cell based on whether it's better
             const cell = document.getElementById(cellId);
             if (cell) {
-                if (diff > 0) {
+                // Check if scenario cannot be reached by timegate first (highest priority)
+                if (cannotReachByTimegate) {
+                    cell.style.color = 'var(--accent)';
+                    cell.style.fontWeight = '600';
+                } else if (netDiff > 0) {
                     cell.style.color = 'var(--success)';
                     cell.style.fontWeight = '600';
-                } else if (diff < 0) {
+                } else if (netDiff < 0) {
                     cell.style.color = 'var(--accent)';
                     cell.style.fontWeight = '600';
                 } else {
@@ -655,9 +680,13 @@ class UIManager {
         if (scenarioComparisons['Eminence']) {
             const comp = scenarioComparisons['Eminence'];
             const totalXP = comp.scenario1.totalXP;
+            const xpLostDuringFocus = comp.scenario1.xpLostDuringFocus || 0;
             const daysToReach = comp.scenario1.daysToReach;
             
-            let completionText = `Baseline: ${format(totalXP)} XP\n`;
+            // Subtract XP lost during focus from the displayed total
+            const netTotalXP = totalXP - xpLostDuringFocus;
+            
+            let completionText = `Baseline: ${format(netTotalXP)} XP\n`;
             if (daysToReach === 0) {
                 completionText += `Already at Completion`;
             } else {
@@ -755,6 +784,105 @@ class UIManager {
         
         recommendationElement.textContent = recommendationText;
         Logger.info('Virya recommendation updated:', recommendationText);
+    }
+
+    static updateDebugMenuVisibility(enabled) {
+        const debugNavItem = document.querySelector('.nav-item[data-section="debug"]');
+        const debugSection = document.getElementById('debug');
+        
+        if (debugNavItem) {
+            if (enabled) {
+                // Show the menu item (restore flex display to match other nav items)
+                debugNavItem.style.display = 'flex';
+            } else {
+                // Hide the menu item
+                debugNavItem.style.display = 'none';
+                
+                // If debug section is currently active, switch to dashboard
+                if (debugSection && debugSection.classList.contains('active')) {
+                    const dashboardNavItem = document.querySelector('.nav-item[data-section="dashboard"]');
+                    const dashboardSection = document.getElementById('dashboard');
+                    if (dashboardNavItem && dashboardSection) {
+                        // Remove active class from all nav items and sections
+                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                        // Activate dashboard
+                        dashboardNavItem.classList.add('active');
+                        dashboardSection.classList.add('active');
+                    }
+                }
+            }
+        }
+    }
+
+    static updateDebugDisplay(playerData, results) {
+        // Helper function to format object as JSON with proper indentation
+        const formatJSON = (obj) => {
+            try {
+                return JSON.stringify(obj, null, 2);
+            } catch (e) {
+                return String(obj);
+            }
+        };
+
+        // Prepare game data object
+        const gameData = {
+            Realms,
+            XPData,
+            GameConstants,
+            RealmMajorTotalXP,
+            timegateLength
+        };
+
+        // Update Game Data section
+        const gameDataElement = document.getElementById('debug-game-data');
+        if (gameDataElement) {
+            gameDataElement.textContent = formatJSON(gameData);
+            gameDataElement.style.whiteSpace = 'pre-wrap';
+            gameDataElement.style.fontFamily = 'monospace';
+            gameDataElement.style.fontSize = '0.9em';
+            gameDataElement.style.background = '#f5f5f5';
+            gameDataElement.style.padding = '10px';
+            gameDataElement.style.borderRadius = '4px';
+            gameDataElement.style.maxHeight = '400px';
+            gameDataElement.style.overflow = 'auto';
+        }
+
+        // Update Player Input section
+        const playerInputElement = document.getElementById('debug-player-input');
+        if (playerInputElement) {
+            if (playerData) {
+                playerInputElement.textContent = formatJSON(playerData);
+                playerInputElement.style.whiteSpace = 'pre-wrap';
+                playerInputElement.style.fontFamily = 'monospace';
+                playerInputElement.style.fontSize = '0.9em';
+                playerInputElement.style.background = '#f5f5f5';
+                playerInputElement.style.padding = '10px';
+                playerInputElement.style.borderRadius = '4px';
+                playerInputElement.style.maxHeight = '400px';
+                playerInputElement.style.overflow = 'auto';
+            } else {
+                playerInputElement.textContent = 'Player data not available';
+            }
+        }
+
+        // Update Calculations section
+        const calculationsElement = document.getElementById('debug-calculations');
+        if (calculationsElement) {
+            if (results) {
+                calculationsElement.textContent = formatJSON(results);
+                calculationsElement.style.whiteSpace = 'pre-wrap';
+                calculationsElement.style.fontFamily = 'monospace';
+                calculationsElement.style.fontSize = '0.9em';
+                calculationsElement.style.background = '#f5f5f5';
+                calculationsElement.style.padding = '10px';
+                calculationsElement.style.borderRadius = '4px';
+                calculationsElement.style.maxHeight = '400px';
+                calculationsElement.style.overflow = 'auto';
+            } else {
+                calculationsElement.textContent = 'Calculation results not available';
+            }
+        }
     }
 }
 

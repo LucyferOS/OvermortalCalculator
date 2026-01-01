@@ -24,7 +24,7 @@ class ViryaScenarioComparator {
         this.bonusEndConditions = {
             'Completion': { endsAt: 'Immediately' },
             'Eminence': { endsAt: 'Next Major Early' },
-            'Perfect': { endsAt: 'Half-Step' },
+            'Perfect': { endsAt: 'Next Major Mid' },
             'Half-Step': { endsAt: 'Next Major Late' }
         };
         
@@ -175,44 +175,24 @@ class ViryaScenarioComparator {
             'Total Days Available': totalDays.toFixed(1)
         });
         
-        let daysWithBonus = 0;
-        let daysWithoutBonus = 0;
+        // Calculate maximum reachable realm during this period
+        const maxRealm = this.getMaximumReachableRealmForScenario(scenario, totalDays, bonus);
         
-        if (endCondition.endsAt === 'Immediately') {
-            daysWithBonus = 0;
-            daysWithoutBonus = totalDays;
-            Logger.info('Bonus ends immediately, no bonus period');
-        } else {
-            // Calculate days until bonus ends
-            const daysUntilBonusEnds = this.calculateDaysUntilBonusEnds(scenario, bonus, totalDays);
-            daysWithBonus = Math.min(daysUntilBonusEnds, totalDays);
-            daysWithoutBonus = Math.max(0, totalDays - daysWithBonus);
-            
-            Logger.info('Bonus duration analysis:', {
-                'Days with bonus': daysWithBonus.toFixed(2),
-                'Days without bonus': daysWithoutBonus.toFixed(2),
-                'Bonus coverage': `${((daysWithBonus / totalDays) * 100).toFixed(1)}% of total period`
-            });
-        }
-        
-        // Calculate XP for both periods
-        Logger.debug('Simulating XP periods...');
-        const xpWithBonus = this.simulatePeriod(daysWithBonus, bonus, `With Bonus (${bonus * 100}%)`);
-        const xpWithoutBonus = this.simulatePeriod(daysWithoutBonus, 0, 'Without Bonus');
-        
-        const totalXP = xpWithBonus + xpWithoutBonus;
+        // Calculate XP with bonus end condition checking during simulation
+        Logger.debug('Simulating with bonus end condition checking...');
+        const result = this.simulator.simulateDays(totalDays, bonus, endCondition, maxRealm);
         
         Logger.success(`Period breakdown for ${scenario}:`, {
-            'XP with bonus': xpWithBonus.toLocaleString(),
-            'XP without bonus': xpWithoutBonus.toLocaleString(),
-            'Total XP': totalXP.toLocaleString(),
-            'Average daily XP': totalDays > 0 ? (totalXP / totalDays).toLocaleString() : 'N/A'
+            'Total XP': result.totalXP.toLocaleString(),
+            'Final Realm': result.finalRealm,
+            'Final Progress': `${result.finalProgress.toFixed(2)}%`,
+            'Average daily XP': totalDays > 0 ? (result.totalXP / totalDays).toLocaleString() : 'N/A'
         });
         
         Logger.groupEnd();
         
         return {
-            totalXP,
+            totalXP: result.totalXP,
             reachedBeforeTimegate: true,
             daysToReach: 0
         };
@@ -253,13 +233,17 @@ class ViryaScenarioComparator {
         if (daysToReach >= totalDays || daysToReach === Infinity) {
             // Cannot reach scenario before timegate ends
             Logger.warn(`Cannot reach ${targetScenario} before timegate ends`);
-            const xp = this.simulatePeriod(totalDays, currentBonus, `Stuck in ${currentScenario}`);
+            const maxRealm = this.getMaximumReachableRealmForScenario(currentScenario, totalDays, currentBonus);
+            const currentEndCondition = this.bonusEndConditions[currentScenario];
+            const xp = this.simulatePeriod(totalDays, currentBonus, `Stuck in ${currentScenario}`, currentEndCondition, maxRealm);
+            
             
             Logger.groupEnd();
             return {
                 totalXP: xp,
                 reachedBeforeTimegate: false,
-                daysToReach: daysToReach
+                daysToReach: daysToReach,
+                xpLostDuringFocus: 0  // No transition occurred, so no XP lost
             };
         }
         
@@ -271,23 +255,68 @@ class ViryaScenarioComparator {
             'Time with target bonus': `${((daysRemaining / totalDays) * 100).toFixed(1)}%`
         });
         
+        // Calculate max realm for the entire period
+        const maxRealm = this.getMaximumReachableRealmForScenario(targetScenario, totalDays, targetBonus);
+        
+        const currentEndCondition = this.bonusEndConditions[currentScenario];
+        
         // Period 1: Before reaching scenario (with current bonus)
+        // Calculate what main path XP would be gained if staying on main path during transition
         Logger.group('📅 PERIOD 1: Working towards target scenario', Logger.DEBUG);
-        const xpPeriod1 = this.simulatePeriod(daysToReach, currentBonus, `Transition period (${currentScenario})`);
+        // Always calculate what main path XP would be gained if focusing on main path during transition
+        // This represents the opportunity cost if we're focusing on secondary path
+        const xpPeriod1IfMainPath = this.simulatePeriod(daysToReach, currentBonus, `Transition period (${currentScenario})`, currentEndCondition, maxRealm);
+        
+        let xpPeriod1 = 0;
+        if (this.playerData.pathFocus === 'Main Path') {
+            // If focusing on main path, we actually gain this XP
+            xpPeriod1 = xpPeriod1IfMainPath;
+        } else {
+            // If focusing on secondary path, no main path XP is gained during transition
+            xpPeriod1 = 0;
+        }
         Logger.groupEnd();
         
         // Period 2: After reaching scenario
         Logger.group('📅 PERIOD 2: After reaching target scenario', Logger.DEBUG);
+        
         const xpPeriod2 = this.calculateXPForCurrentScenario(targetScenario, daysRemaining);
+        
         Logger.groupEnd();
         
         const totalXP = xpPeriod1 + xpPeriod2.totalXP;
+        
+        // Calculate lost XP: This should represent the opportunity cost of the transition
+        // The key insight: We're comparing total XP directly, so "lost XP" should be 0
+        // The comparison in the UI will handle the difference calculation
+        // The real question is: what is the net benefit of transitioning vs staying?
+        // We should NOT subtract opportunity cost from totalXP - that's double-counting
+        // Instead, the comparison should be: totalXP (scenario) vs totalXP (Completion)
+        // The "lost XP" field is just for informational purposes about the transition cost
+        let xpLostDuringTransition = 0;
+        if (this.playerData.pathFocus === 'Secondary Path') {
+            // If focusing on secondary path, we gain 0 XP during transition
+            // The opportunity cost is what we could have gained if focusing on main path
+            // But this is already accounted for in the comparison (Completion gets this XP, we don't)
+            // So we should NOT subtract it from totalXP - that would be double-counting
+            // Instead, set it to 0 and let the direct comparison handle it
+            xpLostDuringTransition = 0;
+        } else {
+            // If focusing on main path, we gain xpPeriod1IfMainPath during transition
+            // There's no opportunity cost - we're gaining XP
+            xpLostDuringTransition = 0;
+        }
+        
+        // Get secondary path XP info for logging (if needed)
+        const secondaryPathXPDuringTransition = secondaryDailyXP * daysToReach;
+        const secondaryPathXPNeeded = daysToReachInfo?.xpNeeded || 0;
         
         Logger.success(`Transition complete - ${currentScenario} → ${targetScenario}:`, {
             'XP during transition (Period 1)': xpPeriod1.toLocaleString(),
             'XP after transition (Period 2)': xpPeriod2.totalXP.toLocaleString(),
             'Total XP': totalXP.toLocaleString(),
-            'Transition cost (XP lost)': xpPeriod1.toLocaleString(),
+            'Secondary path XP needed': secondaryPathXPNeeded > 0 ? secondaryPathXPNeeded.toLocaleString() : secondaryPathXPDuringTransition.toLocaleString(),
+            'XP lost during transition (opportunity cost)': xpLostDuringTransition.toLocaleString(),
             'Net gain from transition': (totalXP - this.simulatePeriod(totalDays, currentBonus, 'If stayed')).toLocaleString()
         });
         
@@ -297,18 +326,18 @@ class ViryaScenarioComparator {
             totalXP: totalXP,
             reachedBeforeTimegate: true,
             daysToReach: daysToReach,
-            xpLostDuringFocus: xpPeriod1
+            xpLostDuringFocus: xpLostDuringTransition
         };
     }
     
-    simulatePeriod(days, absorptionBonus, label = 'Period') {
+    simulatePeriod(days, absorptionBonus, label = 'Period', bonusEndCondition = null, maxRealm = null) {
         if (days <= 0) {
             Logger.debug(`Skipping ${label} - 0 days`);
             return 0;
         }
         
         Logger.debug(`Simulating ${label} (${days.toFixed(2)} days, ${absorptionBonus * 100}% bonus)`);
-        const result = this.simulator.simulateDays(days, absorptionBonus);
+        const result = this.simulator.simulateDays(days, absorptionBonus, bonusEndCondition, maxRealm);
         
         Logger.debug(`${label} results:`, {
             'XP gained': result.totalXP.toLocaleString(),
@@ -357,6 +386,29 @@ class ViryaScenarioComparator {
             return Math.min(daysToReach, maxDays);
         }
         
+        if (endCondition.endsAt === 'Next Major Mid') {
+            const currentMajor = this.playerData.mainPathRealmMajor;
+            const nextMajor = this.getNextMajorRealm(currentMajor);
+            
+            if (!nextMajor) {
+                Logger.warn('No next major realm found');
+                Logger.groupEnd();
+                return maxDays;
+            }
+            
+            const targetRealm = `${nextMajor} Mid`;
+            const daysToReach = this.simulator.calculateDaysToReachRealm(targetRealm, 100, absorptionBonus);
+            
+            Logger.info(`Bonus ends at ${targetRealm}:`, {
+                'Days to reach': daysToReach === Infinity ? '∞' : daysToReach.toFixed(2),
+                'Max days available': maxDays,
+                'Bonus duration': Math.min(daysToReach, maxDays).toFixed(2)
+            });
+            
+            Logger.groupEnd();
+            return Math.min(daysToReach, maxDays);
+        }
+        
         if (endCondition.endsAt === 'Next Major Late') {
             const currentMajor = this.playerData.mainPathRealmMajor;
             const nextMajor = this.getNextMajorRealm(currentMajor);
@@ -371,21 +423,6 @@ class ViryaScenarioComparator {
             const daysToReach = this.simulator.calculateDaysToReachRealm(targetRealm, 100, absorptionBonus);
             
             Logger.info(`Bonus ends at ${targetRealm}:`, {
-                'Days to reach': daysToReach === Infinity ? '∞' : daysToReach.toFixed(2),
-                'Max days available': maxDays,
-                'Bonus duration': Math.min(daysToReach, maxDays).toFixed(2)
-            });
-            
-            Logger.groupEnd();
-            return Math.min(daysToReach, maxDays);
-        }
-        
-        if (endCondition.endsAt === 'Half-Step') {
-            // Half-Step ends when both paths are 100% Late in current major
-            const targetRealm = `${this.playerData.mainPathRealmMajor} Late`;
-            const daysToReach = this.simulator.calculateDaysToReachRealm(targetRealm, 100, absorptionBonus);
-            
-            Logger.info(`Bonus ends at Half-Step (${targetRealm}):`, {
                 'Days to reach': daysToReach === Infinity ? '∞' : daysToReach.toFixed(2),
                 'Max days available': maxDays,
                 'Bonus duration': Math.min(daysToReach, maxDays).toFixed(2)
@@ -433,6 +470,68 @@ class ViryaScenarioComparator {
         });
         
         return nextMajor;
+    }
+    
+    getMaximumReachableRealmForScenario(scenario, totalDays, absorptionBonus) {
+        Logger.group(`🎯 CALCULATING MAX REACHABLE REALM FOR ${scenario}`, Logger.DEBUG);
+        
+        // Get realm at breakthrough (end of current timegate)
+        const currentTimegateDays = this.playerData.timegateDays || 0;
+        const breakthroughResult = this.simulator.getRealmAtBreakthrough(currentTimegateDays, absorptionBonus);
+        const realmAtBreakthrough = breakthroughResult.finalRealm;
+        const progressAtBreakthrough = breakthroughResult.finalProgress;
+        
+        Logger.info('Breakthrough state:', {
+            'Realm': realmAtBreakthrough,
+            'Progress': `${progressAtBreakthrough.toFixed(2)}%`,
+            'Days to breakthrough': currentTimegateDays
+        });
+        
+        // Calculate maximum reachable realm during next timegate period
+        // The totalDays includes both current timegate remaining and next timegate
+        // So we need to calculate from breakthrough state with remaining days
+        const nextMajor = this.getNextMajorRealm(this.playerData.mainPathRealmMajor);
+        const nextTimegateLength = this.timegateLengths[nextMajor] || 0;
+        const daysInNextTimegate = totalDays - currentTimegateDays;
+        
+        Logger.info('Next timegate calculation:', {
+            'Next major': nextMajor,
+            'Next timegate length': nextTimegateLength,
+            'Days in next timegate': daysInNextTimegate.toFixed(2),
+            'Total analysis days': totalDays.toFixed(2)
+        });
+        
+        // Create temporary player data at breakthrough state
+        const breakthroughPlayerData = {
+            ...this.playerData,
+            mainPathRealm: realmAtBreakthrough,
+            mainPathProgress: progressAtBreakthrough
+        };
+        const [major, minor] = realmAtBreakthrough.split(' ');
+        breakthroughPlayerData.mainPathRealmMajor = major;
+        breakthroughPlayerData.mainPathRealmMinor = minor;
+        
+        // Create temporary simulator for breakthrough state
+        const breakthroughSimulator = new RealmProgressionSimulator(breakthroughPlayerData, this.dailyXP, 'breakthrough-sim');
+        
+        // Calculate maximum reachable realm from breakthrough
+        // Check virya scenarios that might be reached
+        
+        const maxRealm = breakthroughSimulator.getMaximumReachableRealm(
+            realmAtBreakthrough,
+            progressAtBreakthrough,
+            daysInNextTimegate,
+            absorptionBonus
+        );
+        
+        Logger.info('Maximum reachable realm:', {
+            'Realm': maxRealm,
+            'From breakthrough': realmAtBreakthrough,
+            'With days': daysInNextTimegate.toFixed(2)
+        });
+        
+        Logger.groupEnd();
+        return maxRealm;
     }
 }
 

@@ -11,7 +11,7 @@ class RealmProgressionSimulator {
         this.minorOrder = ['Early', 'Mid', 'Late'];
     }
     
-    simulateDays(days, absorptionBonus = 0) {
+    simulateDays(days, absorptionBonus = 0, bonusEndCondition = null, maxRealm = null) {
         Logger.group(`🎮 REALM PROGRESSION SIMULATION [${this.simulationId}]`, Logger.DEBUG);
         Logger.info(`Simulating ${days.toFixed(1)} days with ${absorptionBonus * 100}% absorption bonus`);
         Logger.debug(`Starting from: ${this.playerData.mainPathRealm} (${this.playerData.mainPathProgress}%)`);
@@ -22,7 +22,9 @@ class RealmProgressionSimulator {
             'Progress': `${this.playerData.mainPathProgress}%`,
             'Absorption Bonus': `${absorptionBonus * 100}%`,
             'Days to Simulate': days.toFixed(1),
-            'Base Daily XP': this.baseDailyXP.toLocaleString()
+            'Base Daily XP': this.baseDailyXP.toLocaleString(),
+            'Max Realm': maxRealm || 'None',
+            'Bonus End Condition': bonusEndCondition ? bonusEndCondition.endsAt : 'None'
         }, 'Simulation Parameters');
         
         let currentRealm = this.playerData.mainPathRealm;
@@ -32,12 +34,51 @@ class RealmProgressionSimulator {
         let daysRemaining = days;
         const realmHistory = [];
         let step = 0;
+        let currentAbsorptionBonus = absorptionBonus;
+        // Store the starting major for bonus end condition checks
+        const startingMajor = this.playerData.mainPathRealmMajor;
         
         Logger.section('PROGRESSION STEPS', Logger.DEBUG);
         
         while (daysRemaining > 0 && currentRealm) {
             step++;
             Logger.group(`Step ${step}: ${currentRealm}`, Logger.DEBUG);
+            
+            // Check if bonus should end based on current realm/progress
+            if (bonusEndCondition && currentAbsorptionBonus > 0) {
+                const currentProgress = (currentXP / Realms[currentRealm]?.xp || 0) * 100;
+                if (this.shouldBonusEnd(currentRealm, currentProgress, bonusEndCondition, startingMajor)) {
+                    Logger.info(`Bonus ending at ${currentRealm} - condition met: ${bonusEndCondition.endsAt}`);
+                    currentAbsorptionBonus = 0;
+                }
+            }
+            
+            // Check if we've reached max realm at 100% Late
+            // IMPORTANT: We should NOT stop here - we should continue simulating remaining days
+            // to allow bonuses to show their benefit (scenarios with bonuses reach max realm faster
+            // and should have more time remaining to gain XP)
+            if (maxRealm) {
+                const [currentMajor, currentMinor] = currentRealm.split(' ');
+                const [maxMajor, maxMinor] = maxRealm.split(' ');
+                
+                // If we're at the max realm and it's Late, and we're at 100%, continue simulating
+                // remaining days instead of stopping (this allows bonuses to show their benefit)
+                if (currentRealm === maxRealm && currentMinor === 'Late') {
+                    const currentProgress = (currentXP / Realms[currentRealm]?.xp || 1) * 100;
+                    if (currentProgress >= 100) {
+                        // Continue simulating remaining days - don't stop here
+                        // The bonus should allow us to gain more XP in the remaining time
+                        Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to simulate remaining ${daysRemaining.toFixed(1)} days to show bonus benefit`);
+                        // Don't break - continue to simulate remaining days
+                    }
+                }
+                
+                // If we would exceed max realm, stop
+                if (this.isRealmAtOrBeyond(currentRealm, maxRealm) && currentRealm !== maxRealm) {
+                    Logger.info(`Reached maximum realm ${maxRealm}, stopping progression`);
+                    break;
+                }
+            }
             
             const realmInfo = Realms[currentRealm];
             if (!realmInfo) {
@@ -46,14 +87,26 @@ class RealmProgressionSimulator {
             }
             
             const xpInCurrentRealm = realmInfo.xp;
-            const effectiveDailyXP = this.calculateEffectiveDailyXP(currentRealm, absorptionBonus);
+            const effectiveDailyXP = this.calculateEffectiveDailyXP(currentRealm, currentAbsorptionBonus);
             
             Logger.debug(`Realm XP total: ${xpInCurrentRealm.toLocaleString()}`);
             Logger.debug(`Current XP in realm: ${currentXP.toLocaleString()}`);
             Logger.debug(`Effective daily XP: ${effectiveDailyXP.toLocaleString()}`);
+            Logger.debug(`Current absorption bonus: ${currentAbsorptionBonus * 100}%`);
             
             const xpNeededForRealm = xpInCurrentRealm - currentXP;
-            const daysForThisRealm = Math.min(daysRemaining, xpNeededForRealm / effectiveDailyXP);
+            
+            // Check if we're at 100% Late in max realm - if so, continue simulating remaining days
+            // to allow bonuses to show their benefit (scenarios with bonuses reach max realm faster
+            // and should have more time remaining to gain XP)
+            let daysForThisRealm;
+            if (maxRealm && currentRealm === maxRealm && currentXP >= xpInCurrentRealm) {
+                // At 100% Late in max realm - continue simulating remaining days
+                daysForThisRealm = daysRemaining;
+            } else {
+                // Normal case - calculate days needed to complete realm or use remaining days
+                daysForThisRealm = Math.min(daysRemaining, xpNeededForRealm / effectiveDailyXP);
+            }
             
             // Add XP gained in this period
             const xpGained = effectiveDailyXP * daysForThisRealm;
@@ -73,7 +126,7 @@ class RealmProgressionSimulator {
                 realm: currentRealm,
                 days: daysForThisRealm,
                 xpGained: xpGained,
-                absorptionBonus: absorptionBonus,
+                absorptionBonus: currentAbsorptionBonus,
                 dailyXP: effectiveDailyXP,
                 progressStart: ((currentXP - xpGained) / xpInCurrentRealm * 100).toFixed(2) + '%',
                 progressEnd: ((currentXP / xpInCurrentRealm) * 100).toFixed(2) + '%'
@@ -90,7 +143,17 @@ class RealmProgressionSimulator {
                     'Overflow XP': (currentXP - xpInCurrentRealm).toLocaleString()
                 });
                 
-                currentXP = 0;
+                // Check if bonus should end NOW that we've completed this realm at 100%
+                // This needs to happen AFTER we complete the realm but BEFORE we progress
+                if (bonusEndCondition && currentAbsorptionBonus > 0) {
+                    const currentProgress = (currentXP / Realms[currentRealm]?.xp || 0) * 100;
+                    if (this.shouldBonusEnd(currentRealm, currentProgress, bonusEndCondition, startingMajor)) {
+                        Logger.info(`Bonus ending at ${currentRealm} - condition met: ${bonusEndCondition.endsAt}`);
+                        currentAbsorptionBonus = 0;
+                    }
+                }
+                
+                // Check absorption optimization before progressing
                 const nextRealm = this.getNextRealm(currentRealm);
                 
                 if (!nextRealm) {
@@ -98,8 +161,150 @@ class RealmProgressionSimulator {
                     break;
                 }
                 
-                Logger.info(`Transitioning to: ${nextRealm}`);
-                currentRealm = nextRealm;
+                // Check if we should stop at max realm
+                const [currentMajor, currentMinor] = currentRealm.split(' ');
+                const [nextMajor, nextMinor] = nextRealm.split(' ');
+                
+                // Check if we've reached 100% Late in the max realm FIRST
+                // IMPORTANT: We should NOT stop here - we should continue simulating remaining days
+                // to allow bonuses to show their benefit (scenarios with bonuses reach max realm faster
+                // and should have more time remaining to gain XP)
+                if (maxRealm && currentRealm === maxRealm && currentMinor === 'Late' && currentXP >= xpInCurrentRealm) {
+                    // Continue simulating remaining days - don't stop here and don't progress to next realm
+                    // The bonus should allow us to gain more XP in the remaining time
+                    Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to simulate remaining ${daysRemaining.toFixed(1)} days to show bonus benefit`);
+                    // Don't break and don't progress - continue simulating in current realm
+                    // Skip the rest of the realm progression logic and continue the loop
+                    continue;
+                }
+                
+                // Special case: If we're at 100% Late in current major and next realm is next major's Early, check if we should stop
+                // Stop at 100% Late unless maxRealm is set and equals the next major's Late (meaning we need to reach it)
+                // OR if maxRealm is the current realm's Late (soft limit - allow progression to next major)
+                if (currentMinor === 'Late' && currentMajor !== nextMajor) {
+                    const nextMajorLate = `${nextMajor} Late`;
+                    
+                    // Continue if:
+                    // 1. maxRealm is explicitly set AND equals next major's Late (need to reach it)
+                    // 2. maxRealm is the current realm's Late (soft limit - allow progression)
+                    // Otherwise, stop at 100% Late to work on virya scenarios
+                    if (maxRealm && (maxRealm === nextMajorLate || maxRealm === currentRealm)) {
+                        // Continue to next major
+                        if (maxRealm === nextMajorLate) {
+                            Logger.info(`Continuing to ${nextMajor} to reach max realm ${maxRealm}`);
+                        } else {
+                            Logger.info(`Continuing to ${nextMajor} (maxRealm ${maxRealm} is soft limit, allowing progression)`);
+                        }
+                        // Don't break - continue to next realm
+                    } else {
+                        // Stop at 100% Late (either maxRealm is null, or maxRealm is not next major's Late and not current realm)
+                        Logger.info(`Reached 100% Late in ${currentMajor}, stopping here to work on virya scenarios instead of progressing to ${nextMajor}`);
+                        break;
+                    }
+                }
+                
+                // Check if next realm would exceed max realm
+                // Only stop if nextRealm is BEYOND maxRealm (not equal to it - we need to reach the max realm)
+                // IMPORTANT: Allow progression TO the max realm, only stop if going BEYOND it
+                if (maxRealm && nextRealm !== maxRealm && this.isRealmAtOrBeyond(nextRealm, maxRealm)) {
+                    Logger.info(`Next realm ${nextRealm} would exceed max realm ${maxRealm}, stopping`);
+                    break;
+                }
+                
+                // If we're moving to the max realm and it's Late, check if we can reach 100%
+                if (maxRealm && nextRealm === maxRealm && nextMinor === 'Late') {
+                    const nextRealmInfo = Realms[nextRealm];
+                    const nextRealmXP = nextRealmInfo.xp;
+                    const nextEffectiveDailyXP = this.calculateEffectiveDailyXP(nextRealm, currentAbsorptionBonus);
+                    const daysNeededFor100Late = nextRealmXP / nextEffectiveDailyXP;
+                    
+                    if (daysNeededFor100Late <= daysRemaining) {
+                        // Can reach 100% Late in max realm - do it and continue simulating remaining days
+                        // IMPORTANT: Don't stop here - continue simulating remaining days to allow bonuses to show their benefit
+                        const daysToUse = daysNeededFor100Late;
+                        const xpGained = nextEffectiveDailyXP * daysToUse;
+                        totalXP += xpGained;
+                        daysRemaining -= daysToUse;
+                        currentXP = nextRealmXP; // Exactly 100%
+                        currentRealm = nextRealm;
+                        
+                        realmHistory.push({
+                            realm: nextRealm,
+                            days: daysToUse,
+                            xpGained: xpGained,
+                            absorptionBonus: currentAbsorptionBonus,
+                            dailyXP: nextEffectiveDailyXP,
+                            progressStart: '0%',
+                            progressEnd: '100%'
+                        });
+                        
+                        Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to simulate remaining ${daysRemaining.toFixed(1)} days to show bonus benefit`);
+                        // Don't break - continue simulating remaining days
+                        // The check at line 163 will handle continuing the simulation
+                    }
+                }
+                
+                // Absorption optimization: check if staying in current realm with bonus is better
+                // Only check for minor realm transitions (same major)
+                const isMinorTransition = currentMajor === nextMajor;
+                
+                if (isMinorTransition && this.shouldStayForBetterAbsorption(currentRealm, nextRealm, currentAbsorptionBonus)) {
+                    const currentEffective = this.getEffectiveAbsorption(currentRealm, currentAbsorptionBonus);
+                    const nextEffective = this.getEffectiveAbsorption(nextRealm, 0);
+                    
+                    Logger.info(`Absorption optimization: Staying in ${currentRealm} (${currentEffective}) vs ${nextRealm} (${nextEffective})`);
+                    Logger.info(`Calculating XP for ${nextRealm} using ${currentRealm} absorption bonus`);
+                    
+                    // Calculate XP needed for next realm using current (better) absorption
+                    const nextRealmXP = Realms[nextRealm]?.xp || 0;
+                    const xpNeededForNextRealm = nextRealmXP;
+                    const daysNeededForNextRealm = xpNeededForNextRealm / effectiveDailyXP;
+                    
+                    if (daysNeededForNextRealm <= daysRemaining) {
+                        // We can complete next realm with current absorption, do it
+                        const daysToUse = Math.min(daysRemaining, daysNeededForNextRealm);
+                        const xpGainedForNext = effectiveDailyXP * daysToUse;
+                        totalXP += xpGainedForNext;
+                        daysRemaining -= daysToUse;
+                        
+                        realmHistory.push({
+                            realm: `${nextRealm} (using ${currentRealm} absorption)`,
+                            days: daysToUse,
+                            xpGained: xpGainedForNext,
+                            absorptionBonus: currentAbsorptionBonus,
+                            dailyXP: effectiveDailyXP,
+                            progressStart: '0%',
+                            progressEnd: `${((xpGainedForNext / nextRealmXP) * 100).toFixed(2)}%`
+                        });
+                        
+                        if (xpGainedForNext >= nextRealmXP) {
+                            // Completed next realm, move to it and check for further progression
+                            currentXP = xpGainedForNext - nextRealmXP;
+                            currentRealm = nextRealm;
+                            // Continue loop to check if we can progress further (absorption check will happen again)
+                        } else {
+                            // Partial progress in next realm
+                            currentXP = xpGainedForNext;
+                            currentRealm = nextRealm;
+                            // Continue loop - we're now in next realm with partial progress
+                        }
+                    } else {
+                        // Not enough days to complete next realm, use remaining days in current realm
+                        // But we're already at 100% of current realm, so we should progress but use remaining days
+                        const daysToUse = daysRemaining;
+                        const xpGainedForNext = effectiveDailyXP * daysToUse;
+                        totalXP += xpGainedForNext;
+                        currentXP = xpGainedForNext;
+                        currentRealm = nextRealm;
+                        daysRemaining = 0;
+                        break;
+                    }
+                } else {
+                    // Normal progression - either major transition or absorption is better in next realm
+                    currentXP = 0;
+                    Logger.info(`Transitioning to: ${nextRealm}`);
+                    currentRealm = nextRealm;
+                }
             } else if (daysRemaining > 0) {
                 Logger.debug(`Continuing in ${currentRealm}`, {
                     'Remaining XP in realm': (xpInCurrentRealm - currentXP).toLocaleString(),
@@ -326,6 +531,174 @@ class RealmProgressionSimulator {
             return `${this.realmOrder[majorIndex]} ${this.minorOrder[minorIndex]}`;
         }
         return null;
+    }
+    
+    shouldBonusEnd(realm, progress, endCondition, startingMajor) {
+        if (!endCondition || endCondition.endsAt === 'Immediately') {
+            return false;
+        }
+        
+        // "Next Major" refers to the next major from the STARTING major, not the current major
+        const startingMajorIndex = this.realmOrder.indexOf(startingMajor);
+        const nextMajorFromStart = startingMajorIndex < this.realmOrder.length - 1 ? this.realmOrder[startingMajorIndex + 1] : null;
+        
+        if (endCondition.endsAt === 'Next Major Early') {
+            if (!nextMajorFromStart) return false;
+            return realm === `${nextMajorFromStart} Early` && progress >= 100;
+        }
+        
+        if (endCondition.endsAt === 'Next Major Mid') {
+            if (!nextMajorFromStart) return false;
+            return realm === `${nextMajorFromStart} Mid` && progress >= 100;
+        }
+        
+        if (endCondition.endsAt === 'Next Major Late') {
+            if (!nextMajorFromStart) return false;
+            return realm === `${nextMajorFromStart} Late` && progress >= 100;
+        }
+        
+        return false;
+    }
+    
+    getEffectiveAbsorption(realm, absorptionBonus) {
+        const baseAbsorption = Realms[realm]?.absorption || 0;
+        return baseAbsorption + absorptionBonus;
+    }
+    
+    shouldStayForBetterAbsorption(currentRealm, nextRealm, currentBonus) {
+        const currentEffective = this.getEffectiveAbsorption(currentRealm, currentBonus);
+        const nextEffective = this.getEffectiveAbsorption(nextRealm, 0); // No bonus in next realm
+        
+        // Stay if current effective absorption is better than next realm's base absorption
+        return currentEffective > nextEffective;
+    }
+    
+    isRealmAtOrBeyond(realm, maxRealm) {
+        if (!maxRealm) return false;
+        
+        const realmIndex = this.getRealmIndex(realm);
+        const maxIndex = this.getRealmIndex(maxRealm);
+        
+        if (realmIndex === -1 || maxIndex === -1) return false;
+        
+        return realmIndex >= maxIndex;
+    }
+    
+    getMaximumReachableRealm(startRealm, startProgress, daysAvailable, absorptionBonus = 0) {
+        Logger.group(`🎯 CALCULATING MAXIMUM REACHABLE REALM`, Logger.DEBUG);
+        Logger.info(`Starting from: ${startRealm} (${startProgress}%), Days: ${daysAvailable}, Bonus: ${absorptionBonus * 100}%`);
+        
+        let currentRealm = startRealm;
+        let currentXP = Realms[currentRealm]?.xp * (startProgress / 100) || 0;
+        let daysRemaining = daysAvailable;
+        
+        while (daysRemaining > 0 && currentRealm) {
+            const realmInfo = Realms[currentRealm];
+            if (!realmInfo) break;
+            
+            const [currentMajor, currentMinor] = currentRealm.split(' ');
+            
+            // If we're at Late, check if we can reach 100% - but first check if we can progress to next major's Late
+            if (currentMinor === 'Late') {
+                const effectiveDailyXP = this.calculateEffectiveDailyXP(currentRealm, absorptionBonus);
+                const xpNeeded = realmInfo.xp - currentXP;
+                const daysNeeded = xpNeeded / effectiveDailyXP;
+                
+                if (daysNeeded <= daysRemaining) {
+                    // Can reach 100% Late - but check if we can progress to next major's Late
+                    const nextRealm = this.getNextRealm(currentRealm);
+                    if (nextRealm) {
+                        const [nextMajor, nextMinor] = nextRealm.split(' ');
+                        // If next realm is a different major, check if we can reach that major's Late
+                        if (currentMajor !== nextMajor) {
+                            // Calculate if we can reach the next major's Late
+                            const nextMajorLateRealm = `${nextMajor} Late`;
+                            const nextMajorLateInfo = Realms[nextMajorLateRealm];
+                            if (nextMajorLateInfo) {
+                                // Calculate days needed to go from current 100% Late to next major's 100% Late
+                                // We need: Early + Mid + Late of next major
+                                const nextMajorEarly = `${nextMajor} Early`;
+                                const nextMajorMid = `${nextMajor} Mid`;
+                                const xpForNextMajor = Realms[nextMajorEarly].xp + Realms[nextMajorMid].xp + nextMajorLateInfo.xp;
+                                const daysRemainingAfterCurrentLate = daysRemaining - daysNeeded;
+                                const nextMajorEffectiveDailyXP = this.calculateEffectiveDailyXP(nextMajorEarly, absorptionBonus);
+                                const daysNeededForNextMajorLate = xpForNextMajor / nextMajorEffectiveDailyXP;
+                                
+                                if (daysNeededForNextMajorLate <= daysRemainingAfterCurrentLate) {
+                                    // Can reach next major's Late - that's our max realm
+                                    Logger.info(`Maximum reachable realm: ${nextMajorLateRealm} at 100% (stopping here for virya scenarios)`);
+                                    Logger.groupEnd();
+                                    return nextMajorLateRealm;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Cannot reach next major's Late, so current Late is our max
+                    Logger.info(`Maximum reachable realm: ${currentRealm} at 100% (stopping here for virya scenarios)`);
+                    Logger.groupEnd();
+                    return currentRealm;
+                } else {
+                    // Cannot reach 100% Late
+                    const finalProgress = ((currentXP + effectiveDailyXP * daysRemaining) / realmInfo.xp * 100);
+                    Logger.info(`Maximum reachable realm: ${currentRealm} (${finalProgress.toFixed(2)}%)`);
+                    Logger.groupEnd();
+                    return currentRealm;
+                }
+            }
+            
+            // For Early and Mid, continue progression
+            const effectiveDailyXP = this.calculateEffectiveDailyXP(currentRealm, absorptionBonus);
+            const xpNeeded = realmInfo.xp - currentXP;
+            const daysNeeded = xpNeeded / effectiveDailyXP;
+            
+            if (daysNeeded <= daysRemaining) {
+                // Can complete this realm
+                daysRemaining -= daysNeeded;
+                currentXP = 0;
+                const nextRealm = this.getNextRealm(currentRealm);
+                
+                if (!nextRealm) {
+                    Logger.info(`Reached highest realm: ${currentRealm}`);
+                    Logger.groupEnd();
+                    return currentRealm;
+                }
+                
+                // Check if next realm is Late - if so, calculate if we can reach 100%
+                const [nextMajor, nextMinor] = nextRealm.split(' ');
+                
+                if (nextMinor === 'Late') {
+                    const nextRealmInfo = Realms[nextRealm];
+                    const nextRealmXP = nextRealmInfo.xp;
+                    const nextEffectiveDailyXP = this.calculateEffectiveDailyXP(nextRealm, absorptionBonus);
+                    const daysNeededFor100Late = nextRealmXP / nextEffectiveDailyXP;
+                    
+                    if (daysNeededFor100Late <= daysRemaining) {
+                        // Can reach 100% Late - this is our maximum reachable realm
+                        Logger.info(`Maximum reachable realm: ${nextRealm} at 100% (stopping here for virya scenarios)`);
+                        Logger.groupEnd();
+                        return nextRealm;
+                    } else {
+                        // Cannot reach 100% Late
+                        const finalProgress = (nextEffectiveDailyXP * daysRemaining / nextRealmXP * 100);
+                        Logger.info(`Maximum reachable realm: ${nextRealm} (${finalProgress.toFixed(2)}%)`);
+                        Logger.groupEnd();
+                        return nextRealm;
+                    }
+                }
+                
+                currentRealm = nextRealm;
+            } else {
+                // Cannot complete this realm
+                Logger.info(`Maximum reachable realm: ${currentRealm} (${((currentXP + effectiveDailyXP * daysRemaining) / realmInfo.xp * 100).toFixed(2)}%)`);
+                Logger.groupEnd();
+                return currentRealm;
+            }
+        }
+        
+        Logger.info(`Maximum reachable realm: ${currentRealm}`);
+        Logger.groupEnd();
+        return currentRealm;
     }
 }
 

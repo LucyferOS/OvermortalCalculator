@@ -64,6 +64,13 @@
   
   ## TODO:
 	* Add Elixers and Benediction 
-	* Add Recommendations
-
-	
+	* Add artifact skins
+	* Add Auraseep
+	* Enforce maximums for player input
+	* Refine Recommendations
+		Not currently stopping at next realm late then moving to virya
+		Not currently handling absorption correctly - does not drop it when it should, or does not stay at prev minor realm to compensate for lower future absorption
+		*Max fruits on dashboard
+	* Add timegate information to dashboard
+	* Add referemce tables
+	* Add analytics (open to suggestions for what should go here)
