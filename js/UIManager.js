@@ -51,6 +51,9 @@ class UIManager {
             this.updateViryaComparisonCells(results.scenarioComparisons);
         }
         
+        // Update timegate information
+        this.updateTimegateInfo(playerData);
+        
         Logger.success('Dashboard update complete');
         Logger.groupEnd();
     }
@@ -729,51 +732,72 @@ class UIManager {
             return parseFloat(percStr.replace('%', '').replace('+', ''));
         };
         
-        // Find the best scenario
+        // Find the best scenario, but only consider scenarios that are reachable before the next timegate
         let bestScenario = 'Completion';
         let bestDiff = 0;
         let bestPerc = 0;
         
         if (scenarioComparisons['Eminence']) {
-            const diff = scenarioComparisons['Eminence'].comparison.difference;
-            const percStr = scenarioComparisons['Eminence'].comparison.percentage;
-            const percValue = parsePercentage(percStr);
+            // Check if Eminence is reachable before the next realm timegate
+            const isReachable = scenarioComparisons['Eminence'].scenario2.reachedBeforeTimegate;
             
-            if (diff > bestDiff) {
-                bestDiff = diff;
-                bestScenario = 'Eminence';
-                bestPerc = percValue;
+            if (isReachable) {
+                const diff = scenarioComparisons['Eminence'].comparison.difference;
+                const percStr = scenarioComparisons['Eminence'].comparison.percentage;
+                const percValue = parsePercentage(percStr);
+                
+                if (diff > bestDiff) {
+                    bestDiff = diff;
+                    bestScenario = 'Eminence';
+                    bestPerc = percValue;
+                }
+            } else {
+                Logger.debug('Eminence is not reachable before next realm timegate - skipping from recommendations');
             }
         }
         
         if (scenarioComparisons['Perfect']) {
-            const diff = scenarioComparisons['Perfect'].comparison.difference;
-            const percStr = scenarioComparisons['Perfect'].comparison.percentage;
-            const percValue = parsePercentage(percStr);
+            // Check if Perfect is reachable before the next realm timegate
+            const isReachable = scenarioComparisons['Perfect'].scenario2.reachedBeforeTimegate;
             
-            if (diff > bestDiff) {
-                bestDiff = diff;
-                bestScenario = 'Perfect';
-                bestPerc = percValue;
+            if (isReachable) {
+                const diff = scenarioComparisons['Perfect'].comparison.difference;
+                const percStr = scenarioComparisons['Perfect'].comparison.percentage;
+                const percValue = parsePercentage(percStr);
+                
+                if (diff > bestDiff) {
+                    bestDiff = diff;
+                    bestScenario = 'Perfect';
+                    bestPerc = percValue;
+                }
+            } else {
+                Logger.debug('Perfect is not reachable before next realm timegate - skipping from recommendations');
             }
         }
         
         if (scenarioComparisons['Half-Step']) {
-            const diff = scenarioComparisons['Half-Step'].comparison.difference;
-            const percStr = scenarioComparisons['Half-Step'].comparison.percentage;
-            const percValue = parsePercentage(percStr);
+            // Check if Half-Step is reachable before the next realm timegate
+            const isReachable = scenarioComparisons['Half-Step'].scenario2.reachedBeforeTimegate;
             
-            if (diff > bestDiff) {
-                bestDiff = diff;
-                bestScenario = 'Half-Step';
-                bestPerc = percValue;
+            if (isReachable) {
+                const diff = scenarioComparisons['Half-Step'].comparison.difference;
+                const percStr = scenarioComparisons['Half-Step'].comparison.percentage;
+                const percValue = parsePercentage(percStr);
+                
+                if (diff > bestDiff) {
+                    bestDiff = diff;
+                    bestScenario = 'Half-Step';
+                    bestPerc = percValue;
+                }
+            } else {
+                Logger.debug('Half-Step is not reachable before next realm timegate - skipping from recommendations');
             }
         }
         
         // Generate recommendation text
         let recommendationText = '';
         if (bestScenario === 'Completion') {
-            recommendationText = 'Focus on main path - higher Virya scenarios yield less main path XP.';
+            recommendationText = 'Focus on main path - higher Virya scenarios yield less main path XP or are not reachable before the next realm timegate.';
         } else if (bestDiff > 0) {
             recommendationText = `Consider pursuing ${bestScenario} - yields ${Math.abs(bestPerc).toFixed(2)}% more main path XP than Completion.`;
         } else if (bestDiff < 0) {
@@ -784,6 +808,53 @@ class UIManager {
         
         recommendationElement.textContent = recommendationText;
         Logger.info('Virya recommendation updated:', recommendationText);
+    }
+
+    static updateTimegateInfo(playerData) {
+        Logger.group('⏰ TIMEGATE INFO UPDATE', Logger.DEBUG);
+        
+        const format = CalculatorUtils.formatTimeDays;
+        const formatDate = CalculatorUtils.formatDateFromDays;
+        
+        // Calculate time to current timegate
+        const currentTimegateDays = playerData.timegateDays || 0;
+        
+        // Calculate time to next realm timegate
+        const currentMajor = playerData.mainPathRealmMajor;
+        const realmOrder = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+        const currentIndex = realmOrder.indexOf(currentMajor);
+        const nextMajor = currentIndex < realmOrder.length - 1 ? realmOrder[currentIndex + 1] : null;
+        const nextTimegateLength = nextMajor ? (timegateLength[nextMajor] || 0) : 0;
+        const totalDaysToNextTimegate = currentTimegateDays + nextTimegateLength;
+        
+        Logger.info('Timegate calculations:', {
+            'Current timegate days': currentTimegateDays,
+            'Current major realm': currentMajor,
+            'Next major realm': nextMajor || 'N/A (Last realm)',
+            'Next timegate length': nextTimegateLength,
+            'Total days to next timegate': totalDaysToNextTimegate
+        });
+        
+        // Update current timegate display
+        if (currentTimegateDays > 0) {
+            this.updateElementText('timegate-current-time', format(currentTimegateDays));
+            this.updateElementText('timegate-current-date', `Est: ${formatDate(currentTimegateDays)}`);
+        } else {
+            this.updateElementText('timegate-current-time', 'N/A');
+            this.updateElementText('timegate-current-date', '--');
+        }
+        
+        // Update next realm timegate display
+        if (nextMajor && totalDaysToNextTimegate > 0) {
+            this.updateElementText('timegate-next-time', format(totalDaysToNextTimegate));
+            this.updateElementText('timegate-next-date', `Est: ${formatDate(totalDaysToNextTimegate)}`);
+        } else {
+            this.updateElementText('timegate-next-time', nextMajor ? 'N/A' : 'Last realm');
+            this.updateElementText('timegate-next-date', '--');
+        }
+        
+        Logger.success('Timegate info updated');
+        Logger.groupEnd();
     }
 
     static updateDebugMenuVisibility(enabled) {
@@ -816,13 +887,79 @@ class UIManager {
     }
 
     static updateDebugDisplay(playerData, results) {
-        // Helper function to format object as JSON with proper indentation
-        const formatJSON = (obj) => {
-            try {
-                return JSON.stringify(obj, null, 2);
-            } catch (e) {
-                return String(obj);
+        let collapseCounter = 0;
+        
+        // Helper function to format a value for display
+        const formatValue = (value, isNested = false) => {
+            if (value === null) {
+                return '<em style="color: #999;">null</em>';
+            } else if (value === undefined) {
+                return '<em style="color: #999;">undefined</em>';
+            } else if (typeof value === 'number') {
+                return value % 1 !== 0 
+                    ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                    : value.toLocaleString();
+            } else if (typeof value === 'boolean') {
+                return `<strong style="color: ${value ? '#4A8B6E' : '#C76B6B'}">${String(value)}</strong>`;
+            } else if (typeof value === 'string') {
+                return value;
+            } else if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    return '<em style="color: #999;">[]</em>';
+                }
+                // Format arrays as a collapsible nested table
+                const collapseId = `collapse-${collapseCounter++}`;
+                const itemCount = value.length;
+                let arrayHtml = `<div class="debug-nested-wrapper" style="margin: 8px 0;">
+                    <button class="debug-toggle-btn collapsed" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';" aria-label="Toggle nested content">
+                        <span class="debug-toggle-icon">▼</span>
+                        <span class="debug-toggle-text">Array (${itemCount} items)</span>
+                    </button>
+                    <div class="debug-nested-content" style="display: none;">
+                        <table class="debug-nested-table" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; background-color: #f9f9f9;">
+                            <thead><tr><th style="width: 60px; padding: 8px 12px;">Index</th><th style="padding: 8px 12px;">Value</th></tr></thead>
+                            <tbody>`;
+                value.forEach((item, index) => {
+                    arrayHtml += `<tr><td style="padding: 8px 12px; font-weight: 500; color: var(--primary);">${index}</td><td style="padding: 8px 12px;">${formatValue(item, true)}</td></tr>`;
+                });
+                arrayHtml += `</tbody></table></div></div>`;
+                return arrayHtml;
+            } else if (typeof value === 'object') {
+                // Format nested objects as collapsible nested tables
+                const collapseId = `collapse-${collapseCounter++}`;
+                const keyCount = Object.keys(value).length;
+                let nestedHtml = `<div class="debug-nested-wrapper" style="margin: 8px 0;">
+                    <button class="debug-toggle-btn collapsed" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';" aria-label="Toggle nested content">
+                        <span class="debug-toggle-icon">▼</span>
+                        <span class="debug-toggle-text">Object (${keyCount} properties)</span>
+                    </button>
+                    <div class="debug-nested-content" style="display: none;">
+                        <table class="debug-nested-table" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; background-color: #f9f9f9;">
+                            <thead><tr><th style="padding: 8px 12px;">Property</th><th style="padding: 8px 12px;">Value</th></tr></thead>
+                            <tbody>`;
+                for (const [nestedKey, nestedValue] of Object.entries(value)) {
+                    nestedHtml += `<tr><td style="padding: 8px 12px; font-weight: 500;">${nestedKey}</td><td style="padding: 8px 12px;">${formatValue(nestedValue, true)}</td></tr>`;
+                }
+                nestedHtml += `</tbody></table></div></div>`;
+                return nestedHtml;
             }
+            return String(value);
+        };
+
+        // Helper function to format object as HTML table
+        const formatObjectAsTable = (obj) => {
+            if (!obj || typeof obj !== 'object') {
+                return '<table><tbody><tr><td>No data available</td></tr></tbody></table>';
+            }
+
+            let html = '<table><thead><tr><th>Property</th><th>Value</th></tr></thead><tbody>';
+            
+            for (const [key, value] of Object.entries(obj)) {
+                html += `<tr><td><strong>${key}</strong></td><td>${formatValue(value)}</td></tr>`;
+            }
+            
+            html += '</tbody></table>';
+            return html;
         };
 
         // Prepare game data object
@@ -837,32 +974,16 @@ class UIManager {
         // Update Game Data section
         const gameDataElement = document.getElementById('debug-game-data');
         if (gameDataElement) {
-            gameDataElement.textContent = formatJSON(gameData);
-            gameDataElement.style.whiteSpace = 'pre-wrap';
-            gameDataElement.style.fontFamily = 'monospace';
-            gameDataElement.style.fontSize = '0.9em';
-            gameDataElement.style.background = '#f5f5f5';
-            gameDataElement.style.padding = '10px';
-            gameDataElement.style.borderRadius = '4px';
-            gameDataElement.style.maxHeight = '400px';
-            gameDataElement.style.overflow = 'auto';
+            gameDataElement.innerHTML = formatObjectAsTable(gameData);
         }
 
         // Update Player Input section
         const playerInputElement = document.getElementById('debug-player-input');
         if (playerInputElement) {
             if (playerData) {
-                playerInputElement.textContent = formatJSON(playerData);
-                playerInputElement.style.whiteSpace = 'pre-wrap';
-                playerInputElement.style.fontFamily = 'monospace';
-                playerInputElement.style.fontSize = '0.9em';
-                playerInputElement.style.background = '#f5f5f5';
-                playerInputElement.style.padding = '10px';
-                playerInputElement.style.borderRadius = '4px';
-                playerInputElement.style.maxHeight = '400px';
-                playerInputElement.style.overflow = 'auto';
+                playerInputElement.innerHTML = formatObjectAsTable(playerData);
             } else {
-                playerInputElement.textContent = 'Player data not available';
+                playerInputElement.innerHTML = '<p>Player data not available</p>';
             }
         }
 
@@ -870,17 +991,9 @@ class UIManager {
         const calculationsElement = document.getElementById('debug-calculations');
         if (calculationsElement) {
             if (results) {
-                calculationsElement.textContent = formatJSON(results);
-                calculationsElement.style.whiteSpace = 'pre-wrap';
-                calculationsElement.style.fontFamily = 'monospace';
-                calculationsElement.style.fontSize = '0.9em';
-                calculationsElement.style.background = '#f5f5f5';
-                calculationsElement.style.padding = '10px';
-                calculationsElement.style.borderRadius = '4px';
-                calculationsElement.style.maxHeight = '400px';
-                calculationsElement.style.overflow = 'auto';
+                calculationsElement.innerHTML = formatObjectAsTable(results);
             } else {
-                calculationsElement.textContent = 'Calculation results not available';
+                calculationsElement.innerHTML = '<p>Calculation results not available</p>';
             }
         }
     }

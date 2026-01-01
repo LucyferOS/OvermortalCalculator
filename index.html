@@ -145,6 +145,18 @@
 						<div class="virya-recommendation" id="virya-recommendation-display">
 							TODO: IMPLEMENT RECOMMENDATIONS (VIA DECISION TREE?)
 						</div>
+						<div class="virya-timegate-info">
+							<div class="timegate-item">
+								<span class="timegate-label">Time to current timegate:</span>
+								<span class="timegate-value" id="timegate-current-time">--</span>
+								<span class="timegate-date" id="timegate-current-date">--</span>
+							</div>
+							<div class="timegate-item">
+								<span class="timegate-label">Time to next realm timegate:</span>
+								<span class="timegate-value" id="timegate-next-time">--</span>
+								<span class="timegate-date" id="timegate-next-date">--</span>
+							</div>
+						</div>
 					</div>
 					
 					<div class="table-container">
@@ -454,72 +466,117 @@
                     <h2 class="card-title">Stage Specific Mechanics</h2>
                     <div class="grid">
                         <div class="input-group required">
-                            <label for="abode-sect-level">Sect Level</label>
-                            <input type="number" id="abode-sect-level" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-sect-level">
+                                Sect Level
+                                <span class="tooltip-icon" title="Sect level bonus (Max 15%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-sect-level" step="0.1" min="0" max="15" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-celestial-spring">Celestial Spring</label>
-                            <input type="number" id="abode-celestial-spring" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-celestial-spring">
+                                Celestial Spring
+                                <span class="tooltip-icon" title="Spring from realm of sect (Max 3.9%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-celestial-spring" step="0.1" min="0" max="3.9" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-sect-barrier">Sect Barrier</label>
-                            <input type="number" id="abode-sect-barrier" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-sect-barrier">
+                                Sect Barrier
+                                <span class="tooltip-icon" title="Sect Barrier bonus (Max 5%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-sect-barrier" step="0.1" min="0" max="5" value="0.0">
                         </div>
                     </div>
 
                     <h3>Mortal World</h3>
                     <div class="grid">
                         <div class="input-group required">
-                            <label for="abode-energy-array">Energy Array</label>
-                            <input type="number" id="abode-energy-array" step="0.1" min="0" max="100" value="50.0">
+                            <label for="abode-energy-array">
+                                Energy Array
+                                <span class="tooltip-icon" title="Mortal World Energy Array bonus (Max 50%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-energy-array" step="0.1" min="0" max="50" value="50.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-sword-array">Sword Array</label>
-                            <input type="number" id="abode-sword-array" step="0.1" min="0" max=".100" value="0.0">
+                            <label for="abode-sword-array">
+                                Sword Array
+                                <span class="tooltip-icon" title="Sword Array from Mortal World (Max 30%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-sword-array" step="0.1" min="0" max="30" value="0.0">
                         </div>
                     </div>
 
                     <h3>Spiritual World</h3>
                     <div class="grid">
                         <div class="input-group required">
-                            <label for="abode-heaven-gate">Heaven Abode Gate</label>
-                            <input type="number" id="abode-heaven-gate" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-heaven-gate">
+                                Heaven Abode Gate
+                                <span class="tooltip-icon" title="Bonus from realm timegate in Spirit World (Max 30%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-heaven-gate" step="0.1" min="0" max="30" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-wholeness-citta">Wholeness Abode - Citta</label>
-                            <input type="number" id="abode-wholeness-citta" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-wholeness-citta">
+                                Wholeness Abode - Citta
+                                <span class="tooltip-icon" title="Citta bonus (Max 23%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-wholeness-citta" step="0.1" min="0" max="23" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-perfection-world-rift">Perfection Abode - World Rift</label>
-                            <input type="number" id="abode-perfection-world-rift" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-perfection-world-rift">
+                                Perfection Abode - World Rift
+                                <span class="tooltip-icon" title="Bonus from Perfection specific system (Max 14%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-perfection-world-rift" step="0.1" min="0" max="14" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-nirvana-path-of-ascension">Nirvana Abode Path of Ascension</label>
-                            <input type="number" id="abode-nirvana-path-of-ascension" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-nirvana-path-of-ascension">
+                                Nirvana Abode Path of Ascension
+                                <span class="tooltip-icon" title="Bonus from Nirvana specific system (Max 16%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-nirvana-path-of-ascension" step="0.1" min="0" max="16" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-nirvana-ghost-mansion">Nirvana Blue pill Ghost Mansion</label>
-                            <input type="number" id="pill-nirvana-ghost-mansion" step="0.1" min="0" max="100" value="0.0">
+                            <label for="pill-nirvana-ghost-mansion">
+                                Nirvana Blue pill Ghost Mansion
+                                <span class="tooltip-icon" title="Maximum unknown"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-nirvana-ghost-mansion" step="0.1" min="0" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-nirvana-horn-mansion">Nirvana Abode Horn Mansion</label>
-                            <input type="number" id="abode-nirvana-horn-mansion" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-nirvana-horn-mansion">
+                                Nirvana Abode Horn Mansion
+                                <span class="tooltip-icon" title="Star Mark - Horn Mansion (Max 21.1%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-nirvana-horn-mansion" step="0.1" min="0" max="21.1" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-nirvana-turtle-beak-mansion">Nirvana Purple pill Turtle Beak Mansion</label>
-                            <input type="number" id="pill-nirvana-turtle-beak-mansion" step="0.1" min="0" max="100" value="0.0">
+                            <label for="pill-nirvana-turtle-beak-mansion">
+                                Nirvana Purple pill Turtle Beak Mansion
+                                <span class="tooltip-icon" title="Purple pill - Turtle Beak Mansion (Max 12.2%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-nirvana-turtle-beak-mansion" step="0.1" min="0" max="12.2" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-nirvana-dipper-mansion">Nirvana Respira Dipper Mansion</label>
-                            <input type="number" id="respira-nirvana-dipper-mansion" step="0.1" min="0" max="100" value="0.0">
+                            <label for="respira-nirvana-dipper-mansion">
+                                Nirvana Respira Dipper Mansion
+                                <span class="tooltip-icon" title="Maximum unknown"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-nirvana-dipper-mansion" step="0.1" min="0" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-nirvana-chariot-mansion">Nirvana Gold pill Chariot Mansion</label>
-                            <input type="number" id="pill-nirvana-chariot-mansion" step="0.1" min="0" max="100" value="0.0">
+                            <label for="pill-nirvana-chariot-mansion">
+                                Nirvana Gold pill Chariot Mansion
+                                <span class="tooltip-icon" title="Gold pill - Chariot Mansion (Max 14.5%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-nirvana-chariot-mansion" step="0.1" min="0" max="14.5" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-nirvana-neck-mansion">Nirvana Abode Neck Mansion</label>
-                            <input type="number" id="abode-nirvana-neck-mansion" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-nirvana-neck-mansion">
+                                Nirvana Abode Neck Mansion
+                                <span class="tooltip-icon" title="Star Mark - Neck Mansion (Max 21.1%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-nirvana-neck-mansion" step="0.1" min="0" max="21.1" value="0.0">
                         </div>
                     </div>
                 </div>
@@ -529,24 +586,39 @@
                     <h3>Techniques</h3>
                     <div class="grid">
                         <div class="input-group required">
-                            <label for="pill-attempts-technique">Pill Attempts</label>
-                            <input type="number" id="pill-attempts-technique" step="1" min="0" max="100" value="0.0">
+                            <label for="pill-attempts-technique">
+                                Pill Attempts
+                                <span class="tooltip-icon" title="Techniques (Max 6)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-attempts-technique" step="1" min="0" max="6" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-bonus-technique">Pill Bonus</label>
-                            <input type="number" id="pill-bonus-technique" step="0.1" min="0" max="100" value="0.0">
+                            <label for="pill-bonus-technique">
+                                Pill Bonus
+                                <span class="tooltip-icon" title="Techniques (Max 28%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-bonus-technique" step="0.1" min="0" max="28" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-attempt-technique">respira attempt</label>
-                            <input type="number" id="respira-attempt-technique" step="1" min="0" max="100" value="0.0">
+                            <label for="respira-attempt-technique">
+                                respira attempt
+                                <span class="tooltip-icon" title="Techniques (Max 9)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-attempt-technique" step="1" min="0" max="9" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-bonus-technique">respira bonus</label>
-                            <input type="number" id="respira-bonus-technique" step="0.1" min="0" max="100" value="0.0">
+                            <label for="respira-bonus-technique">
+                                respira bonus
+                                <span class="tooltip-icon" title="Techniques (Max 201%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-bonus-technique" step="0.1" min="0" max="201" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="abode-aura-technique">Abode Aura</label>
-                            <input type="number" id="abode-aura-technique" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-aura-technique">
+                                Abode Aura
+                                <span class="tooltip-icon" title="Technique affixes (Max 69%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-aura-technique" step="0.1" min="0" max="69" value="0.0">
                         </div>
                     </div>
                 </div>
@@ -555,20 +627,32 @@
                     <h3>Curios</h3>
                     <div class="grid">
                         <div class="input-group required">
-                            <label for="abode-aura-curio">Abode Aura</label>
-                            <input type="number" id="abode-aura-curio" step="0.1" min="0" max="100" value="0.0">
+                            <label for="abode-aura-curio">
+                                Abode Aura
+                                <span class="tooltip-icon" title="Curios bonus (Max 44.8%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-aura-curio" step="0.1" min="0" max="44.8" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-bonus-curio">Pill Bonus</label>
-                            <input type="number" id="pill-bonus-curio" step="0.1" min="0" max="100" value="0.0">
+                            <label for="pill-bonus-curio">
+                                Pill Bonus
+                                <span class="tooltip-icon" title="Curio (Max 7.8%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-bonus-curio" step="0.1" min="0" max="7.8" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-attempt-curio">respira attempt</label>
-                            <input type="number" id="respira-attempt-curio" step="1" min="0" max="100" value="0.0">
+                            <label for="respira-attempt-curio">
+                                respira attempt
+                                <span class="tooltip-icon" title="Curios (Max 5)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-attempt-curio" step="1" min="0" max="5" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-bonus-curio">respira bonus</label>
-                            <input type="number" id="respira-bonus-curio" step="0.1" min="0" max="100" value="0.0">
+                            <label for="respira-bonus-curio">
+                                respira bonus
+                                <span class="tooltip-icon" title="Curio (Max 20%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-bonus-curio" step="0.1" min="0" max="20" value="0.0">
                         </div>
                         <div class="input-group required">
                             <label for="abode-temper-aura-curio">Temper Abode Aura</label>
@@ -581,20 +665,32 @@
                     <h3>Immortal Friends</h3>
                     <div class="grid">
                         <div class="input-group required">
-                            <label for="pill-attempts-immortal-friends">Pill Attempts</label>
-                            <input type="number" id="pill-attempts-immortal-friends" step="1" min="0" max="100" value="0.0">
+                            <label for="pill-attempts-immortal-friends">
+                                Pill Attempts
+                                <span class="tooltip-icon" title="Immortal Friends (Max 1)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-attempts-immortal-friends" step="1" min="0" max="1" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-bonus-immortal-friends">Pill Bonus</label>
-                            <input type="number" id="pill-bonus-immortal-friends" step="0.1" min="0" max="100" value="0.0">
+                            <label for="pill-bonus-immortal-friends">
+                                Pill Bonus
+                                <span class="tooltip-icon" title="Friends (Max 14%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-bonus-immortal-friends" step="0.1" min="0" max="14" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-attempt-immortal-friends">respira attempt</label>
-                            <input type="number" id="respira-attempt-immortal-friends" step="1" min="0" max="100" value="0.0">
+                            <label for="respira-attempt-immortal-friends">
+                                respira attempt
+                                <span class="tooltip-icon" title="Friends (Max 5)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-attempt-immortal-friends" step="1" min="0" max="5" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="respira-bonus-immortal-friends">respira bonus</label>
-                            <input type="number" id="respira-bonus-immortal-friends" step="0.1" min="0" max="100" value="0.0">
+                            <label for="respira-bonus-immortal-friends">
+                                respira bonus
+                                <span class="tooltip-icon" title="Friends (Max 36%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-bonus-immortal-friends" step="0.1" min="0" max="36" value="0.0">
                         </div>
                     </div>
                 </div>
@@ -746,19 +842,21 @@
                 <div class="card">
                     <h2 class="card-title">Debug Information</h2>
 					<p>Please note that the debug section may have some bugs, it is not finished for player use yet.</p>
-                    <div class="debug-section">
-                        <div class="debug-title">Game Data (Static Values):</div>
-                        <div id="debug-game-data">Loading...</div>
-                    </div>
+                    <div class="debug-container">
+                        <div class="debug-section">
+                            <div class="debug-title">Game Data (Static Values):</div>
+                            <div id="debug-game-data">Loading...</div>
+                        </div>
 
-                    <div class="debug-section">
-                        <div class="debug-title">Player Input:</div>
-                        <div id="debug-player-input">Loading...</div>
-                    </div>
+                        <div class="debug-section">
+                            <div class="debug-title">Player Input:</div>
+                            <div id="debug-player-input">Loading...</div>
+                        </div>
 
-                    <div class="debug-section">
-                        <div class="debug-title">Calculations:</div>
-                        <div id="debug-calculations">Loading...</div>
+                        <div class="debug-section">
+                            <div class="debug-title">Calculations:</div>
+                            <div id="debug-calculations">Loading...</div>
+                        </div>
                     </div>
                 </div>
             </div>

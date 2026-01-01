@@ -55,6 +55,13 @@ class XPCalculator {
         const realmXP = XPData[realmXPKey];
         console.log('Realm XP Values:', realmXP);
         
+        // Safety check: if realmXP is undefined, return 0
+        if (!realmXP) {
+            console.warn(`Warning: Realm XP data not found for key "${realmXPKey}" (realm: ${playerData.mainPathRealmMajor})`);
+            console.groupEnd();
+            return 0;
+        }
+        
         const goldPillXP = realmXP.gold 
             * (1 + (playerData.pillBonusNirvanaChariotMansion / 100)) 
             * playerData.goldPill;

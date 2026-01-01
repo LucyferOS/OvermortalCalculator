@@ -1,7 +1,7 @@
 import { XPCalculator } 	from './XPCalculator.js';
 import { RealmCalculator }	from './RealmCalculator.js';
 import { ViryaCalculator }	from './ViryaCalculator.js';
-import { Realms } 			from './gameData.js';
+import { Realms, XPData } 	from './gameData.js';
 import { CalculatorUtils } 	from './utils.js';
 import { DataManager } 		from './DataManager.js';
 import { FruitCalculator } 	from './FruitCalculator.js'; 
@@ -146,6 +146,7 @@ class OvermortalCalculator {
             // Path Configuration
             pathFocus: getStringValue('path-focus'),
             timegateDays: getNumberValue('timegate-days'),
+            hadViryaLastRealm: getStringValue('had-Virya'),
             
             // Abode Bonuses
             abodeBonusCurio,
@@ -210,6 +211,51 @@ class OvermortalCalculator {
         };
     }
 
+    /**
+     * Maps "had Virya last realm" value to absorption bonus
+     * @param {string} hadViryaLastRealm - Value from "had-Virya" field ("No", "Eminence", "Perfection", "Halfstep")
+     * @returns {number} Absorption bonus (0, 0.2, or 0.4)
+     */
+    static getHadViryaAbsorptionBonus(hadViryaLastRealm) {
+        const bonusMap = {
+            'No': 0,
+            'Eminence': 0.2,
+            'Perfection': 0.2,
+            'Halfstep': 0.4
+        };
+        return bonusMap[hadViryaLastRealm] || 0;
+    }
+
+    /**
+     * Determines if "had Virya last realm" bonus is still active based on current minor realm
+     * @param {string} hadViryaLastRealm - Value from "had-Virya" field
+     * @param {string} currentMinorRealm - Current minor realm ("Early", "Mid", or "Late")
+     * @returns {boolean} True if bonus is still active, false otherwise
+     */
+    static isHadViryaBonusActive(hadViryaLastRealm, currentMinorRealm) {
+        if (!hadViryaLastRealm || hadViryaLastRealm === 'No') {
+            return false;
+        }
+
+        // Bonus expiration logic:
+        // - Eminence: Expires at "Next Major Early" (active only in Early)
+        // - Perfection: Expires at "Next Major Mid" (active in Early and Mid)
+        // - Half-Step: Expires at start of "Next Major Late" (active in Early and Mid, expires at Late)
+        switch (hadViryaLastRealm) {
+            case 'Eminence':
+                // Expires at Next Major Early - only active in Early
+                return currentMinorRealm === 'Early';
+            case 'Perfection':
+                // Expires at Next Major Mid - active in Early and Mid
+                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
+            case 'Halfstep':
+                // Expires at start of Next Major Late - active in Early and Mid, expires at Late
+                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
+            default:
+                return false;
+        }
+    }
+
 calculateAll() {
     this.updateFromInputs();
     
@@ -223,8 +269,44 @@ calculateAll() {
     const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
     this.playerData.viryaScenario = viryaInfo.scenario;
     this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:269',message:'viryaInfo from detectScenario',data:{scenario:viryaInfo.scenario,absorptionBonus:viryaInfo.absorptionBonus},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
     this.playerData.dailyXP = dailyXP;
+    
+    // Determine absorption bonus for realm progression calculations
+    // Calculate separate absorption bonuses for main and secondary paths
+    let mainPathAbsorptionBonus = viryaInfo.absorptionBonus;
+    let secondaryPathAbsorptionBonus = viryaInfo.absorptionBonus;
+    
+    // If current scenario is "No Virya", check if "had Virya last realm" bonus is still active for each path
+    if (viryaInfo.scenario === 'No Virya') {
+        const hadViryaLastRealm = this.playerData.hadViryaLastRealm || 'No';
+        const hadViryaBonus = OvermortalCalculator.getHadViryaAbsorptionBonus(hadViryaLastRealm);
+        
+        // Check if bonus is active for main path based on main path's minor realm
+        const isMainPathBonusActive = OvermortalCalculator.isHadViryaBonusActive(hadViryaLastRealm, this.playerData.mainPathRealmMinor);
+        if (isMainPathBonusActive && hadViryaBonus > 0) {
+            mainPathAbsorptionBonus = hadViryaBonus;
+            console.log(`Using "had Virya last realm" bonus (${hadViryaLastRealm}) for main path: ${hadViryaBonus * 100}%`);
+        } else {
+            mainPathAbsorptionBonus = 0;
+            console.log(`"had Virya last realm" bonus (${hadViryaLastRealm}) is not active for main path (${this.playerData.mainPathRealmMinor})`);
+        }
+        
+        // Check if bonus is active for secondary path based on secondary path's minor realm
+        const isSecondaryPathBonusActive = OvermortalCalculator.isHadViryaBonusActive(hadViryaLastRealm, this.playerData.secondaryPathRealmMinor);
+        if (isSecondaryPathBonusActive && hadViryaBonus > 0) {
+            secondaryPathAbsorptionBonus = hadViryaBonus;
+            console.log(`Using "had Virya last realm" bonus (${hadViryaLastRealm}) for secondary path: ${hadViryaBonus * 100}%`);
+        } else {
+            secondaryPathAbsorptionBonus = 0;
+            console.log(`"had Virya last realm" bonus (${hadViryaLastRealm}) is not active for secondary path (${this.playerData.secondaryPathRealmMinor})`);
+        }
+    }
+    // If current scenario is Eminence/Perfect/Half-Step, use current scenario bonus (already at late 100%, so previous realm bonus doesn't apply)
+    // Both paths already have the correct bonus set above
     
     const fruitXPSingle = FruitCalculator.fruitXP(this.playerData);
     const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
@@ -310,8 +392,46 @@ calculateAll() {
     console.log('Fruit XP per fruit:', fruitXPSingle);
     console.log('Total Fruit XP (', this.playerData.fruitsCount, 'fruits):', fruitXPTotal);
     
-    // Calculate realm progression
-    const realmProgression = RealmCalculator.calculateProgression(this.playerData, dailyXP);
+    // Calculate separate daily XP values for main and secondary paths with their respective absorption bonuses
+    // For main path: use main path realm and main path absorption bonus
+    const mainPathDailyXPBase = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, mainPathAbsorptionBonus);
+    
+    // For secondary path: create temporary player data with secondary path realm to get correct absorption
+    // Only calculate if secondary path realm data is available and realm XP data exists
+    let secondaryPathDailyXPBase = 0;
+    if (this.playerData.secondaryPathRealm && this.playerData.secondaryPathRealmMajor) {
+        // Check if realm XP data exists for this realm
+        const realmXPKey = this.playerData.secondaryPathRealmMajor + "XP";
+        if (XPData[realmXPKey]) {
+            const secondaryPathPlayerData = {
+                ...this.playerData,
+                mainPathRealm: this.playerData.secondaryPathRealm,
+                mainPathRealmMajor: this.playerData.secondaryPathRealmMajor,
+                mainPathRealmMinor: this.playerData.secondaryPathRealmMinor
+            };
+            secondaryPathDailyXPBase = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
+        } else {
+            console.warn(`Warning: Realm XP data not found for secondary path realm "${realmXPKey}" (realm: ${this.playerData.secondaryPathRealmMajor}), skipping secondary path daily XP calculation`);
+        }
+    }
+    
+    // Apply pathFocus: only the focused path gets daily XP
+    let mainPathDailyXP = 0;
+    let secondaryPathDailyXP = 0;
+    
+    if (this.playerData.pathFocus === 'Main Path') {
+        mainPathDailyXP = mainPathDailyXPBase;
+        secondaryPathDailyXP = 0;
+    } else {
+        mainPathDailyXP = 0;
+        secondaryPathDailyXP = secondaryPathDailyXPBase;
+    }
+    
+    console.log(`Main path daily XP (with ${mainPathAbsorptionBonus * 100}% bonus): ${mainPathDailyXP.toLocaleString()}`);
+    console.log(`Secondary path daily XP (with ${secondaryPathAbsorptionBonus * 100}% bonus): ${secondaryPathDailyXP.toLocaleString()}`);
+    
+    // Calculate realm progression with separate daily XP values for each path
+    const realmProgression = RealmCalculator.calculateProgression(this.playerData, mainPathDailyXP, secondaryPathDailyXP);
     
     // Calculate scenario comparisons (Completion as baseline)
     

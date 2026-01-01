@@ -1,21 +1,16 @@
 import { Realms, RealmMajorTotalXP } from './gameData.js';
 
 class RealmCalculator {
-    static calculateProgression(playerData, dailyXP) {
-        let mainPathDailyXP = 0;
-        let secondaryPathDailyXP = 0;
-        
-        if (playerData.pathFocus === 'Main Path') {
-            mainPathDailyXP = dailyXP;
-        } else {
-            secondaryPathDailyXP = dailyXP;
-        }
+    static calculateProgression(playerData, mainPathDailyXP, secondaryPathDailyXP) {
+        // Use the provided daily XP values directly
+        // Note: pathFocus is no longer used here since we're passing the actual daily XP for each path
+        // The caller is responsible for determining which path gets XP based on pathFocus
         
         const mainPathProgression = this.calculatePathProgression(
             playerData.mainPathRealm,
             playerData.mainPathProgress,
             playerData.mainPathExp,
-            mainPathDailyXP,
+            mainPathDailyXP || 0,
             playerData.mainPathRealmMajor
         );
         
@@ -23,7 +18,7 @@ class RealmCalculator {
             playerData.secondaryPathRealm,
             playerData.secondaryPathProgress,
             playerData.secondaryPathExp,
-            secondaryPathDailyXP,
+            secondaryPathDailyXP || 0,
             playerData.secondaryPathRealmMajor
         );
         

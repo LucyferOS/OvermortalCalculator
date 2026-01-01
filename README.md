@@ -1,4 +1,12 @@
+#### Version 0.3.5 (BETA)
+  * Fixed virya recommendations logic, upon further review it was very inaccurate for about 3/4ths of all cases, but now appears to be fully accurate for multiple cases and edge cases.
+  * Fixed debug menu
+  * Improved button functionality
+  * Added tooltips for many player input fields
+  * Add timegate information to dashboard
+
 #### Version 0.3.4 (BETA)
+
   * Recommendations giga-update - I have implemented a lot of logic for both virya and a possible fruits feature. 
 		* The fruits feature is feature toggled within dev testing. 
 		* The virya feature has only been spot tested, but not fully stepped through to validate accuracy.use with caution for the time being.
@@ -66,11 +74,7 @@
 	* Add Elixers and Benediction 
 	* Add artifact skins
 	* Add Auraseep
-	* Enforce maximums for player input
 	* Refine Recommendations
-		Not currently stopping at next realm late then moving to virya
-		Not currently handling absorption correctly - does not drop it when it should, or does not stay at prev minor realm to compensate for lower future absorption
 		*Max fruits on dashboard
-	* Add timegate information to dashboard
-	* Add referemce tables
+	* Add reference tables
 	* Add analytics (open to suggestions for what should go here)
