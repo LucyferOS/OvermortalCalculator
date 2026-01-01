@@ -276,15 +276,77 @@ class recommendations {
             'Max level': maxLevel
         });
         
-        // ... rest of the refineSolution method
+        // Refinement: Try to reduce levels from coarse solution while still meeting target
+        // Start from coarse solution and work backwards to find minimal levels
+        let bestRefined = {
+            xp: coarseXp,
+            gush: coarseGush,
+            quality: coarseQuality,
+            totalLevels: coarseXp + coarseGush + coarseQuality
+        };
         
-        Logger.groupEnd();
-        return refinedSolution;
-    }
-	
-    static refineSolution(playerData, targetFruitXP, coarseSolution, currentLevels, jumpSize, maxLevel = 30) {
-        Logger.group('🔧 SOLUTION REFINEMENT', Logger.DEBUG);
-        // ... existing code with Logger calls
+        // Test if we can reduce each stat individually
+        const stats = ['xp', 'gush', 'quality'];
+        const coarseLevels = { xp: coarseXp, gush: coarseGush, quality: coarseQuality };
+        
+        for (const stat of stats) {
+            // Try reducing this stat from coarse level down to current level
+            const startLevel = coarseLevels[stat];
+            const endLevel = Math.max(currentLevels[stat], startLevel - jumpSize);
+            
+            for (let level = startLevel - 1; level >= endLevel; level--) {
+                const testLevels = { ...bestRefined };
+                testLevels[stat] = level;
+                testLevels.totalLevels = testLevels.xp + testLevels.gush + testLevels.quality;
+                
+                const testData = {
+                    ...playerData,
+                    extractorXPLevel: testLevels.xp,
+                    extractorGushLevel: testLevels.gush,
+                    extractorQualityLevel: testLevels.quality
+                };
+                
+                const fruitXPSingle = FruitCalculator.fruitXP(testData);
+                const fruitXPTotal = fruitXPSingle * playerData.fruitsCount;
+                
+                if (fruitXPTotal >= targetFruitXP && testLevels.totalLevels < bestRefined.totalLevels) {
+                    bestRefined = { ...testLevels, fruitXPSingle, fruitXPTotal };
+                } else if (fruitXPTotal < targetFruitXP) {
+                    // Can't reduce further, break
+                    break;
+                }
+            }
+        }
+        
+        // Calculate final fruit XP for the refined solution
+        const finalTestData = {
+            ...playerData,
+            extractorXPLevel: bestRefined.xp,
+            extractorGushLevel: bestRefined.gush,
+            extractorQualityLevel: bestRefined.quality
+        };
+        
+        const refinedFruitXPSingle = FruitCalculator.fruitXP(finalTestData);
+        const refinedFruitXPTotal = refinedFruitXPSingle * playerData.fruitsCount;
+        
+        const refinedSolution = {
+            xpLevel: bestRefined.xp,
+            gushLevel: bestRefined.gush,
+            qualityLevel: bestRefined.quality,
+            totalLevels: bestRefined.totalLevels,
+            fruitXPSingle: refinedFruitXPSingle,
+            fruitXPTotal: refinedFruitXPTotal,
+            alreadyMeetsTarget: refinedFruitXPTotal >= targetFruitXP
+        };
+        
+        Logger.info('Refinement Complete:', {
+            'Coarse Levels': `(${coarseXp}, ${coarseGush}, ${coarseQuality})`,
+            'Refined Levels': `(${refinedSolution.xpLevel}, ${refinedSolution.gushLevel}, ${refinedSolution.qualityLevel})`,
+            'Level Reduction': (coarseXp + coarseGush + coarseQuality) - refinedSolution.totalLevels,
+            'Refined Total XP': refinedFruitXPTotal.toLocaleString(),
+            'Target XP': targetFruitXP.toLocaleString()
+        });
+        
         Logger.groupEnd();
         return refinedSolution;
     }
