@@ -66,10 +66,6 @@ class OvermortalApp {
     }
 
     resetToDefaults() {
-        if (!confirm('Are you sure you want to reset all inputs to default values?')) {
-            return;
-        }
-
         this.calculator.initializePlayerData();
         this.syncInputsToCalculator();
         this.calculateAndUpdateUI();
@@ -79,27 +75,94 @@ class OvermortalApp {
     syncInputsToCalculator() {
         const p = this.calculator.getPlayerData();
         const inputs = {
+            // Path information
             'main-path-realm': p.mainPathRealm,
             'main-path-progress': p.mainPathProgress,
             'secondary-path-realm': p.secondaryPathRealm,
             'secondary-path-progress': p.secondaryPathProgress,
             'path-focus': p.pathFocus,
             'timegate-days': p.timegateDays,
+            'had-Virya': p.hadViryaLastRealm || 'No',
+            
+            // Creation Artifacts
             'vase-stars': p.vaseStars,
+            'vase-skin': p.vaseSkin,
             'mirror-stars': p.mirrorStars,
+            'mirror-skin': p.mirrorSkin,
             'token-stars': p.tokenStars,
+            'token-skin': p.tokenSkin,
+            
+            // Pills and Elixirs
             'gold-pill': p.goldPill,
             'purple-pill': p.purplePill,
             'blue-pill': p.bluePill,
             'elixir': p.elixir,
+            'elixir-consumed': p.elixirConsumed,
+            'benediction': p.benediction,
+            'benediction-consumed': p.benedictionConsumed,
+            
+            // Aura Gem
+            'gem-quality': p.gemQuality || p.gemBonus || 'Common',
+            
+            // Abode Bonuses
+            'abode-sect-level': p.abodeBonusSectLevel,
+            'abode-sect-barrier': p.abodeBonusSectBarrier,
+            'abode-celestial-spring': p.abodeBonusCelestialSpring,
+            'abode-energy-array': p.abodeBonusEnergyArray,
+            'abode-sword-array': p.abodeBonusSwordArray,
+            'abode-heaven-gate': p.abodeBonusHeavenGate,
+            'abode-wholeness-citta': p.abodeBonusWholenessCitta,
+            'abode-perfection-world-rift': p.abodeBonusPerfectionWorldRift,
+            'abode-nirvana-path-of-ascension': p.abodeBonusNirvanaPathofAscension,
+            'abode-nirvana-horn-mansion': p.abodeBonusNirvanaHornMansion,
+            'abode-nirvana-neck-mansion': p.abodeBonusNirvanaNeckMansion,
+            
+            // Techniques
+            'pill-attempts-technique': p.pillAttemptsTechnique || 0,
+            'pill-bonus-technique': p.pillBonusTechnique,
+            'respira-attempt-technique': p.respiraAttemptsTechnique,
+            'respira-bonus-technique': p.respiraBonusTechnique,
+            'abode-aura-technique': p.abodeBonusTechnique,
+            
+            // Curios
+            'abode-aura-curio': p.abodeBonusCurio,
+            'pill-bonus-curio': p.pillBonusCurio,
+            'respira-attempt-curio': p.respiraAttemptsCurio,
+            'respira-bonus-curio': p.respiraBonusCurio,
+            'abode-temper-aura-curio': p.abodeTemperAuraCurio || 0,
+            
+            // Immortal Friends
+            'pill-attempts-immortal-friends': p.pillAttemptsImmortalFriends || 0,
+            'pill-bonus-immortal-friends': p.pillBonusImmortalFriends,
+            'respira-attempt-immortal-friends': p.respiraAttemptsImmortalFriend,
+            'respira-bonus-immortal-friends': p.respiraBonusImmortalFriend,
+            
+            // Nirvana Mansion bonuses
+            'pill-nirvana-chariot-mansion': p.pillBonusNirvanaChariotMansion,
+            'pill-nirvana-ghost-mansion': p.pillBonusNirvanaGhostMansion,
+            'pill-nirvana-turtle-beak-mansion': p.pillBonusNirvanaTurtleBeakMansion,
+            'respira-nirvana-dipper-mansion': p.respiraNirvanaDipperMansion || 0,
+            
+            // Fruits
             'fruits-count': p.fruitsCount,
             'weekly-fruits': p.weeklyFruits,
-            'fruits-usage': p.fruitsUsage
+            'fruits-usage': p.fruitsUsage,
+            'extractor-rank': p.extractorRank || 'common',
+            'extractor-experience': p.extractorXPLevel || 0,
+            'extractor-quality': p.extractorQualityLevel || 0,
+            'extractor-gush': p.extractorGushLevel || 0
         };
 
         Object.entries(inputs).forEach(([id, value]) => {
             const element = document.getElementById(id);
-            if (element) element.value = value;
+            if (element) {
+                // For number inputs, ensure we set the value properly
+                if (element.type === 'number') {
+                    element.value = value !== undefined && value !== null ? value : 0;
+                } else {
+                    element.value = value !== undefined && value !== null ? value : '';
+                }
+            }
         });
     }
 

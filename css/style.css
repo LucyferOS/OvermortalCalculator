@@ -155,6 +155,19 @@ h1 {
     color: var(--secondary);
 }
 
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
 .warning {
     background-color: rgba(199, 107, 107, 0.05);
     border-left: 4px solid var(--accent);

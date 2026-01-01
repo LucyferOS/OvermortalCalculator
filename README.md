@@ -1,9 +1,13 @@
 #### Version 0.3.5 (BETA)
   * Fixed virya recommendations logic, upon further review it was very inaccurate for about 3/4ths of all cases, but now appears to be fully accurate for multiple cases and edge cases.
-  * Fixed debug menu
+  * Fixed debug menu and improved readability. Playerdata has some fields which are not displaying correctly such as cosmoapsis, if you believe something is wrong submit a request to lucyfer_os.
   * Improved button functionality
   * Added tooltips for many player input fields
-  * Add timegate information to dashboard
+  * Added timegate information to dashboard
+  * Added max fruits section to dashboard
+  * Added benediction, elixer, artifact skins to exp calculation
+  * Fixed default values in player input and reset functionality
+  * Added Analytics tab - if you wish to see more here, please let me know.
 
 #### Version 0.3.4 (BETA)
 
@@ -70,11 +74,6 @@
   Best Regards,
   ***lucyfer_os***
   
-  ## TODO:
-	* Add Elixers and Benediction 
-	* Add artifact skins
+  ## TOD
 	* Add Auraseep
-	* Refine Recommendations
-		*Max fruits on dashboard
-	* Add reference tables
 	* Add analytics (open to suggestions for what should go here)

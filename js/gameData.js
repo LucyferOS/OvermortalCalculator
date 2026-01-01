@@ -133,6 +133,36 @@ export const GameConstants = {
 		'legendary': 2.72,
 		'mythic': 3.3744
 	},
+
+	elixerData:{
+
+	 elixerEfficiencyLevels: [
+		{ efficiencyPercent: 150.00, elixerFalloffCumulative: 20.00, elixerFalloff: 20.00 },
+		{ efficiencyPercent: 120.00, elixerFalloffCumulative: 60.00, elixerFalloff: 40.00 },
+		{ efficiencyPercent: 100.00, elixerFalloffCumulative: 140.00, elixerFalloff: 80.00 },
+		{ efficiencyPercent:  80.00, elixerFalloffCumulative: 260.00, elixerFalloff: 120.00 },
+		{ efficiencyPercent:  60.00, elixerFalloffCumulative: 420.00, elixerFalloff: 160.00 },
+		{ efficiencyPercent:  40.00, elixerFalloffCumulative: 640.00, elixerFalloff: 220.00 },
+		{ efficiencyPercent:  30.00, elixerFalloffCumulative: 940.00, elixerFalloff: 300.00 },
+		{ efficiencyPercent:  20.00, elixerFalloffCumulative: 1840.00, elixerFalloff: 900.00 },
+		{ efficiencyPercent:  15.00, elixerFalloffCumulative: 3640.00, elixerFalloff: 1800.00 },
+		{ efficiencyPercent:  10.00, elixerFalloffCumulative: 39640.00, elixerFalloff: 36000.00 }
+	]
+	},
+
+	benedictionData: {
+	 benedictionEfficiencyLevels: [
+		{ efficiencyPercent: 120.00, benedictionFalloffCumulative: 25.00, benedictionFalloff: 25.00 },
+		{ efficiencyPercent: 100.00, benedictionFalloffCumulative: 80.00, benedictionFalloff: 55.00 },
+		{ efficiencyPercent:  80.00, benedictionFalloffCumulative: 160.00, benedictionFalloff: 80.00 },
+		{ efficiencyPercent:  60.00, benedictionFalloffCumulative: 320.00, benedictionFalloff: 160.00 },
+		{ efficiencyPercent:  50.00, benedictionFalloffCumulative: 640.00, benedictionFalloff: 320.00 },
+		{ efficiencyPercent:  40.00, benedictionFalloffCumulative: 1280.00, benedictionFalloff: 640.00 },
+		{ efficiencyPercent:  30.00, benedictionFalloffCumulative: 2560.00, benedictionFalloff: 1280.00 },
+		{ efficiencyPercent:  20.00, benedictionFalloffCumulative: 5120.00, benedictionFalloff: 2560.00 },
+		{ efficiencyPercent:  10.00, benedictionFalloffCumulative: 10240.00, benedictionFalloff: 5120.00 }
+	]
+	},
 	
 	flatExtractorLevels: {
 	  levels: [

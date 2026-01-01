@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/utilities.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -18,7 +19,7 @@
                     <h1>OverMortal Realm Breakthrough Calculator</h1>
                     <div class="subtitle">Plan your cultivation journey and optimize your breakthrough strategy</div>
                 </div>
-                <div class="version">v0.3.4 (BETA)</div>
+                <div class="version">v0.3.5 (BETA)</div>
             </div>
         </header>
         <div class="sidebar">
@@ -31,6 +32,9 @@
 		<!--<div class="nav-item" data-section="recommendations">
 			<span>Recommendations</span>
 		</div>-->
+            <div class="nav-item" data-section="analytics">
+                <span>Analytics</span>
+            </div>
             <div class="nav-item" data-section="debug">
                 <span>Debug Data</span>
             </div>
@@ -129,6 +133,34 @@
                         </div>
                     </div>
                 </div>
+                <div class="card">
+                    <h2 class="card-title">With Max Fruits & Aura Extractor</h2>
+                    <div class="grid">
+                        <div class="result-box">
+                            <div class="result-label">Main Path Minor</div>
+                            <div class="time-display" id="fruits-max-minor-main-time-display"> Calculating...</div>
+							<div class="date-display" id="fruits-max-minor-main-date-display">Estimated: --</div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Main Path Major</div>
+                            <div class="time-display" id="fruits-max-major-main-time-display"> Calculating...</div>
+							<div class="date-display" id="fruits-max-major-main-date-display">Estimated: --</div>
+                        </div>
+
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path Minor</div>
+                            <div class="time-display" id="fruits-max-minor-secondary-time-display"> Calculating...</div>
+							<div class="date-display" id="fruits-max-minor-secondary-date-display">Estimated: --</div>
+                        </div>
+
+                        <div class="result-box">
+                            <div class="result-label">Secondary Path Major</div>
+                            <div class="time-display" id="fruits-max-major-secondary-time-display"> Calculating...</div>
+							<div class="date-display" id="fruits-max-major-secondary-date-display">Estimated: --</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
                     <h2 class="card-title">Player Time to Virya</h2>
                     <div class="info">
                         <span>Player Path Focus Scenario chosen: <strong id="path-focus-display">Main Path</strong></span>
@@ -256,6 +288,7 @@
 						</table>
 					</div>
 				</div>
+                </div>
 			</div>
             <!-- PLAYER INPUT SECTION -->
             <div id="player-input" class="section">
@@ -417,6 +450,14 @@
                         </div>
 
                         <div class="input-group required">
+                            <label for="vase-skin">Vase Skin</label>
+                            <select id="vase-skin">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
                             <label for="mirror-stars">Mirror stars</label>
                             <select id="mirror-stars">
                                 <option value="No artifact">No artifact</option>
@@ -430,6 +471,14 @@
                         </div>
 
                         <div class="input-group required">
+                            <label for="mirror-skin">Mirror Skin</label>
+                            <select id="mirror-skin">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
                             <label for="token-stars">Token stars</label>
                             <select id="token-stars">
                                 <option value="No artifact">No artifact</option>
@@ -439,6 +488,14 @@
                                 <option value="3 stars">3 stars</option>
                                 <option value="4 stars">4 stars</option>
                                 <option value="5 stars">5 stars</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group required">
+                            <label for="token-skin">Token Skin</label>
+                            <select id="token-skin">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
                             </select>
                         </div>
                     </div>
@@ -747,9 +804,6 @@
 					<button class="btn btn-calculate" id="calculate-btn">
 						<i class="fas fa-calculator"></i> Calculate All
 					</button>
-					<button class="btn" id="reset-btn">
-						<i class="fas fa-undo"></i> Reset to Defaults
-					</button>
 					<button class="btn" id="clear-storage-btn" style="background-color: var(--accent);">
 						<i class="fas fa-trash"></i> Clear Saved Data
 					</button>
@@ -837,6 +891,22 @@
                 </div>
             </div>
 
+            <!-- ANALYTICS SECTION -->
+            <div id="analytics" class="section">
+                <div class="card">
+                    <h2 class="card-title">Daily XP Sources</h2>
+                    <div class="chart-container">
+                        <canvas id="daily-xp-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">Extractor Comparison</h2>
+                    <div class="chart-container">
+                        <canvas id="extractor-comparison-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- DEBUG SECTION -->
             <div id="debug" class="section">
                 <div class="card">
@@ -875,9 +945,9 @@
 		</div>
 		
             <div class="footer">
-                <p>OverMortal Realm Breakthrough Calculator v0.3.4 (BETA)</p>
+                <p>OverMortal Realm Breakthrough Calculator v0.3.5 (BETA)</p>
                 <p>Coded by LucyferOS (Endless) | <a href="https://docs.google.com/spreadsheets/d/19xuznnncxhgHlUFwawAt8DPCu7YgwdGSP7mdHXGWTdk/edit?gid=1602589637#gid=1602589637" target="_blank">Based on original work by Zild and the Eternal Palace community, as well as Yutsu (Abyssal Hunt)</a></p>
-                <p>Last updated: 23/12/2025</p>
+                <p>Last updated: 01/01/2026</p>
             </div>
         </div>
     </div>

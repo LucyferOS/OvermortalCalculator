@@ -34,19 +34,27 @@ class OvermortalCalculator {
             dailyXP: 0.0,
 			pathFocus: 'Main Path',
             timegateDays: 30,
+            hadViryaLastRealm: 'No',
             vaseStars: '0 star',
+            vaseSkin: 'No',
             mirrorStars: '0 star',
+            mirrorSkin: 'No',
             tokenStars: '0 star',
+            tokenSkin: 'No',
             goldPill: 0.0,
             purplePill: 0.0,
             bluePill: 20.0,
             elixir: 0.0,
+            elixirConsumed: 0.0,
+            benediction: 0.0,
+            benedictionConsumed: 0.0,
             pillBonus: 0.0,
             fruitsCount: 0,
             weeklyFruits: 0,
             fruitsUsage: 'current',
             cosmoapsis: 130.0,
             gemBonus: 'Common',
+            gemQuality: 'Common',
             respiraAttemptsTotal: 10,
             respiraExp: 0,
             
@@ -64,6 +72,7 @@ class OvermortalCalculator {
             abodeBonusNirvanaPathofAscension: 0,
             abodeBonusNirvanaHornMansion: 0,
             abodeBonusNirvanaNeckMansion: 0,
+            abodeTemperAuraCurio: 0,
             
             // Respira bonuses
             respiraAttemptsImmortalFriend: 0,
@@ -73,6 +82,7 @@ class OvermortalCalculator {
             respiraBonusTechnique: 0,
             respiraBonusCurio: 0,
             respiraBonusTotal: 1.0,
+            respiraNirvanaDipperMansion: 0,
             
             // Pill bonuses
             pillBonusNirvanaChariotMansion: 0,
@@ -80,7 +90,15 @@ class OvermortalCalculator {
             pillBonusNirvanaTurtleBeakMansion: 0,
             pillBonusCurio: 0,
             pillBonusImmortalFriends: 0,
-            pillBonusTechnique: 0
+            pillBonusTechnique: 0,
+            pillAttemptsTechnique: 0,
+            pillAttemptsImmortalFriends: 0,
+            
+            // Extractor
+            extractorRank: 'common',
+            extractorXPLevel: 0,
+            extractorQualityLevel: 0,
+            extractorGushLevel: 0
         };
     }
 
@@ -186,14 +204,20 @@ class OvermortalCalculator {
             
             // Stars
             vaseStars: getStringValue('vase-stars'),
+            vaseSkin: getStringValue('vase-skin'),
             mirrorStars: getStringValue('mirror-stars'),
+            mirrorSkin: getStringValue('mirror-skin'),
             tokenStars: getStringValue('token-stars'),
+            tokenSkin: getStringValue('token-skin'),
             
             // Pills and Elixirs
             goldPill: getNumberValue('gold-pill'),
             purplePill: getNumberValue('purple-pill'),
             bluePill: getNumberValue('blue-pill'),
             elixir: getNumberValue('elixir'),
+            elixirConsumed: getNumberValue('elixir-consumed'),
+            benediction: getNumberValue('benediction'),
+            benedictionConsumed: getNumberValue('benediction-consumed'),
             
             // Fruits
             fruitsCount: getIntegerValue('fruits-count'),
@@ -310,6 +334,10 @@ calculateAll() {
     
     const fruitXPSingle = FruitCalculator.fruitXP(this.playerData);
     const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
+    
+    // Calculate max extractor fruit XP
+    const maxExtractorResult = recommendations.calculateMaxLevelXP(this.playerData, 30);
+    const fruitXPTotalMax = maxExtractorResult.fruitXPTotal;
     
     // Calculate secondary path daily XP for Virya calculations
     let secondaryDailyXP = 0;
@@ -464,6 +492,7 @@ calculateAll() {
         realmProgression,
         fruitXPSingle,
         fruitXPTotal,
+        fruitXPTotalMax,
         virya: viryaInfo,
         scenarioXPNeeded,
         nextScenario,

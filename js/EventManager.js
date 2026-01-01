@@ -10,39 +10,53 @@ class EventManager {
     }
 
     setupEventListeners() {
-        // Calculation and reset
-        document.getElementById('calculate-btn').addEventListener('click', () => 
-            this.app.calculateAndUpdateUI()
-        );
-        
-        document.getElementById('reset-btn').addEventListener('click', () => 
-            this.app.resetToDefaults()
-        );
+        // Calculation
+        const calculateBtn = document.getElementById('calculate-btn');
+        if (calculateBtn) {
+            calculateBtn.addEventListener('click', () => 
+                this.app.calculateAndUpdateUI()
+            );
+        }
 
         // Local storage management
         this.setupLocalStorageListeners();
         
         // Data import/export
-        document.getElementById('export-data-btn').addEventListener('click', () => 
-            this.handleExport()
-        );
+        const exportBtn = document.getElementById('export-data-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => 
+                this.handleExport()
+            );
+        }
         
-        document.getElementById('import-data-btn').addEventListener('click', () => 
-            document.getElementById('import-file-input').click()
-        );
+        const importBtn = document.getElementById('import-data-btn');
+        const importFileInput = document.getElementById('import-file-input');
+        if (importBtn && importFileInput) {
+            importBtn.addEventListener('click', () => 
+                importFileInput.click()
+            );
+        }
         
-        document.getElementById('import-file-input').addEventListener('change', (event) => 
-            this.handleFileImport(event)
-        );
+        if (importFileInput) {
+            importFileInput.addEventListener('change', (event) => 
+                this.handleFileImport(event)
+            );
+        }
         
-        document.getElementById('clear-storage-btn').addEventListener('click', () => 
-            this.handleClearStorage()
-        );
+        const clearStorageBtn = document.getElementById('clear-storage-btn');
+        if (clearStorageBtn) {
+            clearStorageBtn.addEventListener('click', () => 
+                this.handleClearStorage()
+            );
+        }
 
         // Debug toggle button
-        document.getElementById('debug-toggle-btn').addEventListener('click', () => 
-            this.handleDebugToggle()
-        );
+        const debugToggleBtn = document.getElementById('debug-toggle-btn');
+        if (debugToggleBtn) {
+            debugToggleBtn.addEventListener('click', () => 
+                this.handleDebugToggle()
+            );
+        }
 
         // Navigation
         this.setupNavigation();
@@ -67,9 +81,12 @@ class EventManager {
         });
 
         // Save on calculate button click
-        document.getElementById('calculate-btn').addEventListener('click', () => {
-            this.dataManager.saveToLocalStorage();
-        });
+        const calculateBtn = document.getElementById('calculate-btn');
+        if (calculateBtn) {
+            calculateBtn.addEventListener('click', () => {
+                this.dataManager.saveToLocalStorage();
+            });
+        }
     }
 
     setupNavigation() {
