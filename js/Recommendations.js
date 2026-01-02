@@ -451,43 +451,6 @@ class recommendations {
     }
 
 
-    // Updated comparedScenarioToOverflow with new logging
-    static comparedScenarioToOverflow(scenario1, scenario2, playerData) {
-        Logger.group('⚔️ VIRYA SCENARIO COMPARISON (OVERFLOW)', Logger.INFO);
-        Logger.section(`COMPARISON: ${scenario1} vs ${scenario2}`, Logger.INFO);
-        
-        // Calculate current daily XP for proper simulation
-        const currentViryaInfo = ViryaCalculator.detectScenario(playerData);
-        const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(playerData, currentViryaInfo.absorptionBonus);
-        
-        Logger.info('Player State:', {
-            'Current Scenario': currentViryaInfo.scenario,
-            'Current Absorption Bonus': `${currentViryaInfo.absorptionBonus * 100}%`,
-            'Daily XP': dailyXP.toLocaleString(),
-            'Main Path': `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
-            'Path Focus': playerData.pathFocus
-        });
-        
-        // Use the new comparator
-        const comparator = new ViryaScenarioComparator(playerData, dailyXP, 'OverflowCompare');
-        const result = comparator.compareScenarios(scenario1, scenario2);
-        
-        Logger.section('OVERFLOW COMPARISON SUMMARY', Logger.INFO);
-        Logger.info('Key Insights:', {
-            'Better Scenario': result.comparison.betterScenario,
-            'XP Difference': result.comparison.difference.toLocaleString(),
-            'Percentage Advantage': result.comparison.percentage,
-            'Total Analysis Period': `${result.comparison.totalDaysUntilNextTimegateEnd} days`,
-            'Recommendation': result.comparison.difference > 0 ? 
-                `Pursue ${scenario2}` : 
-                result.comparison.difference < 0 ? 
-                `Stick with ${scenario1}` : 
-                'Either scenario is fine'
-        });
-        
-        Logger.groupEnd();
-        return result;
-    }
 }
 
 export { recommendations };

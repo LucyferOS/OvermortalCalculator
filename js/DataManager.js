@@ -9,19 +9,11 @@ class DataManager {
         try {
             const formData = {};
             
-            // Get all input fields
+            // Get all input fields, selects, and textareas
             const inputs = document.querySelectorAll('input[type="text"], input[type="number"], select, textarea');
             inputs.forEach(input => {
                 if (input.id) {
                     formData[input.id] = input.value;
-                }
-            });
-            
-            // Get all select elements
-            const selects = document.querySelectorAll('select');
-            selects.forEach(select => {
-                if (select.id) {
-                    formData[select.id] = select.value;
                 }
             });
             

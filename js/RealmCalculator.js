@@ -85,21 +85,6 @@ class RealmCalculator {
             progressPercentMajor
         };
     }
-    static calculateTimeTo100Late(currentRealm, currentProgress, dailyXP) {
-        if (dailyXP <= 0) return Infinity;
-        
-        const realmXP = Realms[currentRealm].xp;
-        
-        if (currentProgress >= 100) {
-            return 0;
-        }
-        
-        const currentXP = realmXP * (currentProgress / 100);
-        const neededXP = realmXP - currentXP;
-        
-        return neededXP / dailyXP;
-    }
-
 	static calculateRealmIndex(realmName) {
 		const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
 		const realmOrderMinor = ['Early', 'Mid', 'Late'];

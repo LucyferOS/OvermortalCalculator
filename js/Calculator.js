@@ -6,7 +6,6 @@ import { CalculatorUtils } 	from './utils.js';
 import { DataManager } 		from './DataManager.js';
 import { FruitCalculator } 	from './FruitCalculator.js'; 
 import { recommendations } 	from './Recommendations.js';
-import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
 import { ViryaScenarioComparator } from './ViryaScenarioComparator.js';
 
 

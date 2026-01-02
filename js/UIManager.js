@@ -45,11 +45,6 @@ class UIManager {
         this.updateMaxFruitDisplays(results, playerData);
         this.updateFruitRecommendations(results);
         
-        // Update Virya display (already done above, but ensure)
-        if (results.virya) {
-            this.updateViryaDisplay(results.virya, playerData, results.dailyXP, results.mainPathDailyXPBase, results.secondaryPathDailyXPBase);
-        }
-        
         // Update Virya comparison cells
         if (results.scenarioComparisons) {
             this.updateViryaComparisonCells(results.scenarioComparisons);
@@ -608,14 +603,6 @@ class UIManager {
         if (element) {
             element.textContent = text;
             Logger.debug(`Updated element ${elementId}: "${text}"`);
-        }
-    }
-
-    static updateElementHTML(elementId, html) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.innerHTML = html;
-            Logger.debug(`Updated element HTML ${elementId}`);
         }
     }
 
