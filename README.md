@@ -1,3 +1,8 @@
+#### Version 0.3.5.1 (BETA)
+  * Factored in 5 star bonuses for mirror and vase- Thanks Jin for pointing this out! 
+  * Improved UI for path focus - Thanks Djoki and Jin for pointing this out!
+
+
 #### Version 0.3.5 (BETA)
   * Fixed virya recommendations logic, upon further review it was very inaccurate for about 3/4ths of all cases, but now appears to be fully accurate for multiple cases and edge cases.
   * Fixed debug menu and improved readability. Playerdata has some fields which are not displaying correctly such as cosmoapsis, if you believe something is wrong submit a request to lucyfer_os.
@@ -73,6 +78,11 @@
   Best Regards,
   ***lucyfer_os***
   
-  ## TOD
+  ## TODO
+  * Tutorial?
+  * 
+  * Give more info about fruits and how they interact with scenarios 
+  * Next realm virya
+  * When removing from daily xp graph, change ui element for xp total?
 	* Add Auraseep
 	* Add analytics (open to suggestions for what should go here)

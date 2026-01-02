@@ -14,7 +14,7 @@ class UIManager {
         // Update Virya display
         if (results.virya) {
             Logger.debug('DEBUG: Calling updateViryaDisplay with:', results.virya.scenario);
-            this.updateViryaDisplay(results.virya, playerData, results.dailyXP);
+            this.updateViryaDisplay(results.virya, playerData, results.dailyXP, results.mainPathDailyXPBase, results.secondaryPathDailyXPBase);
         } else {
             Logger.warn('DEBUG: results.virya is falsy!');
         }
@@ -27,16 +27,19 @@ class UIManager {
         this.updateElementText('secondary-path-progress-display', `${playerData.secondaryPathProgress.toFixed(1)}%`);
         this.updateElementText('path-focus-display', playerData.pathFocus);
         
+        // Update path focus indicators
+        this.updatePathFocusIndicators(playerData.pathFocus);
+        
         const fruitXPTotal = results.fruitXPTotal || 0;
         
         // Update main path results
         if (results.realmProgression?.mainPath) {
-            this.updatePathResults('main', results.realmProgression.mainPath);
+            this.updatePathResults('main', results.realmProgression.mainPath, playerData.pathFocus === 'Main Path');
         }
 
         // Update secondary path results
         if (results.realmProgression?.secondaryPath) {
-            this.updatePathResults('secondary', results.realmProgression.secondaryPath);
+            this.updatePathResults('secondary', results.realmProgression.secondaryPath, playerData.pathFocus === 'Secondary Path');
         }
 
         this.updateFruitDisplays(results, playerData);
@@ -45,7 +48,7 @@ class UIManager {
         
         // Update Virya display (already done above, but ensure)
         if (results.virya) {
-            this.updateViryaDisplay(results.virya, playerData, results.dailyXP);
+            this.updateViryaDisplay(results.virya, playerData, results.dailyXP, results.mainPathDailyXPBase, results.secondaryPathDailyXPBase);
         }
         
         // Update Virya comparison cells
@@ -63,7 +66,7 @@ class UIManager {
         Logger.groupEnd();
     }
 
-    static updatePathResults(prefix, pathData) {
+    static updatePathResults(prefix, pathData, isFocused = false) {
         Logger.debug(`Updating ${prefix} path results`, pathData);
         
         const format = CalculatorUtils.formatTimeDays;
@@ -73,11 +76,31 @@ class UIManager {
         this.updateElementText(`${prefix}-minor-time-display`, format(pathData.timeToNextMinor));
         this.updateElementText(`${prefix}-minor-date-display`, `Estimated: ${formatDate(pathData.timeToNextMinor)}`);
         this.updateProgressBar(`${prefix}-minor-progress-display`, pathData.progressPercentMinor);
+        
+        // Add focus indicator to minor result box
+        const minorResultBox = document.querySelector(`#${prefix}-minor-time-display`)?.closest('.result-box');
+        if (minorResultBox) {
+            if (isFocused) {
+                minorResultBox.classList.add('path-focused');
+            } else {
+                minorResultBox.classList.remove('path-focused');
+            }
+        }
 
         // Major realm
         this.updateElementText(`${prefix}-major-time-display`, format(pathData.timeToNextMajor));
         this.updateElementText(`${prefix}-major-date-display`, `Estimated: ${formatDate(pathData.timeToNextMajor)}`);
         this.updateProgressBar(`${prefix}-major-progress-display`, pathData.progressPercentMajor);
+        
+        // Add focus indicator to major result box
+        const majorResultBox = document.querySelector(`#${prefix}-major-time-display`)?.closest('.result-box');
+        if (majorResultBox) {
+            if (isFocused) {
+                majorResultBox.classList.add('path-focused');
+            } else {
+                majorResultBox.classList.remove('path-focused');
+            }
+        }
     }
     
     static updateFruitDisplays(results, playerData) {
@@ -250,7 +273,7 @@ class UIManager {
         }
     }
     
-    static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0) {
+    static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {
         Logger.group('👑 VIRYA DISPLAY UPDATE', Logger.DEBUG);
         Logger.info('Updating Virya display with scenario:', viryaInfo.scenario);
         
@@ -297,15 +320,15 @@ class UIManager {
                 }
             }
             
-            // Update time estimates
-            this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo);
+            // Update time estimates with both path daily XP values
+            this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase, secondaryPathDailyXPBase);
         });
         
         Logger.success('Virya display updated');
         Logger.groupEnd();
     }
 
-    static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo) {
+    static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {
         Logger.group(`⏱️ Virya Time Estimate: ${scenario}`, Logger.DEBUG);
         
         // Add null/undefined check for viryaInfo
@@ -322,12 +345,19 @@ class UIManager {
         
         const timeId = `virya-${scenarioKey}-time`;
         const dateId = `virya-${scenarioKey}-date`;
+        const focusId = `virya-${scenarioKey}-focus`;
         
         // Check if this is the current scenario
         if (scenario === viryaInfo.scenario) {
             Logger.info(`Scenario ${scenario} is currently active`);
             this.updateElementText(timeId, ' Active Now');
             this.updateElementText(dateId, '--');
+            // Determine required path focus for current scenario
+            let requiredPathFocus = 'Main Path';
+            if (scenario === 'Eminence' || scenario === 'Perfect' || scenario === 'Half-Step') {
+                requiredPathFocus = 'Secondary Path';
+            }
+            this.updateElementText(focusId, requiredPathFocus);
             Logger.groupEnd();
             return;
         }
@@ -342,26 +372,35 @@ class UIManager {
             Logger.info(`Already beyond ${scenario} (currently at ${viryaInfo.scenario})`);
             this.updateElementText(timeId, ' Already Passed');
             this.updateElementText(dateId, '--');
+            // Determine required path focus for this scenario
+            let requiredPathFocus = 'Main Path';
+            if (scenario === 'Eminence' || scenario === 'Perfect' || scenario === 'Half-Step') {
+                requiredPathFocus = 'Secondary Path';
+            }
+            this.updateElementText(focusId, requiredPathFocus);
             Logger.groupEnd();
             return;
         }
         
-        // Calculate days needed to reach this scenario
-        // IMPORTANT: We should use 0 as secondaryDailyXP if player is focusing on main path
-        // because the function will handle "already reached/passed" cases above
-        const secondaryDailyXP = playerData.pathFocus === 'Secondary Path' ? dailyXP : 0;
-        
+        // Calculate days needed to reach this scenario using both path daily XP values
         Logger.debug('Calculation parameters:', {
             'Scenario': scenario,
-            'Player focus': playerData.pathFocus,
-            'Secondary Daily XP': secondaryDailyXP,
+            'Main Path Daily XP Base': mainPathDailyXPBase,
+            'Secondary Path Daily XP Base': secondaryPathDailyXPBase,
             'Current scenario': viryaInfo.scenario
         });
         
-        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, secondaryDailyXP);
+        // Use dailyXP (without temporary bonus) for time calculations
+        // This matches the expected times better than using base values with temporary bonus
+        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, dailyXP, dailyXP);
         const daysToReach = scenarioInfo?.daysNeeded;
+        const requiredPathFocus = scenarioInfo?.requiredPathFocus || 'Main Path';
         
         Logger.debug('Days to reach scenario:', daysToReach);
+        Logger.debug('Required path focus:', requiredPathFocus);
+        
+        // Update required path focus display
+        this.updateElementText(focusId, requiredPathFocus);
         
         if (daysToReach === 0) {
             Logger.info('Scenario already achieved');
@@ -372,10 +411,12 @@ class UIManager {
             
             // Check why it's not reachable
             let reason = 'Not reachable';
-            if (playerData.pathFocus === 'Main Path' && secondaryDailyXP === 0) {
-                reason = 'Focus on main path';
-            } else if (daysToReach > 36500) {
+            if (daysToReach > 36500) {
                 reason = 'Too far away';
+            } else if (requiredPathFocus === 'Secondary Path' && secondaryPathDailyXPBase <= 0) {
+                reason = 'Need secondary path XP';
+            } else if (requiredPathFocus === 'Main Path' && mainPathDailyXPBase <= 0) {
+                reason = 'Need main path XP';
             }
             
             this.updateElementText(timeId, reason);
@@ -388,13 +429,93 @@ class UIManager {
             Logger.info('Valid time calculated', {
                 'Days': daysToReach.toFixed(2),
                 'Formatted': format(daysToReach),
-                'Date': formatDate(daysToReach)
+                'Date': formatDate(daysToReach),
+                'Required Focus': requiredPathFocus
             });
             this.updateElementText(timeId, format(daysToReach));
             this.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
         }
         
         Logger.groupEnd();
+    }
+
+    static updatePathFocusIndicators(pathFocus) {
+        const mainPathSection = document.getElementById('main-path-section');
+        const secondaryPathSection = document.getElementById('secondary-path-section');
+        const mainPathBadge = document.getElementById('main-path-focus-badge');
+        const secondaryPathBadge = document.getElementById('secondary-path-focus-badge');
+        
+        // Update main path input section
+        if (mainPathSection && mainPathBadge) {
+            if (pathFocus === 'Main Path') {
+                mainPathSection.classList.add('focused');
+                mainPathBadge.classList.add('focused');
+                mainPathBadge.textContent = 'Focused';
+            } else {
+                mainPathSection.classList.remove('focused');
+                mainPathBadge.classList.remove('focused');
+                mainPathBadge.textContent = 'Not Focused';
+            }
+        }
+        
+        // Update secondary path input section
+        if (secondaryPathSection && secondaryPathBadge) {
+            if (pathFocus === 'Secondary Path') {
+                secondaryPathSection.classList.add('focused');
+                secondaryPathBadge.classList.add('focused');
+                secondaryPathBadge.textContent = 'Focused';
+            } else {
+                secondaryPathSection.classList.remove('focused');
+                secondaryPathBadge.classList.remove('focused');
+                secondaryPathBadge.textContent = 'Not Focused';
+            }
+        }
+        
+        // Update dashboard path realm displays with focus indicators
+        const mainPathRealmDisplay = document.getElementById('main-path-realm-display');
+        const secondaryPathRealmDisplay = document.getElementById('secondary-path-realm-display');
+        
+        if (mainPathRealmDisplay) {
+            // Get the base text without focus indicator (handle both textContent and innerHTML)
+            let baseText = mainPathRealmDisplay.textContent.replace(/\s● Focused$/, '').trim();
+            if (pathFocus === 'Main Path') {
+                mainPathRealmDisplay.innerHTML = `${baseText} <span style="color: var(--success); font-size: 0.85em; margin-left: 8px;">● Focused</span>`;
+            } else {
+                mainPathRealmDisplay.textContent = baseText;
+            }
+        }
+        
+        if (secondaryPathRealmDisplay) {
+            // Get the base text without focus indicator
+            let baseText = secondaryPathRealmDisplay.textContent.replace(/\s● Focused$/, '').trim();
+            if (pathFocus === 'Secondary Path') {
+                secondaryPathRealmDisplay.innerHTML = `${baseText} <span style="color: var(--success); font-size: 0.85em; margin-left: 8px;">● Focused</span>`;
+            } else {
+                secondaryPathRealmDisplay.textContent = baseText;
+            }
+        }
+        
+        // Update all dashboard result boxes with data-path attributes to show focus
+        const mainResultBoxes = document.querySelectorAll('.result-box[data-path="Main Path"]');
+        const secondaryResultBoxes = document.querySelectorAll('.result-box[data-path="Secondary Path"]');
+        
+        mainResultBoxes.forEach((box) => {
+            if (pathFocus === 'Main Path') {
+                box.classList.add('focused');
+            } else {
+                box.classList.remove('focused');
+            }
+        });
+        
+        secondaryResultBoxes.forEach((box) => {
+            if (pathFocus === 'Secondary Path') {
+                box.classList.add('focused');
+            } else {
+                box.classList.remove('focused');
+            }
+        });
+        
+        console.log('Result boxes updated with focused class');
     }
 
     static updateProgressBar(elementId, percent) {

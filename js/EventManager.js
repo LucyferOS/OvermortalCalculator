@@ -60,6 +60,69 @@ class EventManager {
 
         // Navigation
         this.setupNavigation();
+        
+        // Path focus switching
+        this.setupPathFocusListeners();
+    }
+    
+    setupPathFocusListeners() {
+        const mainPathSection = document.getElementById('main-path-section');
+        const secondaryPathSection = document.getElementById('secondary-path-section');
+        const pathFocusSelect = document.getElementById('path-focus');
+        
+        if (mainPathSection) {
+            mainPathSection.addEventListener('click', (e) => {
+                // Don't trigger if clicking on input/select elements
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.closest('input, select')) {
+                    return;
+                }
+                this.switchPathFocus('Main Path', pathFocusSelect);
+            });
+        }
+        
+        if (secondaryPathSection) {
+            secondaryPathSection.addEventListener('click', (e) => {
+                // Don't trigger if clicking on input/select elements
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.closest('input, select')) {
+                    return;
+                }
+                this.switchPathFocus('Secondary Path', pathFocusSelect);
+            });
+        }
+        
+        // Add click handlers for dashboard result boxes
+        this.setupDashboardPathSwitching();
+    }
+    
+    setupDashboardPathSwitching() {
+        // Use event delegation on the dashboard to handle clicks on result boxes
+        const dashboard = document.getElementById('dashboard');
+        if (dashboard) {
+            dashboard.addEventListener('click', (e) => {
+                // Find the closest result-box with data-path attribute
+                const resultBox = e.target.closest('.result-box[data-path]');
+                if (resultBox) {
+                    const path = resultBox.getAttribute('data-path');
+                    console.log('Dashboard result box clicked:', path, resultBox);
+                    if (path === 'Main Path' || path === 'Secondary Path') {
+                        this.app.switchPathFocus(path);
+                    }
+                }
+            });
+        } else {
+            console.warn('Dashboard element not found for path switching');
+        }
+    }
+    
+    switchPathFocus(newFocus, pathFocusSelect) {
+        if (pathFocusSelect) {
+            pathFocusSelect.value = newFocus;
+            // Trigger change event to save and recalculate
+            pathFocusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        // Update UI immediately
+        this.app.calculateAndUpdateUI();
     }
 
     setupLocalStorageListeners() {
@@ -77,6 +140,11 @@ class EventManager {
         document.addEventListener('change', (event) => {
             if (event.target.matches('select')) {
                 this.dataManager.saveToLocalStorage();
+                
+                // If path focus changed, recalculate
+                if (event.target.id === 'path-focus') {
+                    this.app.calculateAndUpdateUI();
+                }
             }
         });
 

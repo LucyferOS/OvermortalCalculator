@@ -128,7 +128,7 @@ class ViryaCalculator {
             bonusEndsAt: 'Eminence'
         };
     }
-    static calculateDaysToScenario(targetScenario, playerData, secondaryDailyXP) {
+    static calculateDaysToScenario(targetScenario, playerData, mainPathDailyXP, secondaryPathDailyXP) {
         const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
         const currentScenarioInfo = this.detectScenario(playerData);
         const currentScenario = currentScenarioInfo.scenario;
@@ -153,33 +153,51 @@ class ViryaCalculator {
         if (targetIndex <= currentIndex) {
             console.log('Already at or beyond target scenario');
             console.groupEnd();
-            return { daysNeeded: 0, xpNeeded: 0 };
+            // Determine required path focus for the scenario
+            let requiredPathFocus = 'Main Path';
+            if (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
+                requiredPathFocus = 'Secondary Path';
+            }
+            return { daysNeeded: 0, xpNeeded: 0, requiredPathFocus };
         }
+
+        // Determine which path needs to be focused for this scenario
+        let requiredPathFocus = 'Main Path';
+        let dailyXPToUse = mainPathDailyXP || 0;
+        
+        if (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
+            requiredPathFocus = 'Secondary Path';
+            // For time calculations, use the same daily XP value (mainPathDailyXP)
+            // since both parameters now receive the same value (dailyXP without temporary bonus)
+            dailyXPToUse = mainPathDailyXP || 0;
+        }
+
+        console.log('Required path focus:', requiredPathFocus);
+        console.log('Daily XP to use:', dailyXPToUse);
 
         // Special handling for "No Virya" to "Completion" transition
         if (currentScenario === 'No Virya' && targetScenario === 'Completion') {
             console.log('Calculating time from No Virya to Completion');
             // Need to calculate XP for main path to reach 100% Late
             const xpNeeded = this.calculateXPForCompletion(playerData);
-            const mainPathDailyXP = playerData.dailyXP; // Assuming main path gets all XP
             
-            if (mainPathDailyXP <= 0) {
+            if (dailyXPToUse <= 0) {
                 console.log('No main path daily XP available');
                 console.groupEnd();
-                return { daysNeeded: Infinity, xpNeeded:  Infinity };
+                return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus: 'Main Path' };
             }
             
-            const daysNeeded = xpNeeded / mainPathDailyXP;
+            const daysNeeded = xpNeeded / dailyXPToUse;
             console.log('Days needed:', daysNeeded);
             console.groupEnd();
-            return { daysNeeded, xpNeeded };
+            return { daysNeeded, xpNeeded, requiredPathFocus: 'Main Path' };
         }
 
-        // For other transitions, we need secondary path XP
-        if (secondaryDailyXP <= 0) {
-            console.log('No secondary daily XP available for this transition');
+        // For other transitions, check if we have the required daily XP
+        if (dailyXPToUse <= 0) {
+            console.log(`No ${requiredPathFocus.toLowerCase()} daily XP available for this transition`);
             console.groupEnd();
-            return { daysNeeded: Infinity, xpNeeded:  Infinity };
+            return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
         }
 
         // Calculate XP needed based on target scenario
@@ -202,7 +220,7 @@ class ViryaCalculator {
                 default:
                     console.log('Unknown target scenario:', targetScenario);
                     console.groupEnd();
-                    return { daysNeeded: Infinity, xpNeeded:  Infinity };
+                    return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
 
             console.log('XP needed:', xpNeeded);
@@ -210,32 +228,32 @@ class ViryaCalculator {
             if (xpNeeded <= 0) {
                 console.log('No XP needed (already there)');
                 console.groupEnd();
-                return { daysNeeded: 0, xpNeeded: 0 };
+                return { daysNeeded: 0, xpNeeded: 0, requiredPathFocus };
             }
 
-            const daysNeeded = xpNeeded / secondaryDailyXP;
+            const daysNeeded = xpNeeded / dailyXPToUse;
             console.log('Days needed:', daysNeeded);
 
             // Safety checks
             if (isNaN(daysNeeded)) {
                 console.log('Days needed is NaN');
                 console.groupEnd();
-                return { daysNeeded: Infinity, xpNeeded:  Infinity };
+                return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
 
             if (!isFinite(daysNeeded)) {
                 console.log('Days needed is infinite');
                 console.groupEnd();
-                return { daysNeeded: Infinity, xpNeeded:  Infinity };
+                return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
 
             console.groupEnd();
-            return { daysNeeded, xpNeeded };
+            return { daysNeeded, xpNeeded, requiredPathFocus };
 
         } catch (error) {
             console.error('Error calculating days to scenario:', error);
             console.groupEnd();
-            return { daysNeeded: Infinity, xpNeeded:  Infinity };
+            return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
         }
     }
 	static calculateXPForCompletion(playerData) {
@@ -313,10 +331,6 @@ class ViryaCalculator {
 					targetRealm = `${playerData.mainPathRealmMajor} Early`;
 				}
 				
-				// #region agent log
-				fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:300',message:'calculateXPForPerfect - starting',data:{currentScenario:playerData.viryaScenario,mainPathRealmMajor:playerData.mainPathRealmMajor,targetRealm,secondaryPathRealm:playerData.secondaryPathRealm,secondaryPathProgress:playerData.secondaryPathProgress},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
-				// #endregion
-				
 				if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion') {
 				const eminenceXP = this.calculateXPForEminence(playerData);
 				const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
@@ -324,19 +338,11 @@ class ViryaCalculator {
 															targetRealm, 100);
 				const totalXP = eminenceXP + perfectXP;
 				
-				// #region agent log
-				fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:316',message:'calculateXPForPerfect - calculated (from Completion/No Virya)',data:{currentScenario:playerData.viryaScenario,eminenceXP,perfectXP,totalXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
-				// #endregion
-				
 				return totalXP;
 				} else {
         const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
                                       playerData.secondaryPathProgress,
                                       targetRealm, 100);
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:320',message:'calculateXPForPerfect - calculated (from Eminence)',data:{currentScenario:playerData.viryaScenario,perfectXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
-        // #endregion
         
         return perfectXP;
 				}
@@ -344,10 +350,6 @@ class ViryaCalculator {
 		}
     static calculateXPForHalfStep(playerData) {
         const targetRealm = `${playerData.mainPathRealmMajor} Late`;
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:326',message:'calculateXPForHalfStep - starting',data:{currentScenario:playerData.viryaScenario,mainPathRealmMajor:playerData.mainPathRealmMajor,targetRealm,secondaryPathRealm:playerData.secondaryPathRealm,secondaryPathProgress:playerData.secondaryPathProgress},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
-        // #endregion
         
 		if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion' || playerData.viryaScenario === 'Eminence' ) {
 			const perfectXP = this.calculateXPForPerfect(playerData);
@@ -366,19 +368,11 @@ class ViryaCalculator {
 														targetRealm, 100);
 			const totalXP = perfectXP + halfStepXP;
 			
-			// #region agent log
-			fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:352',message:'calculateXPForHalfStep - calculated',data:{currentScenario:playerData.viryaScenario,perfectXP,perfectTargetRealm,halfStepXP,totalXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
-			// #endregion
-			
 			return totalXP;
 		} else {
 			const halfStepXP = this.calculateXPToReach(playerData.secondaryPathRealm,
 											playerData.secondaryPathProgress,
 										targetRealm, 100);
-			
-			// #region agent log
-			fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:333',message:'calculateXPForHalfStep - calculated (already Perfect)',data:{currentScenario:playerData.viryaScenario,halfStepXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
-			// #endregion
 			
 			return halfStepXP;
 		}

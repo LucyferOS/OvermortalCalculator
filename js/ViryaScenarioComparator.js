@@ -1,15 +1,44 @@
 import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
+import { XPCalculator } from './XPCalculator.js';
+import { XPData } from './gameData.js';
 import { timegateLength } from './gameData.js';
 import { Logger } from './Logger.js';
 
 class ViryaScenarioComparator {
-    constructor(playerData, dailyXP, comparatorId = 'default') {
+    constructor(playerData, dailyXP, comparatorId = 'default', mainPathDailyXPBase = null, secondaryPathDailyXPBase = null) {
         this.playerData = { ...playerData };
         this.dailyXP = dailyXP;
         this.comparatorId = comparatorId;
         this.simulator = new RealmProgressionSimulator(playerData, dailyXP, `${comparatorId}-sim`);
         this.timegateLengths = timegateLength;
+        
+        // Calculate or use provided path daily XP values
+        if (mainPathDailyXPBase !== null && secondaryPathDailyXPBase !== null) {
+            this.mainPathDailyXPBase = mainPathDailyXPBase;
+            this.secondaryPathDailyXPBase = secondaryPathDailyXPBase;
+        } else {
+            // Calculate both path daily XP values if not provided
+            // This is a fallback for backward compatibility
+            const viryaInfo = ViryaCalculator.detectScenario(playerData);
+            this.mainPathDailyXPBase = XPCalculator.calculateDailyXPWithAbsorptionBonus(playerData, viryaInfo.absorptionBonus);
+            
+            // Calculate secondary path daily XP
+            let secondaryXP = 0;
+            if (playerData.secondaryPathRealm && playerData.secondaryPathRealmMajor) {
+                const realmXPKey = playerData.secondaryPathRealmMajor + "XP";
+                if (XPData[realmXPKey]) {
+                    const secondaryPathPlayerData = {
+                        ...playerData,
+                        mainPathRealm: playerData.secondaryPathRealm,
+                        mainPathRealmMajor: playerData.secondaryPathRealmMajor,
+                        mainPathRealmMinor: playerData.secondaryPathRealmMinor
+                    };
+                    secondaryXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, viryaInfo.absorptionBonus);
+                }
+            }
+            this.secondaryPathDailyXPBase = secondaryXP;
+        }
         
         // Define scenario bonuses
         this.scenarioBonus = {
@@ -211,15 +240,14 @@ class ViryaScenarioComparator {
             'Total Days Available': totalDays.toFixed(1)
         });
         
-        // Calculate days needed to reach target scenario
-        const secondaryDailyXP = this.playerData.pathFocus === 'Secondary Path' ? this.dailyXP : 0;
-        Logger.debug('Secondary path analysis:', {
+        // Calculate days needed to reach target scenario using both path daily XP values
+        Logger.debug('Path daily XP analysis:', {
             'Path Focus': this.playerData.pathFocus,
-            'Secondary Daily XP': secondaryDailyXP.toLocaleString(),
-            'Can progress secondary': secondaryDailyXP > 0 ? '✓' : '✗'
+            'Main Path Daily XP Base': this.mainPathDailyXPBase.toLocaleString(),
+            'Secondary Path Daily XP Base': this.secondaryPathDailyXPBase.toLocaleString()
         });
         
-        const daysToReachInfo = ViryaCalculator.calculateDaysToScenario(targetScenario, this.playerData, secondaryDailyXP);
+        const daysToReachInfo = ViryaCalculator.calculateDaysToScenario(targetScenario, this.playerData, this.mainPathDailyXPBase, this.secondaryPathDailyXPBase);
         const daysToReach = daysToReachInfo?.daysNeeded || Infinity;
         
         Logger.info('Time to reach target scenario:', {
@@ -261,24 +289,37 @@ class ViryaScenarioComparator {
         const currentEndCondition = this.bonusEndConditions[currentScenario];
         
         // Period 1: Before reaching scenario (with current bonus)
-        // Calculate what main path XP would be gained if staying on main path during transition
+        // Assume optimal path focus for reaching the target scenario
         Logger.group('📅 PERIOD 1: Working towards target scenario', Logger.DEBUG);
-        // Always calculate what main path XP would be gained if focusing on main path during transition
-        // This represents the opportunity cost if we're focusing on secondary path
+        const requiredPathFocusForTransition = daysToReachInfo?.requiredPathFocus || 'Main Path';
+        
+        // Calculate what main path XP would be gained if focusing on main path during transition
         const xpPeriod1IfMainPath = this.simulatePeriod(daysToReach, currentBonus, `Transition period (${currentScenario})`, currentEndCondition, maxRealm);
         
+        // For comparison purposes, assume optimal path focus:
+        // - Completion requires Main Path → gain XP during transition
+        // - Eminence/Perfect/Half-Step require Secondary Path → no main path XP during transition (0)
         let xpPeriod1 = 0;
-        if (this.playerData.pathFocus === 'Main Path') {
-            // If focusing on main path, we actually gain this XP
+        if (requiredPathFocusForTransition === 'Main Path') {
+            // If the required path is Main Path, we gain XP during transition
             xpPeriod1 = xpPeriod1IfMainPath;
         } else {
-            // If focusing on secondary path, no main path XP is gained during transition
+            // If the required path is Secondary Path, no main path XP is gained during transition
             xpPeriod1 = 0;
         }
+        
+        Logger.debug('Period 1 XP calculation:', {
+            'Required path focus': requiredPathFocusForTransition,
+            'XP if focusing main path': xpPeriod1IfMainPath.toLocaleString(),
+            'Actual XP gained (Period 1)': xpPeriod1.toLocaleString()
+        });
         Logger.groupEnd();
         
         // Period 2: After reaching scenario
+        // After reaching any scenario (including Half-Step), always assume main path focus
+        // This is because after reaching the scenario, we want to maximize main path XP with the bonus
         Logger.group('📅 PERIOD 2: After reaching target scenario', Logger.DEBUG);
+        Logger.debug('Assuming main path focus for Period 2 (after reaching scenario)');
         
         const xpPeriod2 = this.calculateXPForCurrentScenario(targetScenario, daysRemaining);
         
@@ -293,22 +334,14 @@ class ViryaScenarioComparator {
         // We should NOT subtract opportunity cost from totalXP - that's double-counting
         // Instead, the comparison should be: totalXP (scenario) vs totalXP (Completion)
         // The "lost XP" field is just for informational purposes about the transition cost
+        // For comparison purposes, we assume optimal path focus, so lost XP is always 0
         let xpLostDuringTransition = 0;
-        if (this.playerData.pathFocus === 'Secondary Path') {
-            // If focusing on secondary path, we gain 0 XP during transition
-            // The opportunity cost is what we could have gained if focusing on main path
-            // But this is already accounted for in the comparison (Completion gets this XP, we don't)
-            // So we should NOT subtract it from totalXP - that would be double-counting
-            // Instead, set it to 0 and let the direct comparison handle it
-            xpLostDuringTransition = 0;
-        } else {
-            // If focusing on main path, we gain xpPeriod1IfMainPath during transition
-            // There's no opportunity cost - we're gaining XP
-            xpLostDuringTransition = 0;
-        }
         
         // Get secondary path XP info for logging (if needed)
-        const secondaryPathXPDuringTransition = secondaryDailyXP * daysToReach;
+        // Determine which path daily XP to use based on required path focus
+        const requiredPathFocus = requiredPathFocusForTransition;
+        const dailyXPToUse = (requiredPathFocus === 'Secondary Path') ? this.secondaryPathDailyXPBase : this.mainPathDailyXPBase;
+        const secondaryPathXPDuringTransition = (requiredPathFocus === 'Secondary Path') ? dailyXPToUse * daysToReach : 0;
         const secondaryPathXPNeeded = daysToReachInfo?.xpNeeded || 0;
         
         Logger.success(`Transition complete - ${currentScenario} → ${targetScenario}:`, {

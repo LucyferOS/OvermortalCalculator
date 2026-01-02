@@ -111,7 +111,12 @@ class XPCalculator {
         const energy = GameConstants.artifactEnergyReplenishment[stars] * GameConstants.taoistYearsPerDay;
         const baseResult = (energy + 100) / 100;
         // Vase skin adds 10% base XP
-        return baseResult * (hasSkin ? 1.1 : 1.0);
+        let result = baseResult * (hasSkin ? 1.1 : 1.0);
+        // 5-star vase: 15% chance to not use energy (compounds), giving ~17.65% more red pills on average
+        if (stars === '5 stars') {
+            result *= (1 / 0.85);
+        }
+        return result;
     }
 
     static calculateMirrorRedPill(stars, hasSkin) {
@@ -120,7 +125,12 @@ class XPCalculator {
         const mirrorBonus = 1 - GameConstants.mirrorTokenBonus[stars];
         // Mirror skin reduces cost by 10%, so multiply denominator by 0.9 (or divide result by 0.9)
         const costMultiplier = hasSkin ? 0.9 : 1.0;
-        return (energy + 100) / (200 * mirrorBonus * costMultiplier);
+        let result = (energy + 100) / (200 * mirrorBonus * costMultiplier);
+        // 5-star mirror: 15% chance to make a red pill twice, giving 15% more red pills on average
+        if (stars === '5 stars') {
+            result *= 1.15;
+        }
+        return result;
     }
 
     static calculateTokenRedPill(stars, hasSkin) {

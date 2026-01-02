@@ -239,6 +239,82 @@ h1 {
     color: var(--accent);
 }
 
+/* Path Input Section Styles */
+.path-input-section {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    background-color: var(--card-bg);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.path-input-section:hover {
+    border-color: var(--secondary);
+    box-shadow: 0 2px 8px rgba(90, 118, 132, 0.1);
+}
+
+.path-input-section.focused {
+    border-color: var(--success);
+    background-color: rgba(74, 139, 110, 0.05);
+    box-shadow: 0 0 0 3px rgba(74, 139, 110, 0.15);
+}
+
+.path-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.path-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.path-focus-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.path-focus-badge.focused {
+    background-color: var(--success);
+    color: white;
+}
+
+.path-focus-badge.focused::before {
+    content: "●";
+    font-size: 0.9rem;
+}
+
+.path-focus-badge:not(.focused) {
+    background-color: var(--gray);
+    color: white;
+}
+
+.path-focus-badge:not(.focused)::before {
+    content: "○";
+    font-size: 0.9rem;
+}
+
+.path-input-section .input-group {
+    margin-bottom: 16px;
+}
+
+.path-input-section .input-group:last-child {
+    margin-bottom: 0;
+}
+
 .btn {
     padding: 12px 24px;
     background-color: var(--primary);
@@ -294,6 +370,31 @@ h1 {
     margin-bottom: 16px;
     text-align: center;
     border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+/* Make result boxes with data-path clickable */
+.result-box[data-path] {
+    cursor: pointer;
+}
+
+.result-box[data-path]:hover {
+    border-color: var(--secondary);
+    box-shadow: 0 2px 8px rgba(90, 118, 132, 0.1);
+    transform: translateY(-2px);
+}
+
+.result-box[data-path].focused {
+    border-color: var(--success);
+    background: linear-gradient(135deg, rgba(74, 139, 110, 0.05), rgba(74, 139, 110, 0.02));
+    box-shadow: 0 0 0 3px rgba(74, 139, 110, 0.15);
+}
+
+/* Legacy class for backward compatibility */
+.result-box.path-focused {
+    border: 2px solid var(--success);
+    background: linear-gradient(135deg, rgba(74, 139, 110, 0.05), rgba(74, 139, 110, 0.02));
+    box-shadow: 0 0 0 3px rgba(74, 139, 110, 0.15);
 }
 
 .result-value {
@@ -525,8 +626,6 @@ tr:hover {
 .xp-negative {
     color: var(--accent);
 }
-}
-
 
 .tooltip-icon {
     display: inline-block;

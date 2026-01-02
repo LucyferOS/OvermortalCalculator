@@ -164,10 +164,36 @@ class OvermortalApp {
                 }
             }
         });
+        
+        // Update path focus indicators after syncing
+        UIManager.updatePathFocusIndicators(p.pathFocus);
     }
 
     showNotification(message, isError = false) {
         UIManager.showNotification(message, isError);
+    }
+
+    switchPathFocus(path) {
+        console.log('switchPathFocus called with:', path);
+        const currentPath = this.calculator.getPlayerData().pathFocus;
+        console.log('Current path focus:', currentPath);
+        if (currentPath !== path) {
+            this.calculator.getPlayerData().pathFocus = path;
+            const updatedPath = this.calculator.getPlayerData().pathFocus;
+            // Update the DOM input so updateFromInputs() doesn't overwrite our change
+            const pathFocusSelect = document.getElementById('path-focus');
+            if (pathFocusSelect) {
+                pathFocusSelect.value = path;
+            }
+            this.calculator.saveToLocalStorage();
+            console.log('Path focus updated to:', updatedPath);
+            // Ensure UI updates with the correct path focus by calling updatePathFocusIndicators directly
+            UIManager.updatePathFocusIndicators(path);
+            this.calculateAndUpdateUI();
+            UIManager.showNotification(`Path focus switched to ${path}`);
+        } else {
+            console.log('Path focus already set to:', path);
+        }
     }
 }
 
