@@ -19,7 +19,7 @@
                     <h1>OverMortal Realm Breakthrough Calculator</h1>
                     <div class="subtitle">Plan your cultivation journey and optimize your breakthrough strategy</div>
                 </div>
-                <div class="version">v0.3.5 (BETA)</div>
+                <div class="version">v0.3.5.1 (BETA)</div>
             </div>
         </header>
         <div class="sidebar">
@@ -47,22 +47,14 @@
             <div id="dashboard" class="section active">
                 <div class="card">
                     <h2 class="card-title">Player Time to Cultivate</h2>
-                    <div class="grid">
+                    <div class="grid grid-path-row">
                         <div class="result-box" data-path="Main Path">
                             <div class="result-label">Main Path Realm</div>
                             <div class="result-value" id="main-path-realm-display">Voidbreak Late</div>
                             <div class="result-label">Progress: <span id="main-path-progress-display">50.0%</span></div>
                         </div>
-                        <div class="result-box" data-path="Secondary Path">
-                            <div class="result-label">Secondary Path Realm</div>
-                            <div class="result-value" id="secondary-path-realm-display">Incarnation Late</div>
-                            <div class="result-label">Progress: <span id="secondary-path-progress-display">0.0%</span></div>
-                        </div>
-                    </div>
-                    <h3>Next Minor Realm In:</h3>
-                    <div class="grid">
                         <div class="result-box" data-path="Main Path">
-                            <div class="result-label">Main Path</div>
+                            <div class="result-label">Next Minor Realm</div>
                             <div class="time-display" id="main-minor-time-display"> Calculating...</div>
                             <div class="date-display" id="main-minor-date-display">Estimated: --</div>
                             <div class="progress-container">
@@ -71,21 +63,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="result-box" data-path="Secondary Path">
-                            <div class="result-label">Secondary Path</div>
-                            <div class="time-display" id="secondary-minor-time-display"> Calculating...</div>
-                            <div class="date-display" id="secondary-minor-date-display">Estimated: --</div>
-                            <div class="progress-container">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="secondary-minor-progress-display" style="width: 0%">0%</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <h3>Next Major Realm In:</h3>
-                    <div class="grid">
                         <div class="result-box" data-path="Main Path">
-                            <div class="result-label">Main Path</div>
+                            <div class="result-label">Next Major Realm</div>
                             <div class="time-display" id="main-major-time-display"> Calculating...</div>
                             <div class="date-display" id="main-major-date-display">Estimated: --</div>
                             <div class="progress-container">
@@ -95,7 +74,22 @@
                             </div>
                         </div>
                         <div class="result-box" data-path="Secondary Path">
-                            <div class="result-label">Secondary Path</div>
+                            <div class="result-label">Secondary Path Realm</div>
+                            <div class="result-value" id="secondary-path-realm-display">Incarnation Late</div>
+                            <div class="result-label">Progress: <span id="secondary-path-progress-display">0.0%</span></div>
+                        </div>
+                        <div class="result-box" data-path="Secondary Path">
+                            <div class="result-label">Next Minor Realm</div>
+                            <div class="time-display" id="secondary-minor-time-display"> Calculating...</div>
+                            <div class="date-display" id="secondary-minor-date-display">Estimated: --</div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="secondary-minor-progress-display" style="width: 0%">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-box" data-path="Secondary Path">
+                            <div class="result-label">Next Major Realm</div>
                             <div class="time-display" id="secondary-major-time-display"> Calculating...</div>
                             <div class="date-display" id="secondary-major-date-display">Estimated: --</div>
                             <div class="progress-container">
@@ -131,6 +125,12 @@
                             <div class="time-display" id="fruits-major-secondary-time-display"> Calculating...</div>
 							<div class="date-display" id="fruits-major-secondary-date-display">Estimated: --</div>
                         </div>
+
+                        <div class="result-box" style="grid-column: 1 / -1;">
+                            <div class="result-label">Total Days Saved</div>
+                            <div class="time-display" id="fruits-days-saved-display"> Calculating...</div>
+                            <div class="result-label">From using current fruits</div>
+                        </div>
                     </div>
                 </div>
                 <div class="card">
@@ -157,6 +157,12 @@
                             <div class="result-label">Secondary Path Major</div>
                             <div class="time-display" id="fruits-max-major-secondary-time-display"> Calculating...</div>
 							<div class="date-display" id="fruits-max-major-secondary-date-display">Estimated: --</div>
+                        </div>
+
+                        <div class="result-box" style="grid-column: 1 / -1;">
+                            <div class="result-label">Total Days Saved</div>
+                            <div class="time-display" id="fruits-max-days-saved-display"> Calculating...</div>
+                            <div class="result-label">From using max fruits</div>
                         </div>
                     </div>
                 </div>
@@ -208,11 +214,15 @@
 									</th>
 									<th>
 										XP compared to overflow
-										<span class="tooltip-icon" title="Compare Completion (overflow only) to current Virya, calculated to next realm timegate"><i class="fa-solid fa-circle-info"></i></span>
+										<span class="tooltip-icon" title="Compare Completion (overflow only) to current Virya, calculated to next realm timegate. This comparison uses main path XP only."><i class="fa-solid fa-circle-info"></i></span>
 									</th>
 									<th>
 										Required Focus
 										<span class="tooltip-icon" title="Which path to focus to reach this scenario"><i class="fa-solid fa-circle-info"></i></span>
+									</th>
+									<th>
+										Max in Next Realm
+										<span class="tooltip-icon" title="Maximum virya scenario achievable in next realm after reaching this scenario"><i class="fa-solid fa-circle-info"></i></span>
 									</th>
 									<!-- COMMENTED OUT OR REMOVED EXTRACTOR COLUMNS -->
 									<!-- 
@@ -238,6 +248,7 @@
 									<td><span class="bonus-badge bonus-0">+0%</span></td>
 									<td id="virya-completion-xp">--</td>
 									<td id="virya-completion-focus">--</td>
+									<td id="virya-completion-next-realm">--</td>
 									<!-- COMMENTED OUT EXTRACTOR CELLS -->
 									<!-- 
 									<td id="virya-completion-current-extractor">--</td>
@@ -254,6 +265,7 @@
 									<td><span class="bonus-badge bonus-20-eminence">+20%</span></td>
 									<td id="virya-eminence-xp">--</td>
 									<td id="virya-eminence-focus">--</td>
+									<td id="virya-eminence-next-realm">--</td>
 									<!-- COMMENTED OUT EXTRACTOR CELLS -->
 									<!-- 
 									<td id="virya-eminence-current-extractor">--</td>
@@ -270,6 +282,7 @@
 									<td><span class="bonus-badge bonus-20">+20%</span></td>
 									<td id="virya-perfect-xp">--</td>
 									<td id="virya-perfect-focus">--</td>
+									<td id="virya-perfect-next-realm">--</td>
 									<!-- COMMENTED OUT EXTRACTOR CELLS -->
 									<!-- 
 									<td id="virya-perfect-current-extractor">--</td>
@@ -286,6 +299,7 @@
 									<td><span class="bonus-badge bonus-40">+40%</span></td>
 									<td id="virya-halfstep-xp">--</td>
 									<td id="virya-halfstep-focus">--</td>
+									<td id="virya-halfstep-next-realm">--</td>
 									<!-- COMMENTED OUT EXTRACTOR CELLS -->
 									<!-- 
 									<td id="virya-halfstep-current-extractor">--</td>
@@ -443,12 +457,12 @@
                         </div>
 
                         <div class="input-group required">
-                            <label for="benediction">Benediction / day</label>
+                            <label for="benediction">Blessing Pills / day</label>
                             <input type="number" id="benediction" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
-                            <label for="benediction">Benediction consumed</label>
+                            <label for="benediction">Blessing Pills consumed</label>
                             <input type="number" id="benediction-consumed" step="1" value="0">
                         </div>
                     </div>
@@ -966,10 +980,10 @@
 		</div>
 		
             <div class="footer">
-                <p>OverMortal Realm Breakthrough Calculator v0.3.5 (BETA)</p>
+                <p>OverMortal Realm Breakthrough Calculator v0.3.5.1 (BETA)</p>
                 <p>Coded by LucyferOS (Endless) | <a href="https://docs.google.com/spreadsheets/d/19xuznnncxhgHlUFwawAt8DPCu7YgwdGSP7mdHXGWTdk/edit?gid=1602589637#gid=1602589637" target="_blank">Based on original work by Zild and the Eternal Palace community, as well as Yutsu (Abyssal Hunt)</a></p>
                 <p>Want to give a tip? <a href="https://ko-fi.com/lucyferos" target="_blank">Buy me vouchers or a coffee!</a></p>
-                <p>Last updated: 01/01/2026</p>
+                <p>Last updated: 02/01/2026</p>
             </div>
         </div>
     </div>

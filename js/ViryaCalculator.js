@@ -1,6 +1,8 @@
-import { GameConstants, Realms, RealmMajorTotalXP } from './gameData.js';
+import { GameConstants, Realms, RealmMajorTotalXP, timegateLength } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
 import { RealmCalculator } from './RealmCalculator.js';
+import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
+import { XPCalculator } from './XPCalculator.js';
 class ViryaCalculator {
     static detectScenario(playerData) {
         const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
@@ -393,6 +395,386 @@ class ViryaCalculator {
             return 0;
         }
         return targetXP - currentXP;
+    }
+    
+    static calculateMaxNextRealmScenario(targetScenario, playerData, mainPathDailyXPBase, secondaryPathDailyXPBase) {
+        console.group('🔮 Calculating Max Next Realm Scenario');
+        console.log('Target scenario:', targetScenario);
+        console.log('Current player data:', {
+            mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
+            secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`,
+            mainPathMajor: playerData.mainPathRealmMajor
+        });
+        
+        const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+        const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
+        const nextMajor = currentMajorIndex < realmOrderMajor.length - 1 ? realmOrderMajor[currentMajorIndex + 1] : null;
+        
+        // Edge case: No next realm (Supreme)
+        if (!nextMajor) {
+            console.log('No next realm (at Supreme)');
+            console.groupEnd();
+            return 'Next realm not implemented yet';
+        }
+        
+        // Calculate what the secondary path position would be when reaching the target scenario
+        // This depends on what scenario we're reaching
+        let secondaryPathAtScenario = {
+            realm: playerData.secondaryPathRealm,
+            major: playerData.secondaryPathRealmMajor,
+            minor: playerData.secondaryPathRealmMinor,
+            progress: playerData.secondaryPathProgress
+        };
+        
+        // Determine secondary path position when reaching target scenario
+        if (targetScenario === 'Eminence') {
+            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            if (previousMajor) {
+                if (playerData.mainPathRealmMajor === 'Voidbreak') {
+                    secondaryPathAtScenario = {
+                        realm: `${previousMajor} Late`,
+                        major: previousMajor,
+                        minor: 'Late',
+                        progress: 100
+                    };
+                } else {
+                    secondaryPathAtScenario = {
+                        realm: `${previousMajor} Mid`,
+                        major: previousMajor,
+                        minor: 'Mid',
+                        progress: 100
+                    };
+                }
+            }
+        } else if (targetScenario === 'Perfect') {
+            if (playerData.mainPathRealmMajor === 'Voidbreak') {
+                secondaryPathAtScenario = {
+                    realm: `${playerData.mainPathRealmMajor} Mid`,
+                    major: playerData.mainPathRealmMajor,
+                    minor: 'Mid',
+                    progress: 100
+                };
+            } else {
+                secondaryPathAtScenario = {
+                    realm: `${playerData.mainPathRealmMajor} Early`,
+                    major: playerData.mainPathRealmMajor,
+                    minor: 'Early',
+                    progress: 100
+                };
+            }
+        } else if (targetScenario === 'Half-Step') {
+            secondaryPathAtScenario = {
+                realm: `${playerData.mainPathRealmMajor} Late`,
+                major: playerData.mainPathRealmMajor,
+                minor: 'Late',
+                progress: 100
+            };
+        }
+        // For Completion, secondary path stays unchanged
+        
+        console.log('Secondary path when reaching target scenario:', secondaryPathAtScenario);
+        
+        // Simulate player state at breakthrough after reaching target scenario
+        // Main path: Next major Early (0% progress)
+        // Secondary path: Position determined above
+        const breakthroughPlayerData = {
+            ...playerData,
+            mainPathRealm: `${nextMajor} Early`,
+            mainPathRealmMajor: nextMajor,
+            mainPathRealmMinor: 'Early',
+            mainPathProgress: 0,
+            mainPathExp: 0,
+            secondaryPathRealm: secondaryPathAtScenario.realm,
+            secondaryPathRealmMajor: secondaryPathAtScenario.major,
+            secondaryPathRealmMinor: secondaryPathAtScenario.minor,
+            secondaryPathProgress: secondaryPathAtScenario.progress
+        };
+        
+        console.log('Breakthrough state:', {
+            mainPath: `${breakthroughPlayerData.mainPathRealm} (${breakthroughPlayerData.mainPathProgress}%)`,
+            secondaryPath: `${breakthroughPlayerData.secondaryPathRealm} (${breakthroughPlayerData.secondaryPathProgress}%)`
+        });
+        
+        // Get next timegate length
+        const nextTimegateLength = timegateLength[nextMajor] || 0;
+        if (nextTimegateLength <= 0) {
+            console.warn('No timegate length for next major:', nextMajor);
+            console.groupEnd();
+            return '--';
+        }
+        
+        console.log('Next timegate length:', nextTimegateLength);
+        
+        // Calculate if main path can reach 100% Late in next realm
+        const targetRealm = `${nextMajor} Late`;
+        const targetRealmXP = Realms[targetRealm]?.xp;
+        
+        if (!targetRealmXP) {
+            console.error('Target realm not found:', targetRealm);
+            console.groupEnd();
+            return '--';
+        }
+        
+        // Calculate XP needed to reach 100% Late in next realm
+        const xpNeeded = this.calculateXPToReach(
+            breakthroughPlayerData.mainPathRealm,
+            breakthroughPlayerData.mainPathProgress,
+            targetRealm,
+            100
+        );
+        
+        console.log('XP needed to reach 100% Late in next realm:', xpNeeded);
+        
+        // Calculate absorption bonus from target scenario (this becomes "had Virya last realm" bonus)
+        // Eminence: 0.2 (expires at the start of Early, so NOT active in Early/Mid/Late)
+        // Perfect: 0.2 (active in Early, expires at the start of Mid, so NOT active in Mid/Late)
+        // Half-Step: 0.4 (active in Early and Mid, expires at the start of Late, so NOT active in Late)
+        // Completion: 0 (no bonus)
+        let hadViryaBonus = 0;
+        if (targetScenario === 'Eminence') {
+            hadViryaBonus = 0.2;
+        } else if (targetScenario === 'Perfect') {
+            hadViryaBonus = 0.2;
+        } else if (targetScenario === 'Half-Step') {
+            hadViryaBonus = 0.4;
+        }
+        
+        console.log('Had Virya bonus from target scenario:', hadViryaBonus);
+        
+        // Calculate progression through next realm accounting for "had Virya last realm" bonus
+        // The bonus expiration:
+        // - Eminence: Expires at the start of Early (no bonus in Early/Mid/Late)
+        // - Perfect: Active in Early, expires at the start of Mid (no bonus in Mid/Late)
+        // - Half-Step: Active in Early and Mid, expires at the start of Late (no bonus in Late)
+        // - Completion: No bonus
+        
+        // Calculate XP needed for each realm in the next major
+        const nextMajorEarly = `${nextMajor} Early`;
+        const nextMajorMid = `${nextMajor} Mid`;
+        const nextMajorLate = `${nextMajor} Late`;
+        
+        const earlyXP = Realms[nextMajorEarly]?.xp || 0;
+        const midXP = Realms[nextMajorMid]?.xp || 0;
+        const lateXP = Realms[nextMajorLate]?.xp || 0;
+        
+        // Calculate days needed for each realm with appropriate bonus
+        let totalDaysNeeded = 0;
+        
+        // Early realm: bonus is active for Perfect and Half-Step only (Eminence expires at start of Early)
+        let earlyBonus = 0;
+        if (targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
+            earlyBonus = hadViryaBonus;
+        }
+        // Eminence bonus expires at the start of Early, so no bonus for Eminence
+        const earlyDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+            { ...breakthroughPlayerData, mainPathRealm: nextMajorEarly, mainPathRealmMinor: 'Early' },
+            earlyBonus
+        );
+        if (earlyDailyXP <= 0) {
+            console.warn('No daily XP available for Early realm');
+            console.groupEnd();
+            return '--';
+        }
+        const daysForEarly = earlyXP / earlyDailyXP;
+        totalDaysNeeded += daysForEarly;
+        console.log(`Early realm: ${daysForEarly.toFixed(2)} days (with ${earlyBonus * 100}% bonus)`);
+        
+        // Mid realm: bonus is active for Half-Step only (Perfect expires at start of Mid, Eminence already expired)
+        let midBonus = 0;
+        if (targetScenario === 'Half-Step') {
+            midBonus = hadViryaBonus;
+        }
+        const midDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+            { ...breakthroughPlayerData, mainPathRealm: nextMajorMid, mainPathRealmMinor: 'Mid' },
+            midBonus
+        );
+        if (midDailyXP <= 0) {
+            console.warn('No daily XP available for Mid realm');
+            console.groupEnd();
+            return '--';
+        }
+        const daysForMid = midXP / midDailyXP;
+        totalDaysNeeded += daysForMid;
+        console.log(`Mid realm: ${daysForMid.toFixed(2)} days (with ${midBonus * 100}% bonus)`);
+        
+        // Late realm: no bonus (all scenario bonuses expire before Late - Eminence expires at start of Early, Perfect expires at start of Mid, Half-Step expires at start of Late)
+        const lateDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+            { ...breakthroughPlayerData, mainPathRealm: nextMajorLate, mainPathRealmMinor: 'Late' },
+            0
+        );
+        if (lateDailyXP <= 0) {
+            console.warn('No daily XP available for Late realm');
+            console.groupEnd();
+            return '--';
+        }
+        const daysForLate = lateXP / lateDailyXP;
+        totalDaysNeeded += daysForLate;
+        console.log(`Late realm: ${daysForLate.toFixed(2)} days (no bonus)`);
+        
+        console.log('Total days needed to reach 100% Late:', totalDaysNeeded.toFixed(2));
+        console.log('Days available (timegate):', nextTimegateLength);
+        
+        // Check if we can reach 100% Late within timegate
+        if (totalDaysNeeded > nextTimegateLength) {
+            console.log('Cannot reach 100% Late within timegate');
+            console.groupEnd();
+            return 'Next realm completion misses timegate';
+        }
+        
+        // We can reach 100% Late, now determine maximum scenario based on secondary path position
+        // The secondary path can progress during the timegate, so we need to check what's possible
+        // Check scenarios in order from highest to lowest: Half-Step, Perfect, Eminence, Completion
+        
+        // Calculate secondary path daily XP in next realm (no bonus, as we're checking what's possible)
+        // Use the secondaryPathDailyXPBase that was passed in, but we need to account for how it changes
+        // as the secondary path progresses through realms. For now, use the base value as an approximation.
+        // The daily XP will increase as the secondary path progresses, so this is a conservative estimate.
+        const secondaryPathPlayerData = {
+            ...breakthroughPlayerData,
+            mainPathRealm: breakthroughPlayerData.secondaryPathRealm,
+            mainPathRealmMajor: breakthroughPlayerData.secondaryPathRealmMajor,
+            mainPathRealmMinor: breakthroughPlayerData.secondaryPathRealmMinor,
+            mainPathProgress: breakthroughPlayerData.secondaryPathProgress
+        };
+        const secondaryPathDailyXPCalculated = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, 0);
+        
+        // Use the provided secondaryPathDailyXPBase, but adjust it based on the secondary path's position
+        // The base value is calculated at the current player state, but we're at breakthrough state
+        // For a more accurate calculation, we should use the calculated value at breakthrough state
+        // However, we need to account for progression. For simplicity, use the calculated value.
+        const secondaryPathDailyXP = secondaryPathDailyXPCalculated;
+        
+        // Check Half-Step: both paths at same major Late 100%
+        if (secondaryPathDailyXP > 0) {
+            const halfStepTargetRealm = `${nextMajor} Late`;
+            const secondaryPathXPNeeded = this.calculateXPToReach(
+                breakthroughPlayerData.secondaryPathRealm,
+                breakthroughPlayerData.secondaryPathProgress,
+                halfStepTargetRealm,
+                100
+            );
+            
+            // Calculate daily XP at target realm (more accurate than using starting realm daily XP)
+            const targetRealmPlayerData = {
+                ...breakthroughPlayerData,
+                mainPathRealm: halfStepTargetRealm,
+                mainPathRealmMajor: nextMajor,
+                mainPathRealmMinor: 'Late',
+                mainPathProgress: 100
+            };
+            const secondaryPathDailyXPAtTarget = XPCalculator.calculateDailyXPWithAbsorptionBonus(targetRealmPlayerData, 0);
+            
+            // Use average of starting and target daily XP for more accurate calculation
+            const averageSecondaryPathDailyXP = (secondaryPathDailyXP + secondaryPathDailyXPAtTarget) / 2;
+            const secondaryPathDaysNeeded = secondaryPathXPNeeded / averageSecondaryPathDailyXP;
+            
+            if (secondaryPathDaysNeeded <= totalDaysNeeded) {
+                // Can reach Half-Step
+                console.log('Maximum scenario: Half-Step (both paths can reach 100% Late)');
+                console.groupEnd();
+                return 'Half-Step';
+            }
+        }
+        
+        // Check Perfect: secondary at same major Early (or Mid for Voidbreak)
+        if (secondaryPathDailyXP > 0) {
+            let perfectTargetRealm;
+            if (nextMajor === 'Voidbreak') {
+                perfectTargetRealm = `${nextMajor} Mid`;
+            } else {
+                perfectTargetRealm = `${nextMajor} Early`;
+            }
+            const secondaryPathXPNeeded = this.calculateXPToReach(
+                breakthroughPlayerData.secondaryPathRealm,
+                breakthroughPlayerData.secondaryPathProgress,
+                perfectTargetRealm,
+                100
+            );
+            
+            // Calculate daily XP at target realm (more accurate than using starting realm daily XP)
+            // Daily XP increases as realms progress, so using target realm gives better estimate
+            const targetRealmPlayerData = {
+                ...breakthroughPlayerData,
+                mainPathRealm: perfectTargetRealm,
+                mainPathRealmMajor: nextMajor,
+                mainPathRealmMinor: perfectTargetRealm.split(' ')[1],
+                mainPathProgress: 100
+            };
+            const secondaryPathDailyXPAtTarget = XPCalculator.calculateDailyXPWithAbsorptionBonus(targetRealmPlayerData, 0);
+            
+            // Use average of starting and target daily XP for more accurate calculation
+            const averageSecondaryPathDailyXP = (secondaryPathDailyXP + secondaryPathDailyXPAtTarget) / 2;
+            const secondaryPathDaysNeeded = secondaryPathXPNeeded / averageSecondaryPathDailyXP;
+            
+            if (secondaryPathDaysNeeded <= totalDaysNeeded) {
+                // Can reach Perfect
+                console.log('Maximum scenario: Perfect (secondary can reach required position)');
+                console.groupEnd();
+                return 'Perfect';
+            }
+        }
+        
+        // Check Eminence: secondary at previous major Mid/Late (or Early for Voidbreak special case)
+        if (secondaryPathDailyXP > 0) {
+            const previousMajorIndex = realmOrderMajor.indexOf(nextMajor) - 1;
+            const previousMajor = previousMajorIndex >= 0 ? realmOrderMajor[previousMajorIndex] : null;
+            
+            if (previousMajor) {
+                // Check all possible positions that qualify for Eminence
+                let eminenceTargetRealms = [];
+                if (nextMajor === 'Voidbreak') {
+                    // Voidbreak special case: previous major Late OR same major Early
+                    eminenceTargetRealms = [`${previousMajor} Late`, `${nextMajor} Early`];
+                } else {
+                    // Standard: previous major Mid OR Late
+                    eminenceTargetRealms = [`${previousMajor} Mid`, `${previousMajor} Late`];
+                }
+                
+                let canReachEminence = false;
+                let minDaysNeeded = Infinity;
+                
+                for (const eminenceTargetRealm of eminenceTargetRealms) {
+                    const secondaryPathXPNeeded = this.calculateXPToReach(
+                        breakthroughPlayerData.secondaryPathRealm,
+                        breakthroughPlayerData.secondaryPathProgress,
+                        eminenceTargetRealm,
+                        100
+                    );
+                    
+                    // Calculate daily XP at target realm (more accurate than using starting realm daily XP)
+                    const [targetMajor, targetMinor] = eminenceTargetRealm.split(' ');
+                    const targetRealmPlayerData = {
+                        ...breakthroughPlayerData,
+                        mainPathRealm: eminenceTargetRealm,
+                        mainPathRealmMajor: targetMajor,
+                        mainPathRealmMinor: targetMinor,
+                        mainPathProgress: 100
+                    };
+                    const secondaryPathDailyXPAtTarget = XPCalculator.calculateDailyXPWithAbsorptionBonus(targetRealmPlayerData, 0);
+                    
+                    // Use average of starting and target daily XP for more accurate calculation
+                    const averageSecondaryPathDailyXP = (secondaryPathDailyXP + secondaryPathDailyXPAtTarget) / 2;
+                    const secondaryPathDaysNeeded = secondaryPathXPNeeded / averageSecondaryPathDailyXP;
+                    
+                    if (secondaryPathDaysNeeded <= totalDaysNeeded && secondaryPathDaysNeeded < minDaysNeeded) {
+                        canReachEminence = true;
+                        minDaysNeeded = secondaryPathDaysNeeded;
+                    }
+                }
+                
+                if (canReachEminence) {
+                    // Can reach Eminence
+                    console.log('Maximum scenario: Eminence (secondary can reach required position)');
+                    console.groupEnd();
+                    return 'Eminence';
+                }
+            }
+        }
+        
+        // Default to Completion (main path reaches 100% Late, but secondary path doesn't reach any bonus scenario requirements)
+        console.log('Maximum scenario: Completion (only main path reaches 100% Late)');
+        console.groupEnd();
+        return 'Completion';
     }
 }
 

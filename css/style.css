@@ -203,6 +203,14 @@ h1 {
     margin-bottom: 24px;
 }
 
+.grid-vertical {
+    grid-template-columns: 1fr;
+}
+
+.grid-path-row {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 .input-group {
     margin-bottom: 20px;
 }

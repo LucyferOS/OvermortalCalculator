@@ -399,10 +399,13 @@ calculateAll() {
         if (scenario === 'No Virya') continue;
         
         // Calculate XP needed for this scenario
-        // Use dailyXP (without temporary bonus) for time calculations, as the temporary bonus
+        // For Completion scenario, use mainPathDailyXPBase to match "Next Major Realm" calculation
+        // (includes "had Virya last realm" bonus when applicable)
+        // For other scenarios, use dailyXP (without temporary bonus) for time calculations, as the temporary bonus
         // may expire before reaching the scenario. For secondary path scenarios, we still use
         // the main path daily XP rate since that represents the player's actual progression rate.
-        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, this.playerData, dailyXP, dailyXP);
+        const dailyXPForScenario = (scenario === 'Completion') ? mainPathDailyXPBase : dailyXP;
+        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, this.playerData, dailyXPForScenario, dailyXPForScenario);
         scenarioXPNeeded[scenario] = scenarioInfo.xpNeeded;
         
         console.log(`\n--- ${scenario} Scenario ---`);

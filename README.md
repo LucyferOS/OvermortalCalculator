@@ -1,7 +1,10 @@
 #### Version 0.3.5.1 (BETA)
   * Factored in 5 star bonuses for mirror and vase- Thanks Jin for pointing this out! 
   * Improved UI for path focus - Thanks Djoki and Jin for pointing this out!
-
+  * UI improvements for how player time to cultivate section is displayed.
+  * Added days saved by using fruits card.
+  * Improved "Daily XP" display whe removing elements from the graph.
+  * Added a "next realm" column to the virya table.
 
 #### Version 0.3.5 (BETA)
   * Fixed virya recommendations logic, upon further review it was very inaccurate for about 3/4ths of all cases, but now appears to be fully accurate for multiple cases and edge cases.
@@ -80,9 +83,5 @@
   
   ## TODO
   * Tutorial?
-  * 
-  * Give more info about fruits and how they interact with scenarios 
-  * Next realm virya
-  * When removing from daily xp graph, change ui element for xp total?
 	* Add Auraseep
 	* Add analytics (open to suggestions for what should go here)

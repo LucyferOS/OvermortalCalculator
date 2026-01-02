@@ -21,8 +21,7 @@ class UIManager {
         
         // Update basic path information
         this.updateElementText('main-path-realm-display', playerData.mainPathRealm);
-        const displayProgress = playerData.mainPathProgress > 100 ? '100%+' : `${playerData.mainPathProgress.toFixed(1)}%`;
-        this.updateElementText('main-path-progress-display', displayProgress);
+        this.updateElementText('main-path-progress-display', `${playerData.mainPathProgress.toFixed(1)}%`);
         this.updateElementText('secondary-path-realm-display', playerData.secondaryPathRealm);
         this.updateElementText('secondary-path-progress-display', `${playerData.secondaryPathProgress.toFixed(1)}%`);
         this.updateElementText('path-focus-display', playerData.pathFocus);
@@ -73,8 +72,13 @@ class UIManager {
         const formatDate = CalculatorUtils.formatDateFromDays;
 
         // Minor realm
-        this.updateElementText(`${prefix}-minor-time-display`, format(pathData.timeToNextMinor));
-        this.updateElementText(`${prefix}-minor-date-display`, `Estimated: ${formatDate(pathData.timeToNextMinor)}`);
+        if (pathData.progressPercentMinor >= 100) {
+            this.updateElementText(`${prefix}-minor-time-display`, 'At or beyond 100%');
+            this.updateElementText(`${prefix}-minor-date-display`, '--');
+        } else {
+            this.updateElementText(`${prefix}-minor-time-display`, format(pathData.timeToNextMinor));
+            this.updateElementText(`${prefix}-minor-date-display`, `Estimated: ${formatDate(pathData.timeToNextMinor)}`);
+        }
         this.updateProgressBar(`${prefix}-minor-progress-display`, pathData.progressPercentMinor);
         
         // Add focus indicator to minor result box
@@ -88,8 +92,13 @@ class UIManager {
         }
 
         // Major realm
-        this.updateElementText(`${prefix}-major-time-display`, format(pathData.timeToNextMajor));
-        this.updateElementText(`${prefix}-major-date-display`, `Estimated: ${formatDate(pathData.timeToNextMajor)}`);
+        if (pathData.progressPercentMajor >= 100) {
+            this.updateElementText(`${prefix}-major-time-display`, 'At or beyond 100%');
+            this.updateElementText(`${prefix}-major-date-display`, '--');
+        } else {
+            this.updateElementText(`${prefix}-major-time-display`, format(pathData.timeToNextMajor));
+            this.updateElementText(`${prefix}-major-date-display`, `Estimated: ${formatDate(pathData.timeToNextMajor)}`);
+        }
         this.updateProgressBar(`${prefix}-major-progress-display`, pathData.progressPercentMajor);
         
         // Add focus indicator to major result box
@@ -116,6 +125,9 @@ class UIManager {
         if (fruitXPTotal > 0 && dailyXP > 0) {
             // Calculate days saved from fruits
             const daysSaved = fruitXPTotal / dailyXP;
+            
+            // Update days saved display
+            this.updateElementText('fruits-days-saved-display', format(daysSaved));
             
             // Update main path fruit displays
             if (results.realmProgression?.mainPath) {
@@ -175,6 +187,7 @@ class UIManager {
         } else {
             Logger.debug('No fruits or no daily XP, showing original times');
             // No fruits or no daily XP, show original times
+            this.updateElementText('fruits-days-saved-display', '0d');
             if (results.realmProgression?.mainPath) {
                 const mainPath = results.realmProgression.mainPath;
                 this.updateElementText('fruits-minor-main-time-display', format(mainPath.timeToNextMinor));
@@ -201,6 +214,9 @@ class UIManager {
         if (fruitXPTotalMax > 0 && dailyXP > 0) {
             // Calculate days saved from fruits
             const daysSaved = fruitXPTotalMax / dailyXP;
+            
+            // Update days saved display
+            this.updateElementText('fruits-max-days-saved-display', format(daysSaved));
             
             // Update main path fruit displays
             if (results.realmProgression?.mainPath) {
@@ -260,6 +276,7 @@ class UIManager {
         } else {
             Logger.debug('No max fruits or no daily XP, showing original times');
             // No fruits or no daily XP, show original times
+            this.updateElementText('fruits-max-days-saved-display', '0d');
             if (results.realmProgression?.mainPath) {
                 const mainPath = results.realmProgression.mainPath;
                 this.updateElementText('fruits-max-minor-main-time-display', format(mainPath.timeToNextMinor));
@@ -346,6 +363,7 @@ class UIManager {
         const timeId = `virya-${scenarioKey}-time`;
         const dateId = `virya-${scenarioKey}-date`;
         const focusId = `virya-${scenarioKey}-focus`;
+        const nextRealmId = `virya-${scenarioKey}-next-realm`;
         
         // Check if this is the current scenario
         if (scenario === viryaInfo.scenario) {
@@ -358,6 +376,21 @@ class UIManager {
                 requiredPathFocus = 'Secondary Path';
             }
             this.updateElementText(focusId, requiredPathFocus);
+            
+            // Calculate max next realm scenario for current scenario
+            try {
+                const maxNextRealm = ViryaCalculator.calculateMaxNextRealmScenario(
+                    scenario,
+                    playerData,
+                    mainPathDailyXPBase,
+                    secondaryPathDailyXPBase
+                );
+                this.updateElementText(nextRealmId, maxNextRealm || '--');
+            } catch (error) {
+                Logger.error('Error calculating max next realm scenario:', error);
+                this.updateElementText(nextRealmId, '--');
+            }
+            
             Logger.groupEnd();
             return;
         }
@@ -378,6 +411,21 @@ class UIManager {
                 requiredPathFocus = 'Secondary Path';
             }
             this.updateElementText(focusId, requiredPathFocus);
+            
+            // Calculate max next realm scenario for this scenario
+            try {
+                const maxNextRealm = ViryaCalculator.calculateMaxNextRealmScenario(
+                    scenario,
+                    playerData,
+                    mainPathDailyXPBase,
+                    secondaryPathDailyXPBase
+                );
+                this.updateElementText(nextRealmId, maxNextRealm || '--');
+            } catch (error) {
+                Logger.error('Error calculating max next realm scenario:', error);
+                this.updateElementText(nextRealmId, '--');
+            }
+            
             Logger.groupEnd();
             return;
         }
@@ -390,9 +438,12 @@ class UIManager {
             'Current scenario': viryaInfo.scenario
         });
         
-        // Use dailyXP (without temporary bonus) for time calculations
+        // For Completion scenario, use mainPathDailyXPBase to match "Next Major Realm" calculation
+        // (includes "had Virya last realm" bonus when applicable)
+        // For other scenarios, use dailyXP (without temporary bonus) for time calculations
         // This matches the expected times better than using base values with temporary bonus
-        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, dailyXP, dailyXP);
+        const dailyXPForScenario = (scenario === 'Completion') ? mainPathDailyXPBase : dailyXP;
+        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, dailyXPForScenario, dailyXPForScenario);
         const daysToReach = scenarioInfo?.daysNeeded;
         const requiredPathFocus = scenarioInfo?.requiredPathFocus || 'Main Path';
         
@@ -434,6 +485,20 @@ class UIManager {
             });
             this.updateElementText(timeId, format(daysToReach));
             this.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
+        }
+        
+        // Calculate max next realm scenario for this scenario
+        try {
+            const maxNextRealm = ViryaCalculator.calculateMaxNextRealmScenario(
+                scenario,
+                playerData,
+                mainPathDailyXPBase,
+                secondaryPathDailyXPBase
+            );
+            this.updateElementText(nextRealmId, maxNextRealm || '--');
+        } catch (error) {
+            Logger.error('Error calculating max next realm scenario:', error);
+            this.updateElementText(nextRealmId, '--');
         }
         
         Logger.groupEnd();
@@ -519,12 +584,13 @@ class UIManager {
     }
 
     static updateProgressBar(elementId, percent) {
-        const progress = Math.min(100, percent);
         const element = document.getElementById(elementId);
         if (element) {
-            element.style.width = `${progress}%`;
-            element.textContent = `${Math.round(progress)}%`;
-            Logger.debug(`Updated progress bar ${elementId}: ${progress}%`);
+            // Cap visual width at 100% to prevent overflow, but show actual percentage in text
+            const visualWidth = Math.min(100, percent);
+            element.style.width = `${visualWidth}%`;
+            element.textContent = `${percent.toFixed(1)}%`;
+            Logger.debug(`Updated progress bar ${elementId}: ${percent.toFixed(1)}% (visual: ${visualWidth}%)`);
         }
     }
 

@@ -136,7 +136,7 @@ class Analytics {
             { label: 'Purple Pills', value: breakdown.purplePills || 0, color: '#9D4EDD' },
             { label: 'Blue Pills', value: breakdown.bluePills || 0, color: '#4361EE' },
             { label: 'Elixir', value: breakdown.elixir || 0, color: '#06FFA5' },
-            { label: 'Benediction', value: breakdown.benediction || 0, color: '#FF9F00' },
+            { label: 'Blessing Pills', value: breakdown.benediction || 0, color: '#FF9F00' },
             { label: 'Red Pills', value: breakdown.redPills || 0, color: '#E63946' },
             { label: 'Respira', value: breakdown.respira, color: '--accent' }
         ];
@@ -146,6 +146,12 @@ class Analytics {
         
         const data = validSources.map(source => source.value);
         const labels = validSources.map(source => source.label);
+        
+        // Store the mapping of labels to values for calculating modified total
+        const labelToValueMap = {};
+        validSources.forEach(source => {
+            labelToValueMap[source.label] = source.value;
+        });
         
         // Colors - use custom colors for pills, CSS variables for others
         const colors = validSources.map(source => {
@@ -188,6 +194,19 @@ class Analytics {
                             font: {
                                 size: 14
                             }
+                        },
+                        onClick: (e, legendItem, legend) => {
+                            // Get the chart instance
+                            const chart = legend.chart;
+                            // Get the index of the clicked legend item
+                            const index = legendItem.datasetIndex;
+                            const ci = chart.legend.legendItems[legendItem.index];
+                            if (ci) {
+                                // Toggle the visibility
+                                const meta = chart.getDatasetMeta(0);
+                                meta.data[legendItem.index].hidden = !meta.data[legendItem.index].hidden;
+                                chart.update();
+                            }
                         }
                     },
                     tooltip: {
@@ -226,6 +245,21 @@ class Analytics {
                     // Check if any element is active (hovered)
                     const activeElements = chart.getActiveElements();
                     if (activeElements.length === 0 && total > 0) {
+                        // Calculate modified total by checking which segments are hidden
+                        const meta = chart.getDatasetMeta(0);
+                        let modifiedTotal = total;
+                        let hasHiddenItems = false;
+                        
+                        // Check each data point to see if it's hidden
+                        meta.data.forEach((element, index) => {
+                            if (element.hidden) {
+                                const label = chart.data.labels[index];
+                                const value = labelToValueMap[label] || 0;
+                                modifiedTotal -= value;
+                                hasHiddenItems = true;
+                            }
+                        });
+                        
                         ctx.save();
                         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#2A3B47';
                         ctx.font = 'bold 24px Inter, sans-serif';
@@ -235,10 +269,12 @@ class Analytics {
                         const centerX = (chartArea.left + chartArea.right) / 2;
                         const centerY = (chartArea.top + chartArea.bottom) / 2;
                         
-                        ctx.fillText('Total Daily XP', centerX, centerY - 15);
+                        // Show "Modified Daily XP" if items are hidden, otherwise "Total Daily XP"
+                        const labelText = hasHiddenItems ? 'Modified Daily XP' : 'Total Daily XP';
+                        ctx.fillText(labelText, centerX, centerY - 15);
                         
                         ctx.font = 'bold 20px Inter, sans-serif';
-                        ctx.fillText(CalculatorUtils.formatLargeNumber(total), centerX, centerY + 15);
+                        ctx.fillText(CalculatorUtils.formatLargeNumber(modifiedTotal), centerX, centerY + 15);
                         
                         ctx.restore();
                     }
