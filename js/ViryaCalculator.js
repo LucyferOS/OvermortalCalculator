@@ -1,203 +1,216 @@
-import { GameConstants, Realms, RealmMajorTotalXP, timegateLength } from './gameData.js';
+import { GameConstants, Realms, RealmMajorTotalXP, timegateLength, REALM_ORDER_MAJOR, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, PERCENTAGE_COMPLETE, PATH_MAIN, PATH_SECONDARY } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
 import { RealmCalculator } from './RealmCalculator.js';
 import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
 import { XPCalculator } from './XPCalculator.js';
+import { Logger } from './Logger.js';
 class ViryaCalculator {
     static detectScenario(playerData) {
-        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
-        const realmOrderMajor = ['Nascent','Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-        const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-        const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
-        const isSecondary100Late = playerData.secondaryPathRealmMinor === 'Late' && playerData.secondaryPathProgress >= 100;
-        const isSameMajor = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor;
-
-        console.group(' ViryaCalculator.detectScenario');
-        console.log('Input:', {
+        Logger.group(' ViryaCalculator.detectScenario', Logger.DEBUG);
+        Logger.debug('Input:', {
             mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
             secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`
         });
-        console.log('Is Main Path 100%+ Late?', isMainPath100Late);
 
-        // First check: No Virya scenario (main path not at 100% Late)
-        if (!isMainPath100Late) {
-            console.log('Result: No Virya (main path not at 100%+ Late)');
-            console.groupEnd();
-            return {
-                scenario: 'No Virya',
-                absorptionBonus: 0.0,
-                isActive: false,
-                bonusEndsAt: 'N/A'
-            };
-        }
-        
-        console.log('Realm Analysis:', {
-            currentMajorIndex,
+        const pathAnalysis = this.analyzePaths(playerData);
+        Logger.debug('Is Main Path 100%+ Late?', pathAnalysis.isMainPath100Late);
+        Logger.debug('Realm Analysis:', {
+            currentMajorIndex: pathAnalysis.currentMajorIndex,
             currentMajor: playerData.mainPathRealmMajor,
-            previousMajor
+            previousMajor: pathAnalysis.previousMajor
         });
 
-        // Check Half-Step
-        console.log('Half-Step Check:', {
+        // Check scenarios in priority order
+        const noViryaResult = this.checkNoVirya(pathAnalysis.isMainPath100Late);
+        if (noViryaResult) {
+            Logger.groupEnd();
+            return noViryaResult;
+        }
+
+        const halfStepResult = this.checkHalfStep(playerData, pathAnalysis);
+        if (halfStepResult) {
+            Logger.groupEnd();
+            return halfStepResult;
+        }
+
+        const perfectResult = this.checkPerfect(playerData);
+        if (perfectResult) {
+            Logger.groupEnd();
+            return perfectResult;
+        }
+
+        const eminenceResult = this.checkEminence(playerData, pathAnalysis.previousMajor);
+        if (eminenceResult) {
+            Logger.groupEnd();
+            return eminenceResult;
+        }
+
+        // Default: Completion
+        Logger.debug('Result: Completion (no absorption bonus)');
+        Logger.groupEnd();
+        return this.createScenarioResult(SCENARIO_COMPLETION, 0.0, true, 'Eminence');
+    }
+
+    static analyzePaths(playerData) {
+        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= PERCENTAGE_COMPLETE;
+        const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+        const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
+        const isSecondary100Late = playerData.secondaryPathRealmMinor === 'Late' && playerData.secondaryPathProgress >= PERCENTAGE_COMPLETE;
+        const isSameMajor = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor;
+
+        return {
+            isMainPath100Late,
+            currentMajorIndex,
+            previousMajor,
             isSecondary100Late,
-            isSameMajor,
+            isSameMajor
+        };
+    }
+
+    static checkNoVirya(isMainPath100Late) {
+        if (!isMainPath100Late) {
+            Logger.debug('Result: No Virya (main path not at 100%+ Late)');
+            return this.createScenarioResult(SCENARIO_NO_VIRYA, 0.0, false, 'N/A');
+        }
+        return null;
+    }
+
+    static checkHalfStep(playerData, pathAnalysis) {
+        Logger.debug('Half-Step Check:', {
+            isSecondary100Late: pathAnalysis.isSecondary100Late,
+            isSameMajor: pathAnalysis.isSameMajor,
             secondaryRealmMinor: playerData.secondaryPathRealmMinor,
             secondaryProgress: playerData.secondaryPathProgress
         });
 
-        if (isSecondary100Late && isSameMajor) {
-            console.log('Result: Half-Step (+0.4 absorption)');
-            console.groupEnd();
-            return {
-                scenario: 'Half-Step',
-                absorptionBonus: 0.4,
-                isActive: true,
-                bonusEndsAt: 'Next major\'s Late'
-            };
+        if (pathAnalysis.isSecondary100Late && pathAnalysis.isSameMajor) {
+            Logger.debug('Result: Half-Step (+0.4 absorption)');
+            return this.createScenarioResult(SCENARIO_HALF_STEP, 0.4, true, 'Next major\'s Late');
         }
+        return null;
+    }
 
-        // Check Perfect
+    static checkPerfect(playerData) {
         if (playerData.mainPathRealmMajor === 'Voidbreak') {
-            console.log('Perfect Check (Voidbreak special case)');
+            Logger.debug('Perfect Check (Voidbreak special case)');
             if ((playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
                     playerData.secondaryPathRealmMinor === 'Mid') ||
                    (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
                     playerData.secondaryPathRealmMinor === 'Late' &&
-                    playerData.secondaryPathProgress < 100)) {
-                console.log('Result: Perfect (+0.2 absorption)');
-                console.groupEnd();
-                return {
-                    scenario: 'Perfect',
-                    absorptionBonus: 0.2,
-                    isActive: true,
-                    bonusEndsAt: 'Half-Step'
-                };
+                    playerData.secondaryPathProgress < PERCENTAGE_COMPLETE)) {
+                Logger.debug('Result: Perfect (+0.2 absorption)');
+                return this.createScenarioResult(SCENARIO_PERFECT, 0.2, true, 'Half-Step');
             }
         } else {
-            console.log('Perfect Check (standard)');
+            Logger.debug('Perfect Check (standard)');
             if (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
                 playerData.secondaryPathRealmMinor === 'Early') {
-                console.log('Result: Perfect (+0.2 absorption)');
-                console.groupEnd();
-                return {
-                    scenario: 'Perfect',
-                    absorptionBonus: 0.2,
-                    isActive: true,
-                    bonusEndsAt: 'Half-Step'
-                };
+                Logger.debug('Result: Perfect (+0.2 absorption)');
+                return this.createScenarioResult(SCENARIO_PERFECT, 0.2, true, 'Half-Step');
             }
         }
+        return null;
+    }
 
-        // Check Eminence
-        if (previousMajor) {
-            console.log('Eminence Check');
-            if (playerData.mainPathRealmMajor === 'Voidbreak') {
-                if ((playerData.secondaryPathRealmMajor === previousMajor &&
-                    playerData.secondaryPathRealmMinor === 'Late') ||
-                    (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
-                    playerData.secondaryPathRealmMinor === 'Early')) {
-                    console.log('Result: Eminence (+0.2 absorption)');
-                    console.groupEnd();
-                    return {
-                        scenario: 'Eminence',
-                        absorptionBonus: 0.2,
-                        isActive: true,
-                        bonusEndsAt: 'Perfect'
-                    };
-                }
-            } else {
-                if (playerData.secondaryPathRealmMajor === previousMajor &&
-                    (playerData.secondaryPathRealmMinor === 'Mid' || playerData.secondaryPathRealmMinor === 'Late')) {
-                    console.log('Result: Eminence (+0.2 absorption)');
-                    console.groupEnd();
-                    return {
-                        scenario: 'Eminence',
-                        absorptionBonus: 0.2,
-                        isActive: true,
-                        bonusEndsAt: 'Perfect'
-                    };
-                }
-            }
+    static checkEminence(playerData, previousMajor) {
+        if (!previousMajor) {
+            return null;
         }
 
-        // Completion (no bonus) - main path is at 100% Late
-        console.log('Result: Completion (no absorption bonus)');
-        console.groupEnd();
+        Logger.debug('Eminence Check');
+        if (playerData.mainPathRealmMajor === 'Voidbreak') {
+            if ((playerData.secondaryPathRealmMajor === previousMajor &&
+                playerData.secondaryPathRealmMinor === 'Late') ||
+                (playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
+                playerData.secondaryPathRealmMinor === 'Early')) {
+                Logger.debug('Result: Eminence (+0.2 absorption)');
+                return this.createScenarioResult(SCENARIO_EMINENCE, 0.2, true, 'Perfect');
+            }
+        } else {
+            if (playerData.secondaryPathRealmMajor === previousMajor &&
+                (playerData.secondaryPathRealmMinor === 'Mid' || playerData.secondaryPathRealmMinor === 'Late')) {
+                Logger.debug('Result: Eminence (+0.2 absorption)');
+                return this.createScenarioResult(SCENARIO_EMINENCE, 0.2, true, 'Perfect');
+            }
+        }
+        return null;
+    }
+
+    static createScenarioResult(scenario, absorptionBonus, isActive, bonusEndsAt) {
         return {
-            scenario: 'Completion',
-            absorptionBonus: 0.0,
-            isActive: true,
-            bonusEndsAt: 'Eminence'
+            scenario,
+            absorptionBonus,
+            isActive,
+            bonusEndsAt
         };
     }
     static calculateDaysToScenario(targetScenario, playerData, mainPathDailyXP, secondaryPathDailyXP) {
-        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
+        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= PERCENTAGE_COMPLETE;
         const currentScenarioInfo = this.detectScenario(playerData);
         const currentScenario = currentScenarioInfo.scenario;
 
-        console.group(` Calculating days to ${targetScenario}`);
-        console.log('Player Data:', {
+        Logger.group(` Calculating days to ${targetScenario}`, Logger.DEBUG);
+        Logger.debug('Player Data:', {
             mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
             secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`
         });
-        console.log('Current scenario:', currentScenario);
-        console.log('Target scenario:', targetScenario);
+        Logger.debug('Current scenario:', currentScenario);
+        Logger.debug('Target scenario:', targetScenario);
 
         // Define scenario order including "No Virya"
-        const scenarioOrder = ['No Virya', 'Completion', 'Eminence', 'Perfect', 'Half-Step'];
-        const currentIndex = scenarioOrder.indexOf(currentScenario);
-        const targetIndex = scenarioOrder.indexOf(targetScenario);
+        const currentIndex = VIRYA_SCENARIO_ORDER.indexOf(currentScenario);
+        const targetIndex = VIRYA_SCENARIO_ORDER.indexOf(targetScenario);
 
-        console.log('Scenario order:', scenarioOrder);
-        console.log('Current index:', currentIndex, 'Target index:', targetIndex);
+        Logger.debug('Scenario order:', VIRYA_SCENARIO_ORDER);
+        Logger.debug('Current index:', currentIndex, 'Target index:', targetIndex);
 
         // Check if target is already achieved or passed
         if (targetIndex <= currentIndex) {
-            console.log('Already at or beyond target scenario');
-            console.groupEnd();
+            Logger.debug('Already at or beyond target scenario');
+            Logger.groupEnd();
             // Determine required path focus for the scenario
-            let requiredPathFocus = 'Main Path';
-            if (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
-                requiredPathFocus = 'Secondary Path';
+            let requiredPathFocus = PATH_MAIN;
+            if (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP) {
+                requiredPathFocus = PATH_SECONDARY;
             }
             return { daysNeeded: 0, xpNeeded: 0, requiredPathFocus };
         }
 
         // Determine which path needs to be focused for this scenario
-        let requiredPathFocus = 'Main Path';
+        let requiredPathFocus = PATH_MAIN;
         let dailyXPToUse = mainPathDailyXP || 0;
         
-        if (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
-            requiredPathFocus = 'Secondary Path';
+        if (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP) {
+            requiredPathFocus = PATH_SECONDARY;
             // For secondary path scenarios, use secondaryPathDailyXP to match "Player Time to Cultivate" calculation
             dailyXPToUse = secondaryPathDailyXP || 0;
         }
 
-        console.log('Required path focus:', requiredPathFocus);
-        console.log('Daily XP to use:', dailyXPToUse);
+        Logger.debug('Required path focus:', requiredPathFocus);
+        Logger.debug('Daily XP to use:', dailyXPToUse);
 
         // Special handling for "No Virya" to "Completion" transition
-        if (currentScenario === 'No Virya' && targetScenario === 'Completion') {
-            console.log('Calculating time from No Virya to Completion');
+        if (currentScenario === SCENARIO_NO_VIRYA && targetScenario === SCENARIO_COMPLETION) {
+            Logger.debug('Calculating time from No Virya to Completion');
             // Need to calculate XP for main path to reach 100% Late
             const xpNeeded = this.calculateXPForCompletion(playerData);
             
             if (dailyXPToUse <= 0) {
-                console.log('No main path daily XP available');
-                console.groupEnd();
-                return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus: 'Main Path' };
+                Logger.warn('No main path daily XP available');
+                Logger.groupEnd();
+                return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus: PATH_MAIN };
             }
             
             const daysNeeded = xpNeeded / dailyXPToUse;
-            console.log('Days needed:', daysNeeded);
-            console.groupEnd();
-            return { daysNeeded, xpNeeded, requiredPathFocus: 'Main Path' };
+            Logger.debug('Days needed:', daysNeeded);
+            Logger.groupEnd();
+            return { daysNeeded, xpNeeded, requiredPathFocus: PATH_MAIN };
         }
 
         // For other transitions, check if we have the required daily XP
         if (dailyXPToUse <= 0) {
-            console.log(`No ${requiredPathFocus.toLowerCase()} daily XP available for this transition`);
-            console.groupEnd();
+            Logger.warn(`No ${requiredPathFocus.toLowerCase()} daily XP available for this transition`);
+            Logger.groupEnd();
             return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
         }
 
@@ -206,73 +219,73 @@ class ViryaCalculator {
 
         try {
             switch(targetScenario) {
-                case 'Completion':
+                case SCENARIO_COMPLETION:
                     xpNeeded = this.calculateXPForCompletion(playerData);
                     break;
-                case 'Eminence':
+                case SCENARIO_EMINENCE:
                     xpNeeded = this.calculateXPForEminence(playerData);
                     break;
-                case 'Perfect':
+                case SCENARIO_PERFECT:
                     xpNeeded = this.calculateXPForPerfect(playerData);
                     break;
-                case 'Half-Step':
+                case SCENARIO_HALF_STEP:
                     xpNeeded = this.calculateXPForHalfStep(playerData);
                     break;
                 default:
-                    console.log('Unknown target scenario:', targetScenario);
-                    console.groupEnd();
+                    Logger.warn('Unknown target scenario:', targetScenario);
+                    Logger.groupEnd();
                     return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
 
-            console.log('XP needed:', xpNeeded);
+            Logger.debug('XP needed:', xpNeeded);
 
             if (xpNeeded <= 0) {
-                console.log('No XP needed (already there)');
-                console.groupEnd();
+                Logger.debug('No XP needed (already there)');
+                Logger.groupEnd();
                 return { daysNeeded: 0, xpNeeded: 0, requiredPathFocus };
             }
 
             // For secondary path scenarios, calculate days stage-by-stage with proper virya bonuses
             let daysNeeded;
-            if (requiredPathFocus === 'Secondary Path' && (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step')) {
+            if (requiredPathFocus === PATH_SECONDARY && (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP)) {
                 daysNeeded = this.calculateDaysToScenarioWithBonuses(targetScenario, currentScenario, playerData, xpNeeded, mainPathDailyXP, secondaryPathDailyXP);
             } else {
                 daysNeeded = xpNeeded / dailyXPToUse;
             }
             
-            console.log('Days needed:', daysNeeded);
+            Logger.debug('Days needed:', daysNeeded);
 
             // Safety checks
             if (isNaN(daysNeeded)) {
-                console.log('Days needed is NaN');
-                console.groupEnd();
+                Logger.warn('Days needed is NaN');
+                Logger.groupEnd();
                 return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
 
             if (!isFinite(daysNeeded)) {
-                console.log('Days needed is infinite');
-                console.groupEnd();
+                Logger.warn('Days needed is infinite');
+                Logger.groupEnd();
                 return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
 
-            console.groupEnd();
+            Logger.groupEnd();
             return { daysNeeded, xpNeeded, requiredPathFocus };
 
         } catch (error) {
-            console.error('Error calculating days to scenario:', error);
-            console.groupEnd();
+            Logger.error('Error calculating days to scenario:', error);
+            Logger.groupEnd();
             return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
         }
     }
 	static calculateXPForCompletion(playerData) {
-		console.group(' Calculating XP for Completion scenario');
+		Logger.group(' Calculating XP for Completion scenario', Logger.DEBUG);
 		
 		// Check if main path is already at 100%+ Late
 		const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
 		
 		if (isMainPath100Late) {
-			console.log('Main path already at 100%+ Late - Completion requirement met');
-			console.groupEnd();
+			Logger.debug('Main path already at 100%+ Late - Completion requirement met');
+			Logger.groupEnd();
 			return 0;
 		}
 		
@@ -292,18 +305,17 @@ class ViryaCalculator {
 											  targetRealm, 100);
 		}
 		
-		console.log('XP needed for Completion:', xpNeeded);
-		console.groupEnd();
+		Logger.debug('XP needed for Completion:', xpNeeded);
+		Logger.groupEnd();
 		return xpNeeded;
 	} 
     static calculateXPForEminence(playerData) {
-		const realmOrderMajor = ['Nascent','Incarnation', 'Voidbreak', 'Wholeness', 'Perfection','Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-		const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-		const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
-		const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
+		const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+		const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
+		const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= PERCENTAGE_COMPLETE;
 		
 		
-		if (playerData.viryaScenario === 'Eminence' || playerData.viryaScenario === 'Perfect' || playerData.viryaScenario === 'Half-Step') {
+		if (playerData.viryaScenario === SCENARIO_EMINENCE || playerData.viryaScenario === SCENARIO_PERFECT || playerData.viryaScenario === SCENARIO_HALF_STEP) {
 			return 0;
 		} else { 
 			let targetRealm;
@@ -324,12 +336,11 @@ class ViryaCalculator {
 		}
    }		
     static calculateXPForPerfect(playerData) {
-		const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection','Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-		const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-		const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+		const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+		const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
 
 
-        if (playerData.viryaScenario === 'Perfect' || playerData.viryaScenario === 'Half-Step') {
+        if (playerData.viryaScenario === SCENARIO_PERFECT || playerData.viryaScenario === SCENARIO_HALF_STEP) {
 			return 0;
 			} else { 
 				let targetRealm;
@@ -339,7 +350,7 @@ class ViryaCalculator {
 					targetRealm = `${playerData.mainPathRealmMajor} Early`;
 				}
 				
-				if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion') {
+				if (playerData.viryaScenario === SCENARIO_NO_VIRYA || playerData.viryaScenario === SCENARIO_COMPLETION) {
 				const eminenceXP = this.calculateXPForEminence(playerData);
 				const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
 															playerData.secondaryPathProgress,
@@ -359,7 +370,7 @@ class ViryaCalculator {
     static calculateXPForHalfStep(playerData) {
         const targetRealm = `${playerData.mainPathRealmMajor} Late`;
         
-		if (playerData.viryaScenario === 'No Virya' || playerData.viryaScenario === 'Completion' || playerData.viryaScenario === 'Eminence' ) {
+		if (playerData.viryaScenario === SCENARIO_NO_VIRYA || playerData.viryaScenario === SCENARIO_COMPLETION || playerData.viryaScenario === SCENARIO_EMINENCE ) {
 			const perfectXP = this.calculateXPForPerfect(playerData);
 			
 			// After reaching Perfect, secondary path is at the Perfect target realm (mainPathRealmMajor Mid/Early)
@@ -388,7 +399,7 @@ class ViryaCalculator {
     static calculateXPToReach(currentRealm, currentProgress, targetRealm, targetProgress) {
 		//What is our realm, current xp, and where we are aiming for?
 		const currentRealmData = Realms[currentRealm];
-		console.log(currentRealm);
+		Logger.debug('Current realm:', currentRealm);
         
         // Handle overflow: if progress > 100%, we have overflow XP that should carry to next realm
         const currentRealmXP = currentRealmData.xp;
@@ -398,18 +409,18 @@ class ViryaCalculator {
         if (currentProgress > 100) {
             // Calculate overflow XP
             overflowXP = currentRealmXP * (currentProgress - 100) / 100;
-            console.log(`Overflow detected: ${overflowXP.toLocaleString()} XP (${currentProgress.toFixed(2)}% progress)`);
+            Logger.debug(`Overflow detected: ${overflowXP.toLocaleString()} XP (${currentProgress.toFixed(2)}% progress)`);
         }
         
         const targetRealmData = Realms[targetRealm];
-		console.log(targetRealm);
+		Logger.debug('Target realm:', targetRealm);
 		//finding our position in the arrays
 		const currentRealmIndex = RealmCalculator.calculateRealmIndex(currentRealm);
         const targetRealmIndex = RealmCalculator.calculateRealmIndex(targetRealm);
         
         // If we're already past the target realm, no XP needed
         if (currentRealmIndex > targetRealmIndex) {
-            console.log('Already past target realm');
+            Logger.debug('Already past target realm');
             return 0;
         }
         
@@ -446,22 +457,21 @@ class ViryaCalculator {
     }
     
     static calculateMaxNextRealmScenario(targetScenario, playerData, mainPathDailyXPBase, secondaryPathDailyXPBase) {
-        console.group('🔮 Calculating Max Next Realm Scenario');
-        console.log('Target scenario:', targetScenario);
-        console.log('Current player data:', {
+        Logger.group('🔮 Calculating Max Next Realm Scenario', Logger.DEBUG);
+        Logger.debug('Target scenario:', targetScenario);
+        Logger.debug('Current player data:', {
             mainPath: `${playerData.mainPathRealm} (${playerData.mainPathProgress}%)`,
             secondaryPath: `${playerData.secondaryPathRealm} (${playerData.secondaryPathProgress}%)`,
             mainPathMajor: playerData.mainPathRealmMajor
         });
         
-        const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-        const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-        const nextMajor = currentMajorIndex < realmOrderMajor.length - 1 ? realmOrderMajor[currentMajorIndex + 1] : null;
+        const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+        const nextMajor = currentMajorIndex < REALM_ORDER_MAJOR.length - 1 ? REALM_ORDER_MAJOR[currentMajorIndex + 1] : null;
         
         // Edge case: No next realm (Supreme)
         if (!nextMajor) {
-            console.log('No next realm (at Supreme)');
-            console.groupEnd();
+            Logger.debug('No next realm (at Supreme)');
+            Logger.groupEnd();
             return 'Next realm not implemented yet';
         }
         
@@ -475,26 +485,26 @@ class ViryaCalculator {
         };
         
         // Determine secondary path position when reaching target scenario
-        if (targetScenario === 'Eminence') {
-            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+        if (targetScenario === SCENARIO_EMINENCE) {
+            const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
             if (previousMajor) {
                 if (playerData.mainPathRealmMajor === 'Voidbreak') {
                     secondaryPathAtScenario = {
                         realm: `${previousMajor} Late`,
                         major: previousMajor,
                         minor: 'Late',
-                        progress: 100
+                        progress: PERCENTAGE_COMPLETE
                     };
                 } else {
                     secondaryPathAtScenario = {
                         realm: `${previousMajor} Mid`,
                         major: previousMajor,
                         minor: 'Mid',
-                        progress: 100
+                        progress: PERCENTAGE_COMPLETE
                     };
                 }
             }
-        } else if (targetScenario === 'Perfect') {
+        } else if (targetScenario === SCENARIO_PERFECT) {
             if (playerData.mainPathRealmMajor === 'Voidbreak') {
                 secondaryPathAtScenario = {
                     realm: `${playerData.mainPathRealmMajor} Mid`,
@@ -510,7 +520,7 @@ class ViryaCalculator {
                     progress: 100
                 };
             }
-        } else if (targetScenario === 'Half-Step') {
+        } else if (targetScenario === SCENARIO_HALF_STEP) {
             secondaryPathAtScenario = {
                 realm: `${playerData.mainPathRealmMajor} Late`,
                 major: playerData.mainPathRealmMajor,
@@ -520,7 +530,7 @@ class ViryaCalculator {
         }
         // For Completion, secondary path stays unchanged
         
-        console.log('Secondary path when reaching target scenario:', secondaryPathAtScenario);
+        Logger.debug('Secondary path when reaching target scenario:', secondaryPathAtScenario);
         
         // Simulate player state at breakthrough after reaching target scenario
         // Main path: Next major Early (0% progress)
@@ -538,7 +548,7 @@ class ViryaCalculator {
             secondaryPathProgress: secondaryPathAtScenario.progress
         };
         
-        console.log('Breakthrough state:', {
+        Logger.debug('Breakthrough state:', {
             mainPath: `${breakthroughPlayerData.mainPathRealm} (${breakthroughPlayerData.mainPathProgress}%)`,
             secondaryPath: `${breakthroughPlayerData.secondaryPathRealm} (${breakthroughPlayerData.secondaryPathProgress}%)`
         });
@@ -546,20 +556,20 @@ class ViryaCalculator {
         // Get next timegate length
         const nextTimegateLength = timegateLength[nextMajor] || 0;
         if (nextTimegateLength <= 0) {
-            console.warn('No timegate length for next major:', nextMajor);
-            console.groupEnd();
+            Logger.warn('No timegate length for next major:', nextMajor);
+            Logger.groupEnd();
             return '--';
         }
         
-        console.log('Next timegate length:', nextTimegateLength);
+        Logger.debug('Next timegate length:', nextTimegateLength);
         
         // Calculate if main path can reach 100% Late in next realm
         const targetRealm = `${nextMajor} Late`;
         const targetRealmXP = Realms[targetRealm]?.xp;
         
         if (!targetRealmXP) {
-            console.error('Target realm not found:', targetRealm);
-            console.groupEnd();
+            Logger.error('Target realm not found:', targetRealm);
+            Logger.groupEnd();
             return '--';
         }
         
@@ -571,7 +581,7 @@ class ViryaCalculator {
             100
         );
         
-        console.log('XP needed to reach 100% Late in next realm:', xpNeeded);
+        Logger.debug('XP needed to reach 100% Late in next realm:', xpNeeded);
         
         // Calculate absorption bonus from target scenario (this becomes "had Virya last realm" bonus)
         // Eminence: 0.2 (expires at the start of Early, so NOT active in Early/Mid/Late)
@@ -579,15 +589,15 @@ class ViryaCalculator {
         // Half-Step: 0.4 (active in Early and Mid, expires at the start of Late, so NOT active in Late)
         // Completion: 0 (no bonus)
         let hadViryaBonus = 0;
-        if (targetScenario === 'Eminence') {
+        if (targetScenario === SCENARIO_EMINENCE) {
             hadViryaBonus = 0.2;
-        } else if (targetScenario === 'Perfect') {
+        } else if (targetScenario === SCENARIO_PERFECT) {
             hadViryaBonus = 0.2;
-        } else if (targetScenario === 'Half-Step') {
+        } else if (targetScenario === SCENARIO_HALF_STEP) {
             hadViryaBonus = 0.4;
         }
         
-        console.log('Had Virya bonus from target scenario:', hadViryaBonus);
+        Logger.debug('Had Virya bonus from target scenario:', hadViryaBonus);
         
         // Calculate progression through next realm accounting for "had Virya last realm" bonus
         // The bonus expiration:
@@ -610,7 +620,7 @@ class ViryaCalculator {
         
         // Early realm: bonus is active for Perfect and Half-Step only (Eminence expires at start of Early)
         let earlyBonus = 0;
-        if (targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
+        if (targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP) {
             earlyBonus = hadViryaBonus;
         }
         // Eminence bonus expires at the start of Early, so no bonus for Eminence
@@ -619,17 +629,17 @@ class ViryaCalculator {
             earlyBonus
         );
         if (earlyDailyXP <= 0) {
-            console.warn('No daily XP available for Early realm');
-            console.groupEnd();
+            Logger.warn('No daily XP available for Early realm');
+            Logger.groupEnd();
             return '--';
         }
         const daysForEarly = earlyXP / earlyDailyXP;
         totalDaysNeeded += daysForEarly;
-        console.log(`Early realm: ${daysForEarly.toFixed(2)} days (with ${earlyBonus * 100}% bonus)`);
+        Logger.debug(`Early realm: ${daysForEarly.toFixed(2)} days (with ${earlyBonus * 100}% bonus)`);
         
         // Mid realm: bonus is active for Half-Step only (Perfect expires at start of Mid, Eminence already expired)
         let midBonus = 0;
-        if (targetScenario === 'Half-Step') {
+        if (targetScenario === SCENARIO_HALF_STEP) {
             midBonus = hadViryaBonus;
         }
         const midDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
@@ -637,13 +647,13 @@ class ViryaCalculator {
             midBonus
         );
         if (midDailyXP <= 0) {
-            console.warn('No daily XP available for Mid realm');
-            console.groupEnd();
+            Logger.warn('No daily XP available for Mid realm');
+            Logger.groupEnd();
             return '--';
         }
         const daysForMid = midXP / midDailyXP;
         totalDaysNeeded += daysForMid;
-        console.log(`Mid realm: ${daysForMid.toFixed(2)} days (with ${midBonus * 100}% bonus)`);
+        Logger.debug(`Mid realm: ${daysForMid.toFixed(2)} days (with ${midBonus * 100}% bonus)`);
         
         // Late realm: no bonus (all scenario bonuses expire before Late - Eminence expires at start of Early, Perfect expires at start of Mid, Half-Step expires at start of Late)
         const lateDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
@@ -651,21 +661,21 @@ class ViryaCalculator {
             0
         );
         if (lateDailyXP <= 0) {
-            console.warn('No daily XP available for Late realm');
-            console.groupEnd();
+            Logger.warn('No daily XP available for Late realm');
+            Logger.groupEnd();
             return '--';
         }
         const daysForLate = lateXP / lateDailyXP;
         totalDaysNeeded += daysForLate;
-        console.log(`Late realm: ${daysForLate.toFixed(2)} days (no bonus)`);
+        Logger.debug(`Late realm: ${daysForLate.toFixed(2)} days (no bonus)`);
         
-        console.log('Total days needed to reach 100% Late:', totalDaysNeeded.toFixed(2));
-        console.log('Days available (timegate):', nextTimegateLength);
+        Logger.debug('Total days needed to reach 100% Late:', totalDaysNeeded.toFixed(2));
+        Logger.debug('Days available (timegate):', nextTimegateLength);
         
         // Check if we can reach 100% Late within timegate
         if (totalDaysNeeded > nextTimegateLength) {
-            console.log('Cannot reach 100% Late within timegate');
-            console.groupEnd();
+            Logger.debug('Cannot reach 100% Late within timegate');
+            Logger.groupEnd();
             return 'Next realm completion misses timegate';
         }
         
@@ -718,8 +728,8 @@ class ViryaCalculator {
             
             if (secondaryPathDaysNeeded <= totalDaysNeeded) {
                 // Can reach Half-Step
-                console.log('Maximum scenario: Half-Step (both paths can reach 100% Late)');
-                console.groupEnd();
+                Logger.debug('Maximum scenario: Half-Step (both paths can reach 100% Late)');
+                Logger.groupEnd();
                 return 'Half-Step';
             }
         }
@@ -756,16 +766,16 @@ class ViryaCalculator {
             
             if (secondaryPathDaysNeeded <= totalDaysNeeded) {
                 // Can reach Perfect
-                console.log('Maximum scenario: Perfect (secondary can reach required position)');
-                console.groupEnd();
+                Logger.debug('Maximum scenario: Perfect (secondary can reach required position)');
+                Logger.groupEnd();
                 return 'Perfect';
             }
         }
         
         // Check Eminence: secondary at previous major Mid/Late (or Early for Voidbreak special case)
         if (secondaryPathDailyXP > 0) {
-            const previousMajorIndex = realmOrderMajor.indexOf(nextMajor) - 1;
-            const previousMajor = previousMajorIndex >= 0 ? realmOrderMajor[previousMajorIndex] : null;
+            const previousMajorIndex = REALM_ORDER_MAJOR.indexOf(nextMajor) - 1;
+            const previousMajor = previousMajorIndex >= 0 ? REALM_ORDER_MAJOR[previousMajorIndex] : null;
             
             if (previousMajor) {
                 // Check all possible positions that qualify for Eminence
@@ -812,16 +822,16 @@ class ViryaCalculator {
                 
                 if (canReachEminence) {
                     // Can reach Eminence
-                    console.log('Maximum scenario: Eminence (secondary can reach required position)');
-                    console.groupEnd();
+                    Logger.debug('Maximum scenario: Eminence (secondary can reach required position)');
+                    Logger.groupEnd();
                     return 'Eminence';
                 }
             }
         }
         
         // Default to Completion (main path reaches 100% Late, but secondary path doesn't reach any bonus scenario requirements)
-        console.log('Maximum scenario: Completion (only main path reaches 100% Late)');
-        console.groupEnd();
+        Logger.debug('Maximum scenario: Completion (only main path reaches 100% Late)');
+        Logger.groupEnd();
         return 'Completion';
     }
     
@@ -834,12 +844,12 @@ class ViryaCalculator {
         }
         
         // Check if main path needs to reach Completion first (required for Eminence/Perfect/Half-Step)
-        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
+        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= PERCENTAGE_COMPLETE;
         let totalDays = 0;
         
         // If main path is not at 100% Late, we need to add Completion time first
         // Completion requires MAIN path focus, not secondary path
-        if (!isMainPath100Late && (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step')) {
+        if (!isMainPath100Late && (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP)) {
             // Calculate days to reach Completion (main path focus)
             if (mainPathDailyXP > 0) {
                 const completionXP = this.calculateXPForCompletion(playerData);
@@ -859,9 +869,9 @@ class ViryaCalculator {
         
         // Scenario bonuses: bonus active when IN that scenario (used when progressing FROM that scenario)
         const scenarioBonuses = {
-            'Eminence': 0.2,
-            'Perfect': 0.2,
-            'Half-Step': 0.4
+            [SCENARIO_EMINENCE]: 0.2,
+            [SCENARIO_PERFECT]: 0.2,
+            [SCENARIO_HALF_STEP]: 0.4
         };
         
         let currentRealm = playerData.secondaryPathRealm;
@@ -869,11 +879,10 @@ class ViryaCalculator {
         let currentBonus = 0; // Bonus active at current position
         
         // Break down progression based on target scenario
-        if (targetScenario === 'Eminence') {
+        if (targetScenario === SCENARIO_EMINENCE) {
             // Stage: Current → Eminence (no bonus active)
-            const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-            const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+            const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
             
             if (previousMajor) {
                 const targetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
@@ -883,12 +892,11 @@ class ViryaCalculator {
                 const stageDays = this.calculateDaysForStage(currentRealm, currentProgress, targetRealm, currentBonus, playerData);
                 totalDays += stageDays;
             }
-        } else if (targetScenario === 'Perfect') {
+        } else if (targetScenario === SCENARIO_PERFECT) {
             // Stage 1: Current → Eminence (no bonus)
             // Stage 2: Eminence → Perfect (0.2 bonus from Eminence)
-            const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-            const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+            const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
             
             if (previousMajor) {
                 // Stage 1: to Eminence
@@ -901,7 +909,7 @@ class ViryaCalculator {
                     totalDays += eminenceDays;
                     currentRealm = eminenceTargetRealm;
                     currentProgress = 100;
-                    currentBonus = scenarioBonuses['Eminence'];
+                    currentBonus = scenarioBonuses[SCENARIO_EMINENCE];
                 }
                 
                 // Stage 2: to Perfect
@@ -914,13 +922,12 @@ class ViryaCalculator {
                     totalDays += perfectDays;
                 }
             }
-        } else if (targetScenario === 'Half-Step') {
+        } else if (targetScenario === SCENARIO_HALF_STEP) {
             // Stage 1: Current → Eminence (no bonus)
             // Stage 2: Eminence → Perfect (0.2 bonus from Eminence)
             // Stage 3: Perfect → Half-Step (0.2 bonus from Perfect)
-            const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-            const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
-            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
+            const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
             
             if (previousMajor) {
                 // Stage 1: to Eminence
@@ -933,7 +940,7 @@ class ViryaCalculator {
                     totalDays += eminenceDays;
                     currentRealm = eminenceTargetRealm;
                     currentProgress = 100;
-                    currentBonus = scenarioBonuses['Eminence'];
+                    currentBonus = scenarioBonuses[SCENARIO_EMINENCE];
                 }
                 
                 // Stage 2: to Perfect
@@ -946,7 +953,7 @@ class ViryaCalculator {
                     totalDays += perfectDays;
                     currentRealm = perfectTargetRealm;
                     currentProgress = 100;
-                    currentBonus = scenarioBonuses['Perfect'];
+                    currentBonus = scenarioBonuses[SCENARIO_PERFECT];
                 }
                 
                 // Stage 3: to Half-Step

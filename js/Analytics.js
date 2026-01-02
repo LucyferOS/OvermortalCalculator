@@ -1,7 +1,7 @@
 import { XPCalculator } from './XPCalculator.js';
 import { FruitCalculator } from './FruitCalculator.js';
-import { recommendations } from './Recommendations.js';
-import { GameConstants, XPData } from './gameData.js';
+import { Recommendations } from './Recommendations.js';
+import { GameConstants, XPData, MAX_EXTRACTOR_LEVEL } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
 
 class Analytics {
@@ -100,7 +100,7 @@ class Analytics {
         const currentFruitXP = FruitCalculator.fruitXP(playerData);
         
         // Max extractor fruit XP (level 30)
-        const maxExtractorResult = recommendations.calculateMaxLevelXP(playerData, 30);
+        const maxExtractorResult = Recommendations.calculateMaxLevelXP(playerData, MAX_EXTRACTOR_LEVEL);
         const maxFruitXP = maxExtractorResult.fruitXPSingle;
 
         return {

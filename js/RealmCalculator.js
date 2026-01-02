@@ -1,4 +1,4 @@
-import { Realms, RealmMajorTotalXP } from './gameData.js';
+import { Realms, RealmMajorTotalXP, REALM_ORDER_MAJOR, REALM_ORDER_MINOR } from './gameData.js';
 
 class RealmCalculator {
     static calculateProgression(playerData, mainPathDailyXP, secondaryPathDailyXP) {
@@ -86,9 +86,6 @@ class RealmCalculator {
         };
     }
 	static calculateRealmIndex(realmName) {
-		const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-		const realmOrderMinor = ['Early', 'Mid', 'Late'];
-
 		// Parse the realm name
 		const parts = realmName.split(' ');
 		
@@ -103,8 +100,8 @@ class RealmCalculator {
 		}
 		
 		// Find the indices
-		const majorIndex = realmOrderMajor.indexOf(major);
-		const minorIndex = realmOrderMinor.indexOf(minor);
+		const majorIndex = REALM_ORDER_MAJOR.indexOf(major);
+		const minorIndex = REALM_ORDER_MINOR.indexOf(minor);
 		
 		// Check if realm was found
 		if (majorIndex === -1 || minorIndex === -1) {
@@ -112,11 +109,9 @@ class RealmCalculator {
 			return -1;
 		}
 		
-		return majorIndex * realmOrderMinor.length + minorIndex;
+		return majorIndex * REALM_ORDER_MINOR.length + minorIndex;
 	}	
 	static calculateRealmProgression(startIndex, endIndex) {
-	  const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-	  const realmOrderMinor = ['Early', 'Mid', 'Late'];
 	  let total = 0;
 	  
 	  // Convert to single index (0-23) for easier stepping
@@ -125,10 +120,10 @@ class RealmCalculator {
 	  
 	  while (current <= target) {
 		// Convert single index back to major/minor indices
-		const majorIndex = Math.floor(current / realmOrderMinor.length);
-		const minorIndex = current % realmOrderMinor.length;
+		const majorIndex = Math.floor(current / REALM_ORDER_MINOR.length);
+		const minorIndex = current % REALM_ORDER_MINOR.length;
 		// Construct the realm name key
-		const realmName = `${realmOrderMajor[majorIndex]} ${realmOrderMinor[minorIndex]}`;
+		const realmName = `${REALM_ORDER_MAJOR[majorIndex]} ${REALM_ORDER_MINOR[minorIndex]}`;
 		// Use the key to fetch xp
 		const XP = Realms[realmName].xp;
 		total += XP;

@@ -1,14 +1,13 @@
 import { FruitCalculator } from './FruitCalculator.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
 import { XPCalculator } from './XPCalculator.js';
-import { timegateLength } from './gameData.js';
-import { Realms } from './gameData.js';
+import { timegateLength, Realms, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE } from './gameData.js';
 import { ViryaScenarioComparator } from './ViryaScenarioComparator.js';
 import { Logger } from './Logger.js';
 
-class recommendations {
+class Recommendations {
     // FRUIT eat timing compare-inator
-    static findMinLevelsFruitFromCurrent(playerData, targetFruitXP, maxLevel = 30) {
+    static findMinLevelsFruitFromCurrent(playerData, targetFruitXP, maxLevel = MAX_EXTRACTOR_LEVEL) {
         Logger.group('🍎 FRUIT EXTRACTOR OPTIMIZATION', Logger.INFO);
         Logger.section('SEARCHING FOR MINIMAL EXTRACTOR LEVELS', Logger.INFO);
         
@@ -260,7 +259,7 @@ class recommendations {
         };
     }
 
-    static refineSolution(playerData, targetFruitXP, coarseSolution, currentLevels, jumpSize, maxLevel = 30) {
+    static refineSolution(playerData, targetFruitXP, coarseSolution, currentLevels, jumpSize, maxLevel = MAX_EXTRACTOR_LEVEL) {
         Logger.group('🔧 SOLUTION REFINEMENT', Logger.DEBUG);
         Logger.info('Refining solution around coarse solution:', coarseSolution);
         
@@ -351,7 +350,7 @@ class recommendations {
         return refinedSolution;
     }
 
-    static calculateMaxLevelXP(playerData, maxLevel = 30) {
+    static calculateMaxLevelXP(playerData, maxLevel = MAX_EXTRACTOR_LEVEL) {
         Logger.group('🏆 CALCULATING MAX LEVEL XP', Logger.DEBUG);
         
         // Create test data with max levels
@@ -453,4 +452,4 @@ class recommendations {
 
 }
 
-export { recommendations };
+export { Recommendations };

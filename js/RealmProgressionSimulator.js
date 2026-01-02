@@ -1,4 +1,4 @@
-import { Realms, RealmMajorTotalXP, timegateLength } from './gameData.js';
+import { Realms, RealmMajorTotalXP, timegateLength, REALM_ORDER_MAJOR, REALM_ORDER_MINOR } from './gameData.js';
 import { XPCalculator } from './XPCalculator.js';
 import { Logger } from './Logger.js';
 
@@ -7,8 +7,8 @@ class RealmProgressionSimulator {
         this.playerData = { ...playerData };
         this.baseDailyXP = baseDailyXP;
         this.simulationId = simulationId;
-        this.realmOrder = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-        this.minorOrder = ['Early', 'Mid', 'Late'];
+        this.realmOrder = REALM_ORDER_MAJOR;
+        this.minorOrder = REALM_ORDER_MINOR;
     }
     
     simulateDays(days, absorptionBonus = 0, bonusEndCondition = null, maxRealm = null) {

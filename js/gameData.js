@@ -63,6 +63,27 @@ export const timegateLength = {
 	'Supreme':		200.00
 }
 
+// Realm order constants
+export const REALM_ORDER_MAJOR = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+export const REALM_ORDER_MINOR = ['Early', 'Mid', 'Late'];
+
+// Virya scenario constants
+export const VIRYA_SCENARIO_ORDER = ['No Virya', 'Completion', 'Eminence', 'Perfect', 'Half-Step'];
+export const SCENARIO_NO_VIRYA = 'No Virya';
+export const SCENARIO_COMPLETION = 'Completion';
+export const SCENARIO_EMINENCE = 'Eminence';
+export const SCENARIO_PERFECT = 'Perfect';
+export const SCENARIO_HALF_STEP = 'Half-Step';
+
+// Path constants
+export const PATH_MAIN = 'Main Path';
+export const PATH_SECONDARY = 'Secondary Path';
+
+// Magic number constants
+export const MAX_EXTRACTOR_LEVEL = 30;
+export const PERCENTAGE_COMPLETE = 100;
+export const BASE_RESPIRA_ATTEMPTS = 10;
+
 export const GameConstants = {
     minPerTaoistYear: 	15,
     taoistYearsPerDay: 	96,

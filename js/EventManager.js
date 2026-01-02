@@ -1,6 +1,7 @@
 import { DataManager } from './DataManager.js';
 import { CalculatorUtils } from './utils.js';
 import { UIManager } from './UIManager.js';
+import { PATH_MAIN, PATH_SECONDARY } from './gameData.js';
 
 class EventManager {
     constructor(app) {
@@ -76,7 +77,7 @@ class EventManager {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.closest('input, select')) {
                     return;
                 }
-                this.switchPathFocus('Main Path', pathFocusSelect);
+                this.switchPathFocus(PATH_MAIN, pathFocusSelect);
             });
         }
         
@@ -86,7 +87,7 @@ class EventManager {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.closest('input, select')) {
                     return;
                 }
-                this.switchPathFocus('Secondary Path', pathFocusSelect);
+                this.switchPathFocus(PATH_SECONDARY, pathFocusSelect);
             });
         }
         
@@ -104,7 +105,7 @@ class EventManager {
                 if (resultBox) {
                     const path = resultBox.getAttribute('data-path');
                     console.log('Dashboard result box clicked:', path, resultBox);
-                    if (path === 'Main Path' || path === 'Secondary Path') {
+                    if (path === PATH_MAIN || path === PATH_SECONDARY) {
                         this.app.switchPathFocus(path);
                     }
                 }

@@ -1,7 +1,7 @@
 import { CalculatorUtils } from './utils.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
 import { Logger } from './Logger.js';
-import { Realms, XPData, GameConstants, RealmMajorTotalXP, timegateLength } from './gameData.js';
+import { Realms, XPData, GameConstants, RealmMajorTotalXP, timegateLength, PATH_MAIN, PATH_SECONDARY, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, REALM_ORDER_MAJOR } from './gameData.js';
 import { Analytics } from './Analytics.js';
 
 class UIManager {
@@ -33,12 +33,12 @@ class UIManager {
         
         // Update main path results
         if (results.realmProgression?.mainPath) {
-            this.updatePathResults('main', results.realmProgression.mainPath, playerData.pathFocus === 'Main Path');
+            this.updatePathResults('main', results.realmProgression.mainPath, playerData.pathFocus === PATH_MAIN);
         }
 
         // Update secondary path results
         if (results.realmProgression?.secondaryPath) {
-            this.updatePathResults('secondary', results.realmProgression.secondaryPath, playerData.pathFocus === 'Secondary Path');
+            this.updatePathResults('secondary', results.realmProgression.secondaryPath, playerData.pathFocus === PATH_SECONDARY);
         }
 
         this.updateFruitDisplays(results, playerData);
@@ -296,13 +296,13 @@ class UIManager {
         const scenarioBadge = document.getElementById('current-virya-scenario');
         if (scenarioBadge) {
             switch(viryaInfo.scenario) {
-                case 'Eminence':
+                case SCENARIO_EMINENCE:
                     scenarioBadge.style.background = '#C8A2C8';
                     break;
-                case 'Perfect':
+                case SCENARIO_PERFECT:
                     scenarioBadge.style.background = '#daa520';
                     break;
-                case 'Half-Step':
+                case SCENARIO_HALF_STEP:
                     scenarioBadge.style.background = '#990000';
                     break;
                 default:
@@ -311,13 +311,13 @@ class UIManager {
         }
         
         // Only show bonus if it's a bonus scenario (not No Virya or Completion)
-        const bonusText = viryaInfo.scenario === 'No Virya' || viryaInfo.scenario === 'Completion' 
+        const bonusText = viryaInfo.scenario === SCENARIO_NO_VIRYA || viryaInfo.scenario === SCENARIO_COMPLETION 
             ? 'No Bonus' 
             : `+${(viryaInfo.absorptionBonus || 0).toFixed(1)} absorption`;
         this.updateElementText('current-virya-bonus', bonusText);
         
         // Update table rows and progress bars
-        const scenarios = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
+        const scenarios = [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP];
         scenarios.forEach(scenario => {
             const scenarioKey = scenario.toLowerCase().replace('-', '');
             const rowId = `virya-row-${scenarioKey}`;
@@ -366,9 +366,9 @@ class UIManager {
             this.updateElementText(timeId, ' Active Now');
             this.updateElementText(dateId, '--');
             // Determine required path focus for current scenario
-            let requiredPathFocus = 'Main Path';
-            if (scenario === 'Eminence' || scenario === 'Perfect' || scenario === 'Half-Step') {
-                requiredPathFocus = 'Secondary Path';
+            let requiredPathFocus = PATH_MAIN;
+            if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
+                requiredPathFocus = PATH_SECONDARY;
             }
             this.updateElementText(focusId, requiredPathFocus);
             
@@ -391,9 +391,8 @@ class UIManager {
         }
         
         // Define scenario order to check if we're already beyond this scenario
-        const scenarioOrder = ['No Virya', 'Completion', 'Eminence', 'Perfect', 'Half-Step'];
-        const currentIndex = scenarioOrder.indexOf(viryaInfo.scenario);
-        const targetIndex = scenarioOrder.indexOf(scenario);
+        const currentIndex = VIRYA_SCENARIO_ORDER.indexOf(viryaInfo.scenario);
+        const targetIndex = VIRYA_SCENARIO_ORDER.indexOf(scenario);
         
         // If we're already beyond this scenario (e.g., at Half-Step but looking at Eminence)
         if (currentIndex > targetIndex) {
@@ -401,9 +400,9 @@ class UIManager {
             this.updateElementText(timeId, ' Already Passed');
             this.updateElementText(dateId, '--');
             // Determine required path focus for this scenario
-            let requiredPathFocus = 'Main Path';
-            if (scenario === 'Eminence' || scenario === 'Perfect' || scenario === 'Half-Step') {
-                requiredPathFocus = 'Secondary Path';
+            let requiredPathFocus = PATH_MAIN;
+            if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
+                requiredPathFocus = PATH_SECONDARY;
             }
             this.updateElementText(focusId, requiredPathFocus);
             
@@ -438,18 +437,18 @@ class UIManager {
         // For secondary path scenarios (Eminence, Perfect, Half-Step), use secondaryPathDailyXPBase to match "Player Time to Cultivate" calculation
         // This ensures the Virya bonus is correctly applied to the secondary path
         // For other scenarios, use dailyXP (without temporary bonus) for time calculations
-        let mainPathXPForScenario = (scenario === 'Completion') ? mainPathDailyXPBase : dailyXP;
+        let mainPathXPForScenario = (scenario === SCENARIO_COMPLETION) ? mainPathDailyXPBase : dailyXP;
         let secondaryPathXPForScenario = dailyXP;
         
         // For secondary path scenarios, use secondaryPathDailyXPBase to match "Player Time to Cultivate" calculation
         // This includes the correct Virya bonus for the secondary path realm
-        if (scenario === 'Eminence' || scenario === 'Perfect' || scenario === 'Half-Step') {
+        if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
             secondaryPathXPForScenario = secondaryPathDailyXPBase;
         }
         
         const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, mainPathXPForScenario, secondaryPathXPForScenario);
         const daysToReach = scenarioInfo?.daysNeeded;
-        const requiredPathFocus = scenarioInfo?.requiredPathFocus || 'Main Path';
+        const requiredPathFocus = scenarioInfo?.requiredPathFocus || PATH_MAIN;
         
         Logger.debug('Days to reach scenario:', daysToReach);
         Logger.debug('Required path focus:', requiredPathFocus);
@@ -468,9 +467,9 @@ class UIManager {
             let reason = 'Not reachable';
             if (daysToReach > 36500) {
                 reason = 'Too far away';
-            } else if (requiredPathFocus === 'Secondary Path' && secondaryPathDailyXPBase <= 0) {
+            } else if (requiredPathFocus === PATH_SECONDARY && secondaryPathDailyXPBase <= 0) {
                 reason = 'Need secondary path XP';
-            } else if (requiredPathFocus === 'Main Path' && mainPathDailyXPBase <= 0) {
+            } else if (requiredPathFocus === PATH_MAIN && mainPathDailyXPBase <= 0) {
                 reason = 'Need main path XP';
             }
             
@@ -516,7 +515,7 @@ class UIManager {
         
         // Update main path input section
         if (mainPathSection && mainPathBadge) {
-            if (pathFocus === 'Main Path') {
+            if (pathFocus === PATH_MAIN) {
                 mainPathSection.classList.add('focused');
                 mainPathBadge.classList.add('focused');
                 mainPathBadge.textContent = 'Focused';
@@ -529,7 +528,7 @@ class UIManager {
         
         // Update secondary path input section
         if (secondaryPathSection && secondaryPathBadge) {
-            if (pathFocus === 'Secondary Path') {
+            if (pathFocus === PATH_SECONDARY) {
                 secondaryPathSection.classList.add('focused');
                 secondaryPathBadge.classList.add('focused');
                 secondaryPathBadge.textContent = 'Focused';
@@ -547,7 +546,7 @@ class UIManager {
         if (mainPathRealmDisplay) {
             // Get the base text without focus indicator (handle both textContent and innerHTML)
             let baseText = mainPathRealmDisplay.textContent.replace(/\s● Focused$/, '').trim();
-            if (pathFocus === 'Main Path') {
+            if (pathFocus === PATH_MAIN) {
                 mainPathRealmDisplay.innerHTML = `${baseText} <span style="color: var(--success); font-size: 0.85em; margin-left: 8px;">● Focused</span>`;
             } else {
                 mainPathRealmDisplay.textContent = baseText;
@@ -557,7 +556,7 @@ class UIManager {
         if (secondaryPathRealmDisplay) {
             // Get the base text without focus indicator
             let baseText = secondaryPathRealmDisplay.textContent.replace(/\s● Focused$/, '').trim();
-            if (pathFocus === 'Secondary Path') {
+            if (pathFocus === PATH_SECONDARY) {
                 secondaryPathRealmDisplay.innerHTML = `${baseText} <span style="color: var(--success); font-size: 0.85em; margin-left: 8px;">● Focused</span>`;
             } else {
                 secondaryPathRealmDisplay.textContent = baseText;
@@ -565,11 +564,11 @@ class UIManager {
         }
         
         // Update all dashboard result boxes with data-path attributes to show focus
-        const mainResultBoxes = document.querySelectorAll('.result-box[data-path="Main Path"]');
-        const secondaryResultBoxes = document.querySelectorAll('.result-box[data-path="Secondary Path"]');
+        const mainResultBoxes = document.querySelectorAll(`.result-box[data-path="${PATH_MAIN}"]`);
+        const secondaryResultBoxes = document.querySelectorAll(`.result-box[data-path="${PATH_SECONDARY}"]`);
         
         mainResultBoxes.forEach((box) => {
-            if (pathFocus === 'Main Path') {
+            if (pathFocus === PATH_MAIN) {
                 box.classList.add('focused');
             } else {
                 box.classList.remove('focused');
@@ -577,7 +576,7 @@ class UIManager {
         });
         
         secondaryResultBoxes.forEach((box) => {
-            if (pathFocus === 'Secondary Path') {
+            if (pathFocus === PATH_SECONDARY) {
                 box.classList.add('focused');
             } else {
                 box.classList.remove('focused');
@@ -668,7 +667,7 @@ class UIManager {
     static updateFruitRecommendations(results) {
         Logger.group('🍎 FRUIT RECOMMENDATIONS UPDATE', Logger.DEBUG);
         
-        const scenarios = ['Completion', 'Eminence', 'Perfect', 'Half-Step'];
+        const scenarios = [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP];
         
         scenarios.forEach(scenario => {
             const scenarioKey = scenario.toLowerCase().replace('-', '');
@@ -922,9 +921,9 @@ class UIManager {
         };
         
         // Eminence comparison
-        if (scenarioComparisons['Eminence']) {
-            const comp = scenarioComparisons['Eminence'];
-            updateComparisonCell('Eminence', comp, 'virya-eminence-xp');
+        if (scenarioComparisons[SCENARIO_EMINENCE]) {
+            const comp = scenarioComparisons[SCENARIO_EMINENCE];
+            updateComparisonCell(SCENARIO_EMINENCE, comp, 'virya-eminence-xp');
             Logger.debug('Updated Eminence comparison cell');
         } else {
             this.updateElementText('virya-eminence-xp', '--\n--\n--\n--');
@@ -932,9 +931,9 @@ class UIManager {
         }
         
         // Perfect comparison
-        if (scenarioComparisons['Perfect']) {
-            const comp = scenarioComparisons['Perfect'];
-            updateComparisonCell('Perfect', comp, 'virya-perfect-xp');
+        if (scenarioComparisons[SCENARIO_PERFECT]) {
+            const comp = scenarioComparisons[SCENARIO_PERFECT];
+            updateComparisonCell(SCENARIO_PERFECT, comp, 'virya-perfect-xp');
             Logger.debug('Updated Perfect comparison cell');
         } else {
             this.updateElementText('virya-perfect-xp', '--\n--\n--\n--');
@@ -942,9 +941,9 @@ class UIManager {
         }
         
         // Half-Step comparison
-        if (scenarioComparisons['Half-Step']) {
-            const comp = scenarioComparisons['Half-Step'];
-            updateComparisonCell('Half-Step', comp, 'virya-halfstep-xp');
+        if (scenarioComparisons[SCENARIO_HALF_STEP]) {
+            const comp = scenarioComparisons[SCENARIO_HALF_STEP];
+            updateComparisonCell(SCENARIO_HALF_STEP, comp, 'virya-halfstep-xp');
             Logger.debug('Updated Half-Step comparison cell');
         } else {
             this.updateElementText('virya-halfstep-xp', '--\n--\n--\n--');
@@ -953,8 +952,8 @@ class UIManager {
         
         // Also update Completion baseline information if we have it
         // We need to get the Completion total XP from the first comparison
-        if (scenarioComparisons['Eminence']) {
-            const comp = scenarioComparisons['Eminence'];
+        if (scenarioComparisons[SCENARIO_EMINENCE]) {
+            const comp = scenarioComparisons[SCENARIO_EMINENCE];
             const totalXP = comp.scenario1.totalXP;
             const xpLostDuringFocus = comp.scenario1.xpLostDuringFocus || 0;
             const daysToReach = comp.scenario1.daysToReach;
@@ -1006,22 +1005,22 @@ class UIManager {
         };
         
         // Find the best scenario, but only consider scenarios that are reachable before the next timegate
-        let bestScenario = 'Completion';
+        let bestScenario = SCENARIO_COMPLETION;
         let bestDiff = 0;
         let bestPerc = 0;
         
-        if (scenarioComparisons['Eminence']) {
+        if (scenarioComparisons[SCENARIO_EMINENCE]) {
             // Check if Eminence is reachable before the next realm timegate
-            const isReachable = scenarioComparisons['Eminence'].scenario2.reachedBeforeTimegate;
+            const isReachable = scenarioComparisons[SCENARIO_EMINENCE].scenario2.reachedBeforeTimegate;
             
             if (isReachable) {
-                const diff = scenarioComparisons['Eminence'].comparison.difference;
-                const percStr = scenarioComparisons['Eminence'].comparison.percentage;
+                const diff = scenarioComparisons[SCENARIO_EMINENCE].comparison.difference;
+                const percStr = scenarioComparisons[SCENARIO_EMINENCE].comparison.percentage;
                 const percValue = parsePercentage(percStr);
                 
                 if (diff > bestDiff) {
                     bestDiff = diff;
-                    bestScenario = 'Eminence';
+                    bestScenario = SCENARIO_EMINENCE;
                     bestPerc = percValue;
                 }
             } else {
@@ -1029,18 +1028,18 @@ class UIManager {
             }
         }
         
-        if (scenarioComparisons['Perfect']) {
+        if (scenarioComparisons[SCENARIO_PERFECT]) {
             // Check if Perfect is reachable before the next realm timegate
-            const isReachable = scenarioComparisons['Perfect'].scenario2.reachedBeforeTimegate;
+            const isReachable = scenarioComparisons[SCENARIO_PERFECT].scenario2.reachedBeforeTimegate;
             
             if (isReachable) {
-                const diff = scenarioComparisons['Perfect'].comparison.difference;
-                const percStr = scenarioComparisons['Perfect'].comparison.percentage;
+                const diff = scenarioComparisons[SCENARIO_PERFECT].comparison.difference;
+                const percStr = scenarioComparisons[SCENARIO_PERFECT].comparison.percentage;
                 const percValue = parsePercentage(percStr);
                 
                 if (diff > bestDiff) {
                     bestDiff = diff;
-                    bestScenario = 'Perfect';
+                    bestScenario = SCENARIO_PERFECT;
                     bestPerc = percValue;
                 }
             } else {
@@ -1048,18 +1047,18 @@ class UIManager {
             }
         }
         
-        if (scenarioComparisons['Half-Step']) {
+        if (scenarioComparisons[SCENARIO_HALF_STEP]) {
             // Check if Half-Step is reachable before the next realm timegate
-            const isReachable = scenarioComparisons['Half-Step'].scenario2.reachedBeforeTimegate;
+            const isReachable = scenarioComparisons[SCENARIO_HALF_STEP].scenario2.reachedBeforeTimegate;
             
             if (isReachable) {
-                const diff = scenarioComparisons['Half-Step'].comparison.difference;
-                const percStr = scenarioComparisons['Half-Step'].comparison.percentage;
+                const diff = scenarioComparisons[SCENARIO_HALF_STEP].comparison.difference;
+                const percStr = scenarioComparisons[SCENARIO_HALF_STEP].comparison.percentage;
                 const percValue = parsePercentage(percStr);
                 
                 if (diff > bestDiff) {
                     bestDiff = diff;
-                    bestScenario = 'Half-Step';
+                    bestScenario = SCENARIO_HALF_STEP;
                     bestPerc = percValue;
                 }
             } else {
@@ -1069,7 +1068,7 @@ class UIManager {
         
         // Generate recommendation text
         let recommendationText = '';
-        if (bestScenario === 'Completion') {
+        if (bestScenario === SCENARIO_COMPLETION) {
             recommendationText = 'Focus on main path - higher Virya scenarios yield less main path XP or are not reachable before the next realm timegate.';
         } else if (bestDiff > 0) {
             recommendationText = `Consider pursuing ${bestScenario} - yields ${Math.abs(bestPerc).toFixed(2)}% more main path XP than Completion.`;
@@ -1094,9 +1093,8 @@ class UIManager {
         
         // Calculate time to next realm timegate
         const currentMajor = playerData.mainPathRealmMajor;
-        const realmOrder = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-        const currentIndex = realmOrder.indexOf(currentMajor);
-        const nextMajor = currentIndex < realmOrder.length - 1 ? realmOrder[currentIndex + 1] : null;
+        const currentIndex = REALM_ORDER_MAJOR.indexOf(currentMajor);
+        const nextMajor = currentIndex < REALM_ORDER_MAJOR.length - 1 ? REALM_ORDER_MAJOR[currentIndex + 1] : null;
         const nextTimegateLength = nextMajor ? (timegateLength[nextMajor] || 0) : 0;
         const totalDaysToNextTimegate = currentTimegateDays + nextTimegateLength;
         

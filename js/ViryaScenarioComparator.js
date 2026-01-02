@@ -1,8 +1,7 @@
 import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
 import { XPCalculator } from './XPCalculator.js';
-import { XPData } from './gameData.js';
-import { timegateLength } from './gameData.js';
+import { XPData, timegateLength, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP } from './gameData.js';
 import { Logger } from './Logger.js';
 
 class ViryaScenarioComparator {
@@ -42,23 +41,23 @@ class ViryaScenarioComparator {
         
         // Define scenario bonuses
         this.scenarioBonus = {
-            'No Virya': 0.0,
-            'Completion': 0.0,
-            'Eminence': 0.2,
-            'Perfect': 0.2,
-            'Half-Step': 0.4
+            [SCENARIO_NO_VIRYA]: 0.0,
+            [SCENARIO_COMPLETION]: 0.0,
+            [SCENARIO_EMINENCE]: 0.2,
+            [SCENARIO_PERFECT]: 0.2,
+            [SCENARIO_HALF_STEP]: 0.4
         };
         
         // Define when each bonus ends
         this.bonusEndConditions = {
-            'Completion': { endsAt: 'Immediately' },
-            'Eminence': { endsAt: 'Next Major Early' },
-            'Perfect': { endsAt: 'Next Major Mid' },
-            'Half-Step': { endsAt: 'Next Major Late' }
+            [SCENARIO_COMPLETION]: { endsAt: 'Immediately' },
+            [SCENARIO_EMINENCE]: { endsAt: 'Next Major Early' },
+            [SCENARIO_PERFECT]: { endsAt: 'Next Major Mid' },
+            [SCENARIO_HALF_STEP]: { endsAt: 'Next Major Late' }
         };
         
         // Scenario order for progression
-        this.scenarioOrder = ['No Virya', 'Completion', 'Eminence', 'Perfect', 'Half-Step'];
+        this.scenarioOrder = VIRYA_SCENARIO_ORDER;
     }
     
     compareScenarios(scenario1, scenario2) {
