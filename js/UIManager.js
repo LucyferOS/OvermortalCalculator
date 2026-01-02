@@ -440,10 +440,19 @@ class UIManager {
         
         // For Completion scenario, use mainPathDailyXPBase to match "Next Major Realm" calculation
         // (includes "had Virya last realm" bonus when applicable)
+        // For secondary path scenarios (Eminence, Perfect, Half-Step), use secondaryPathDailyXPBase to match "Player Time to Cultivate" calculation
+        // This ensures the Virya bonus is correctly applied to the secondary path
         // For other scenarios, use dailyXP (without temporary bonus) for time calculations
-        // This matches the expected times better than using base values with temporary bonus
-        const dailyXPForScenario = (scenario === 'Completion') ? mainPathDailyXPBase : dailyXP;
-        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, dailyXPForScenario, dailyXPForScenario);
+        let mainPathXPForScenario = (scenario === 'Completion') ? mainPathDailyXPBase : dailyXP;
+        let secondaryPathXPForScenario = dailyXP;
+        
+        // For secondary path scenarios, use secondaryPathDailyXPBase to match "Player Time to Cultivate" calculation
+        // This includes the correct Virya bonus for the secondary path realm
+        if (scenario === 'Eminence' || scenario === 'Perfect' || scenario === 'Half-Step') {
+            secondaryPathXPForScenario = secondaryPathDailyXPBase;
+        }
+        
+        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, mainPathXPForScenario, secondaryPathXPForScenario);
         const daysToReach = scenarioInfo?.daysNeeded;
         const requiredPathFocus = scenarioInfo?.requiredPathFocus || 'Main Path';
         

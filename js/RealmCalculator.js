@@ -61,15 +61,16 @@ class RealmCalculator {
             timeToNextMajor = timeToNextMinor;
         } else if (realmMinor === 'Mid') {
             const nextRealm = majorRealm + ' Late';
-            const xpNeededForMajor = realmXP + Realms[nextRealm].xp - totalXpEarnedInMajorRealm;
+            // Remaining XP in current Mid realm + full XP for Late realm
+            const xpNeededForMajor = (realmXP - currentExp) + Realms[nextRealm].xp;
             timeToNextMajor = Math.max(0, xpNeededForMajor / dailyXP);
         } else {
+            // Early realm: remaining XP in Early + full XP for Mid + full XP for Late
             const midRealm = majorRealm + ' Mid';
             const lateRealm = majorRealm + ' Late';
-            const xpNeededForMajor = realmXP +
+            const xpNeededForMajor = (realmXP - currentExp) +
                 Realms[midRealm].xp +
-                Realms[lateRealm].xp -
-                totalXpEarnedInMajorRealm;
+                Realms[lateRealm].xp;
             timeToNextMajor = Math.max(0, xpNeededForMajor / dailyXP);
         }
         

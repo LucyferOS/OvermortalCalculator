@@ -169,9 +169,8 @@ class ViryaCalculator {
         
         if (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step') {
             requiredPathFocus = 'Secondary Path';
-            // For time calculations, use the same daily XP value (mainPathDailyXP)
-            // since both parameters now receive the same value (dailyXP without temporary bonus)
-            dailyXPToUse = mainPathDailyXP || 0;
+            // For secondary path scenarios, use secondaryPathDailyXP to match "Player Time to Cultivate" calculation
+            dailyXPToUse = secondaryPathDailyXP || 0;
         }
 
         console.log('Required path focus:', requiredPathFocus);
@@ -233,7 +232,14 @@ class ViryaCalculator {
                 return { daysNeeded: 0, xpNeeded: 0, requiredPathFocus };
             }
 
-            const daysNeeded = xpNeeded / dailyXPToUse;
+            // For secondary path scenarios, calculate days stage-by-stage with proper virya bonuses
+            let daysNeeded;
+            if (requiredPathFocus === 'Secondary Path' && (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step')) {
+                daysNeeded = this.calculateDaysToScenarioWithBonuses(targetScenario, currentScenario, playerData, xpNeeded, mainPathDailyXP, secondaryPathDailyXP);
+            } else {
+                daysNeeded = xpNeeded / dailyXPToUse;
+            }
+            
             console.log('Days needed:', daysNeeded);
 
             // Safety checks
@@ -383,18 +389,60 @@ class ViryaCalculator {
 		//What is our realm, current xp, and where we are aiming for?
 		const currentRealmData = Realms[currentRealm];
 		console.log(currentRealm);
-        const currentXP = currentRealmData.xp * (currentProgress / 100);
+        
+        // Handle overflow: if progress > 100%, we have overflow XP that should carry to next realm
+        const currentRealmXP = currentRealmData.xp;
+        let currentXP = currentRealmXP * Math.min(100, currentProgress) / 100; // Cap at 100% for current realm
+        let overflowXP = 0;
+        
+        if (currentProgress > 100) {
+            // Calculate overflow XP
+            overflowXP = currentRealmXP * (currentProgress - 100) / 100;
+            console.log(`Overflow detected: ${overflowXP.toLocaleString()} XP (${currentProgress.toFixed(2)}% progress)`);
+        }
+        
         const targetRealmData = Realms[targetRealm];
 		console.log(targetRealm);
 		//finding our position in the arrays
 		const currentRealmIndex = RealmCalculator.calculateRealmIndex(currentRealm);
         const targetRealmIndex = RealmCalculator.calculateRealmIndex(targetRealm);
-		//and grabbing the xp value
-		const targetXP = RealmCalculator.calculateRealmProgression(currentRealmIndex, targetRealmIndex);
-        if (currentXP >= targetXP) {
+        
+        // If we're already past the target realm, no XP needed
+        if (currentRealmIndex > targetRealmIndex) {
+            console.log('Already past target realm');
             return 0;
         }
-        return targetXP - currentXP;
+        
+        // If target is in the same realm, handle overflow
+        if (currentRealm === targetRealm) {
+            const targetXP = targetRealmData.xp * (targetProgress / 100);
+            // If we have overflow, it counts towards the target
+            const totalCurrentXP = currentXP + overflowXP;
+            if (totalCurrentXP >= targetXP) {
+                return 0;
+            }
+            return Math.max(0, targetXP - totalCurrentXP);
+        }
+        
+		// Calculate XP needed from current position to target realm
+		// calculateRealmProgression includes both start and end realms, so we need to account for:
+		// 1. We're already at 100% of current realm (or have overflow)
+		// 2. We need to reach targetProgress% of target realm
+		
+		// Calculate total XP from start of current realm to 100% of target realm
+		const targetXPTo100 = RealmCalculator.calculateRealmProgression(currentRealmIndex, targetRealmIndex);
+		// But we only need targetProgress% of target realm, not 100%
+		const targetRealmXP = targetRealmData.xp;
+		const targetXP = targetXPTo100 - targetRealmXP + (targetRealmXP * targetProgress / 100);
+		
+        // We're at 100% of current realm (currentXP = currentRealmXP) plus any overflow
+        // The overflow counts towards reaching the target
+        const totalCurrentXP = currentXP + overflowXP;
+        
+        if (totalCurrentXP >= targetXP) {
+            return 0;
+        }
+        return Math.max(0, targetXP - totalCurrentXP);
     }
     
     static calculateMaxNextRealmScenario(targetScenario, playerData, mainPathDailyXPBase, secondaryPathDailyXPBase) {
@@ -775,6 +823,215 @@ class ViryaCalculator {
         console.log('Maximum scenario: Completion (only main path reaches 100% Late)');
         console.groupEnd();
         return 'Completion';
+    }
+    
+    static calculateDaysToScenarioWithBonuses(targetScenario, currentScenario, playerData, totalXPNeeded, mainPathDailyXP, baseSecondaryPathDailyXP) {
+        // Calculate days needed by breaking down progression into stages matching the XP calculation structure
+        // Each stage uses the correct virya bonus that's active during that progression
+        
+        if (baseSecondaryPathDailyXP <= 0) {
+            return Infinity;
+        }
+        
+        // Check if main path needs to reach Completion first (required for Eminence/Perfect/Half-Step)
+        const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= 100;
+        let totalDays = 0;
+        
+        // If main path is not at 100% Late, we need to add Completion time first
+        // Completion requires MAIN path focus, not secondary path
+        if (!isMainPath100Late && (targetScenario === 'Eminence' || targetScenario === 'Perfect' || targetScenario === 'Half-Step')) {
+            // Calculate days to reach Completion (main path focus)
+            if (mainPathDailyXP > 0) {
+                const completionXP = this.calculateXPForCompletion(playerData);
+                if (completionXP > 0) {
+                    // Calculate days accounting for main path realm progression
+                    const completionDays = this.calculateDaysForMainPathStage(
+                        playerData.mainPathRealm,
+                        playerData.mainPathProgress,
+                        `${playerData.mainPathRealmMajor} Late`,
+                        100,
+                        playerData
+                    );
+                    totalDays += completionDays;
+                }
+            }
+        }
+        
+        // Scenario bonuses: bonus active when IN that scenario (used when progressing FROM that scenario)
+        const scenarioBonuses = {
+            'Eminence': 0.2,
+            'Perfect': 0.2,
+            'Half-Step': 0.4
+        };
+        
+        let currentRealm = playerData.secondaryPathRealm;
+        let currentProgress = playerData.secondaryPathProgress;
+        let currentBonus = 0; // Bonus active at current position
+        
+        // Break down progression based on target scenario
+        if (targetScenario === 'Eminence') {
+            // Stage: Current → Eminence (no bonus active)
+            const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+            const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
+            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            
+            if (previousMajor) {
+                const targetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
+                    ? `${previousMajor} Late` 
+                    : `${previousMajor} Mid`;
+                const stageXP = this.calculateXPToReach(currentRealm, currentProgress, targetRealm, 100);
+                const stageDays = this.calculateDaysForStage(currentRealm, currentProgress, targetRealm, currentBonus, playerData);
+                totalDays += stageDays;
+            }
+        } else if (targetScenario === 'Perfect') {
+            // Stage 1: Current → Eminence (no bonus)
+            // Stage 2: Eminence → Perfect (0.2 bonus from Eminence)
+            const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+            const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
+            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            
+            if (previousMajor) {
+                // Stage 1: to Eminence
+                const eminenceTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
+                    ? `${previousMajor} Late` 
+                    : `${previousMajor} Mid`;
+                const eminenceXP = this.calculateXPToReach(currentRealm, currentProgress, eminenceTargetRealm, 100);
+                if (eminenceXP > 0) {
+                    const eminenceDays = this.calculateDaysForStage(currentRealm, currentProgress, eminenceTargetRealm, currentBonus, playerData);
+                    totalDays += eminenceDays;
+                    currentRealm = eminenceTargetRealm;
+                    currentProgress = 100;
+                    currentBonus = scenarioBonuses['Eminence'];
+                }
+                
+                // Stage 2: to Perfect
+                const perfectTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
+                    ? `${playerData.mainPathRealmMajor} Mid` 
+                    : `${playerData.mainPathRealmMajor} Early`;
+                const perfectXP = this.calculateXPToReach(currentRealm, currentProgress, perfectTargetRealm, 100);
+                if (perfectXP > 0) {
+                    const perfectDays = this.calculateDaysForStage(currentRealm, currentProgress, perfectTargetRealm, currentBonus, playerData);
+                    totalDays += perfectDays;
+                }
+            }
+        } else if (targetScenario === 'Half-Step') {
+            // Stage 1: Current → Eminence (no bonus)
+            // Stage 2: Eminence → Perfect (0.2 bonus from Eminence)
+            // Stage 3: Perfect → Half-Step (0.2 bonus from Perfect)
+            const realmOrderMajor = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
+            const currentMajorIndex = realmOrderMajor.indexOf(playerData.mainPathRealmMajor);
+            const previousMajor = currentMajorIndex > 0 ? realmOrderMajor[currentMajorIndex - 1] : null;
+            
+            if (previousMajor) {
+                // Stage 1: to Eminence
+                const eminenceTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
+                    ? `${previousMajor} Late` 
+                    : `${previousMajor} Mid`;
+                const eminenceXP = this.calculateXPToReach(currentRealm, currentProgress, eminenceTargetRealm, 100);
+                if (eminenceXP > 0) {
+                    const eminenceDays = this.calculateDaysForStage(currentRealm, currentProgress, eminenceTargetRealm, currentBonus, playerData);
+                    totalDays += eminenceDays;
+                    currentRealm = eminenceTargetRealm;
+                    currentProgress = 100;
+                    currentBonus = scenarioBonuses['Eminence'];
+                }
+                
+                // Stage 2: to Perfect
+                const perfectTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
+                    ? `${playerData.mainPathRealmMajor} Mid` 
+                    : `${playerData.mainPathRealmMajor} Early`;
+                const perfectXP = this.calculateXPToReach(currentRealm, currentProgress, perfectTargetRealm, 100);
+                if (perfectXP > 0) {
+                    const perfectDays = this.calculateDaysForStage(currentRealm, currentProgress, perfectTargetRealm, currentBonus, playerData);
+                    totalDays += perfectDays;
+                    currentRealm = perfectTargetRealm;
+                    currentProgress = 100;
+                    currentBonus = scenarioBonuses['Perfect'];
+                }
+                
+                // Stage 3: to Half-Step
+                const halfStepTargetRealm = `${playerData.mainPathRealmMajor} Late`;
+                const halfStepXP = this.calculateXPToReach(currentRealm, currentProgress, halfStepTargetRealm, 100);
+                if (halfStepXP > 0) {
+                    const halfStepDays = this.calculateDaysForStage(currentRealm, currentProgress, halfStepTargetRealm, currentBonus, playerData);
+                    totalDays += halfStepDays;
+                }
+            }
+        }
+        
+        return totalDays;
+    }
+    
+    static calculateDaysForStage(startRealm, startProgress, endRealm, bonusActive, playerData) {
+        // Calculate days needed for a single stage (secondary path), accounting for realm progression
+        // Uses average of daily XP at start and end of stage
+        
+        const [startMajor, startMinor] = startRealm.split(' ');
+        const startPlayerData = {
+            ...playerData,
+            mainPathRealm: startRealm,
+            mainPathRealmMajor: startMajor,
+            mainPathRealmMinor: startMinor,
+            mainPathProgress: startProgress
+        };
+        const startDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(startPlayerData, bonusActive);
+        
+        const [endMajor, endMinor] = endRealm.split(' ');
+        const endPlayerData = {
+            ...playerData,
+            mainPathRealm: endRealm,
+            mainPathRealmMajor: endMajor,
+            mainPathRealmMinor: endMinor,
+            mainPathProgress: 100
+        };
+        const endDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(endPlayerData, bonusActive);
+        
+        // Average accounts for daily XP increasing as realm progresses
+        const averageDailyXP = (startDailyXP + endDailyXP) / 2;
+        
+        if (averageDailyXP <= 0) {
+            return Infinity;
+        }
+        
+        const stageXP = this.calculateXPToReach(startRealm, startProgress, endRealm, 100);
+        return stageXP / averageDailyXP;
+    }
+    
+    static calculateDaysForMainPathStage(startRealm, startProgress, endRealm, endProgress, playerData) {
+        // Calculate days needed for a main path stage, accounting for realm progression
+        // Uses average of daily XP at start and end of stage
+        
+        const [startMajor, startMinor] = startRealm.split(' ');
+        const startPlayerData = {
+            ...playerData,
+            mainPathRealm: startRealm,
+            mainPathRealmMajor: startMajor,
+            mainPathRealmMinor: startMinor,
+            mainPathProgress: startProgress
+        };
+        const viryaInfo = this.detectScenario(startPlayerData);
+        const startDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(startPlayerData, viryaInfo.absorptionBonus);
+        
+        const [endMajor, endMinor] = endRealm.split(' ');
+        const endPlayerData = {
+            ...playerData,
+            mainPathRealm: endRealm,
+            mainPathRealmMajor: endMajor,
+            mainPathRealmMinor: endMinor,
+            mainPathProgress: endProgress
+        };
+        const endViryaInfo = this.detectScenario(endPlayerData);
+        const endDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(endPlayerData, endViryaInfo.absorptionBonus);
+        
+        // Average accounts for daily XP increasing as realm progresses
+        const averageDailyXP = (startDailyXP + endDailyXP) / 2;
+        
+        if (averageDailyXP <= 0) {
+            return Infinity;
+        }
+        
+        const stageXP = this.calculateXPToReach(startRealm, startProgress, endRealm, endProgress);
+        return stageXP / averageDailyXP;
     }
 }
 

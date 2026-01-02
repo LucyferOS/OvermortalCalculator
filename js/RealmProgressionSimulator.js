@@ -94,7 +94,9 @@ class RealmProgressionSimulator {
             Logger.debug(`Effective daily XP: ${effectiveDailyXP.toLocaleString()}`);
             Logger.debug(`Current absorption bonus: ${currentAbsorptionBonus * 100}%`);
             
-            const xpNeededForRealm = xpInCurrentRealm - currentXP;
+            // Check if we already have overflow XP (currentXP > xpInCurrentRealm)
+            const hasOverflow = currentXP > xpInCurrentRealm;
+            const overflowXP = hasOverflow ? currentXP - xpInCurrentRealm : 0;
             
             // Check if we're at 100% Late in max realm - if so, continue simulating remaining days
             // to allow bonuses to show their benefit (scenarios with bonuses reach max realm faster
@@ -102,13 +104,21 @@ class RealmProgressionSimulator {
             let daysForThisRealm;
             if (maxRealm && currentRealm === maxRealm && currentXP >= xpInCurrentRealm) {
                 // At 100% Late in max realm - continue simulating remaining days
+                // We already have overflow, so just use remaining days
                 daysForThisRealm = daysRemaining;
+            } else if (hasOverflow) {
+                // We have overflow but not at max realm - we should progress immediately
+                // Don't spend any days here, we'll progress to next realm
+                daysForThisRealm = 0;
             } else {
                 // Normal case - calculate days needed to complete realm or use remaining days
-                daysForThisRealm = Math.min(daysRemaining, xpNeededForRealm / effectiveDailyXP);
+                const xpNeededForRealm = xpInCurrentRealm - currentXP;
+                daysForThisRealm = Math.min(daysRemaining, Math.max(0, xpNeededForRealm / effectiveDailyXP));
             }
             
             // Add XP gained in this period
+            // If we have overflow and daysForThisRealm is 0, we don't gain any new XP here
+            // (we'll progress to next realm and carry the overflow)
             const xpGained = effectiveDailyXP * daysForThisRealm;
             totalXP += xpGained;
             currentXP += xpGained;
@@ -133,6 +143,36 @@ class RealmProgressionSimulator {
             });
             
             daysRemaining -= daysForThisRealm;
+            
+            // If we have overflow and daysForThisRealm was 0, we need to progress immediately
+            // Check current overflow after XP gain
+            const currentOverflow = currentXP > xpInCurrentRealm ? currentXP - xpInCurrentRealm : 0;
+            if (currentOverflow > 0 && daysForThisRealm === 0) {
+                // We have overflow - progress to next realm immediately
+                const nextRealm = this.getNextRealm(currentRealm);
+                if (!nextRealm) {
+                    Logger.warn('Reached highest possible realm');
+                    break;
+                }
+                
+                // Check if we should stop at max realm
+                const [currentMajor, currentMinor] = currentRealm.split(' ');
+                const [nextMajor, nextMinor] = nextRealm.split(' ');
+                
+                // Check if we've reached 100% Late in the max realm
+                if (maxRealm && currentRealm === maxRealm && currentMinor === 'Late') {
+                    // Continue simulating remaining days - don't progress
+                    Logger.info(`Reached 100% Late in max realm ${maxRealm} with overflow, continuing to overflow for remaining ${daysRemaining.toFixed(1)} days (overflow will convert to next realm)`);
+                    // currentXP already has the overflow, just continue
+                    continue;
+                }
+                
+                // Progress to next realm with overflow
+                Logger.info(`Progressing from ${currentRealm} to ${nextRealm} with ${currentOverflow.toLocaleString()} overflow XP`);
+                currentXP = currentOverflow; // Carry overflow to next realm
+                currentRealm = nextRealm;
+                continue; // Continue loop to process next realm
+            }
             
             // Check if we completed this realm
             if (currentXP >= xpInCurrentRealm && daysRemaining > 0) {
@@ -169,10 +209,12 @@ class RealmProgressionSimulator {
                 // IMPORTANT: We should NOT stop here - we should continue simulating remaining days
                 // to allow bonuses to show their benefit (scenarios with bonuses reach max realm faster
                 // and should have more time remaining to gain XP)
+                // The overflow XP will be converted to next realm at the end of simulation
                 if (maxRealm && currentRealm === maxRealm && currentMinor === 'Late' && currentXP >= xpInCurrentRealm) {
                     // Continue simulating remaining days - don't stop here and don't progress to next realm
                     // The bonus should allow us to gain more XP in the remaining time
-                    Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to simulate remaining ${daysRemaining.toFixed(1)} days to show bonus benefit`);
+                    // Overflow XP will accumulate and be converted to next realm at the end
+                    Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to overflow for remaining ${daysRemaining.toFixed(1)} days (overflow will convert to next realm)`);
                     // Don't break and don't progress - continue simulating in current realm
                     // Skip the rest of the realm progression logic and continue the loop
                     continue;
@@ -221,11 +263,14 @@ class RealmProgressionSimulator {
                     if (daysNeededFor100Late <= daysRemaining) {
                         // Can reach 100% Late in max realm - do it and continue simulating remaining days
                         // IMPORTANT: Don't stop here - continue simulating remaining days to allow bonuses to show their benefit
+                        // Carry overflow XP from current realm
+                        const overflowXP = currentXP - xpInCurrentRealm;
                         const daysToUse = daysNeededFor100Late;
                         const xpGained = nextEffectiveDailyXP * daysToUse;
                         totalXP += xpGained;
                         daysRemaining -= daysToUse;
-                        currentXP = nextRealmXP; // Exactly 100%
+                        // Add overflow XP to the next realm (will be > 100% if overflow exists)
+                        currentXP = nextRealmXP + overflowXP;
                         currentRealm = nextRealm;
                         
                         realmHistory.push({
@@ -279,7 +324,9 @@ class RealmProgressionSimulator {
                         
                         if (xpGainedForNext >= nextRealmXP) {
                             // Completed next realm, move to it and check for further progression
-                            currentXP = xpGainedForNext - nextRealmXP;
+                            // Carry overflow XP
+                            const overflowXP = xpGainedForNext - nextRealmXP;
+                            currentXP = overflowXP;
                             currentRealm = nextRealm;
                             // Continue loop to check if we can progress further (absorption check will happen again)
                         } else {
@@ -291,17 +338,27 @@ class RealmProgressionSimulator {
                     } else {
                         // Not enough days to complete next realm, use remaining days in current realm
                         // But we're already at 100% of current realm, so we should progress but use remaining days
+                        // Carry overflow XP from current realm
+                        const overflowXP = currentXP - xpInCurrentRealm;
                         const daysToUse = daysRemaining;
                         const xpGainedForNext = effectiveDailyXP * daysToUse;
                         totalXP += xpGainedForNext;
-                        currentXP = xpGainedForNext;
+                        // Add overflow XP from previous realm to the XP gained in next realm
+                        currentXP = overflowXP + xpGainedForNext;
                         currentRealm = nextRealm;
                         daysRemaining = 0;
                         break;
                     }
                 } else {
                     // Normal progression - either major transition or absorption is better in next realm
-                    currentXP = 0;
+                    // Carry overflow XP to the next realm instead of resetting to 0
+                    const overflowXP = currentXP - xpInCurrentRealm;
+                    if (overflowXP > 0) {
+                        Logger.info(`Carrying ${overflowXP.toLocaleString()} overflow XP to ${nextRealm}`);
+                        currentXP = overflowXP;
+                    } else {
+                        currentXP = 0;
+                    }
                     Logger.info(`Transitioning to: ${nextRealm}`);
                     currentRealm = nextRealm;
                 }
@@ -313,6 +370,25 @@ class RealmProgressionSimulator {
             }
             
             Logger.groupEnd();
+        }
+        
+        // At the end of simulation, convert any overflow XP to next realm progress
+        // This handles the case where we've overflowed beyond 100% in the current realm
+        const currentRealmInfo = Realms[currentRealm];
+        if (currentRealmInfo && currentXP > currentRealmInfo.xp) {
+            const overflowXP = currentXP - currentRealmInfo.xp;
+            const nextRealm = this.getNextRealm(currentRealm);
+            
+            if (nextRealm && overflowXP > 0) {
+                Logger.info(`Converting ${overflowXP.toLocaleString()} overflow XP from ${currentRealm} to ${nextRealm} progress`);
+                const nextRealmInfo = Realms[nextRealm];
+                if (nextRealmInfo) {
+                    // Convert overflow XP to progress in next realm
+                    currentXP = overflowXP;
+                    currentRealm = nextRealm;
+                    Logger.info(`Converted overflow: Now at ${nextRealm} with ${((currentXP / nextRealmInfo.xp) * 100).toFixed(2)}% progress`);
+                }
+            }
         }
         
         Logger.section('SIMULATION RESULTS', Logger.INFO);
