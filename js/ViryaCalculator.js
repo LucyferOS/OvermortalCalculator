@@ -214,6 +214,14 @@ class ViryaCalculator {
             return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
         }
 
+        // Ensure main path is at 100% Late for all virya scenarios (Eminence, Perfect, Half-Step)
+        // Completion is required first for these scenarios
+        if ((targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP) && !isMainPath100Late) {
+            Logger.debug('Main path must reach 100% Late first for virya scenarios');
+            // The calculateXPFor* functions already include Completion XP, so we can proceed
+            // But we should log this requirement
+        }
+
         // Calculate XP needed based on target scenario
         let xpNeeded = 0;
 
@@ -327,11 +335,11 @@ class ViryaCalculator {
 			if (!isMainPath100Late) {		
 				return this.calculateXPForCompletion(playerData) + this.calculateXPToReach(playerData.secondaryPathRealm, 
 										  playerData.secondaryPathProgress,
-										  targetRealm, 100) ;
+										  targetRealm, 0) ;
 			} else {
 			return this.calculateXPToReach(playerData.secondaryPathRealm, 
 										  playerData.secondaryPathProgress,
-										  targetRealm, 100);
+										  targetRealm, 0);
 			}	
 		}
    }		
@@ -354,14 +362,14 @@ class ViryaCalculator {
 				const eminenceXP = this.calculateXPForEminence(playerData);
 				const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
 															playerData.secondaryPathProgress,
-															targetRealm, 100);
+															targetRealm, 0);
 				const totalXP = eminenceXP + perfectXP;
 				
 				return totalXP;
 				} else {
         const perfectXP = this.calculateXPToReach(playerData.secondaryPathRealm,
                                       playerData.secondaryPathProgress,
-                                      targetRealm, 100);
+                                      targetRealm, 0);
         
         return perfectXP;
 				}
@@ -485,6 +493,7 @@ class ViryaCalculator {
         };
         
         // Determine secondary path position when reaching target scenario
+        // Eminence and Perfect require 0% of target realm (just reaching it), Half-Step requires 100%
         if (targetScenario === SCENARIO_EMINENCE) {
             const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
             if (previousMajor) {
@@ -493,14 +502,14 @@ class ViryaCalculator {
                         realm: `${previousMajor} Late`,
                         major: previousMajor,
                         minor: 'Late',
-                        progress: PERCENTAGE_COMPLETE
+                        progress: 0
                     };
                 } else {
                     secondaryPathAtScenario = {
                         realm: `${previousMajor} Mid`,
                         major: previousMajor,
                         minor: 'Mid',
-                        progress: PERCENTAGE_COMPLETE
+                        progress: 0
                     };
                 }
             }
@@ -510,14 +519,14 @@ class ViryaCalculator {
                     realm: `${playerData.mainPathRealmMajor} Mid`,
                     major: playerData.mainPathRealmMajor,
                     minor: 'Mid',
-                    progress: 100
+                    progress: 0
                 };
             } else {
                 secondaryPathAtScenario = {
                     realm: `${playerData.mainPathRealmMajor} Early`,
                     major: playerData.mainPathRealmMajor,
                     minor: 'Early',
-                    progress: 100
+                    progress: 0
                 };
             }
         } else if (targetScenario === SCENARIO_HALF_STEP) {
@@ -734,7 +743,7 @@ class ViryaCalculator {
             }
         }
         
-        // Check Perfect: secondary at same major Early (or Mid for Voidbreak)
+        // Check Perfect: secondary at same major Early (or Mid for Voidbreak) at 0%
         if (secondaryPathDailyXP > 0) {
             let perfectTargetRealm;
             if (nextMajor === 'Voidbreak') {
@@ -746,17 +755,18 @@ class ViryaCalculator {
                 breakthroughPlayerData.secondaryPathRealm,
                 breakthroughPlayerData.secondaryPathProgress,
                 perfectTargetRealm,
-                100
+                0
             );
             
             // Calculate daily XP at target realm (more accurate than using starting realm daily XP)
             // Daily XP increases as realms progress, so using target realm gives better estimate
+            // Perfect requires 0% of target realm, so use 0% for daily XP calculation
             const targetRealmPlayerData = {
                 ...breakthroughPlayerData,
                 mainPathRealm: perfectTargetRealm,
                 mainPathRealmMajor: nextMajor,
                 mainPathRealmMinor: perfectTargetRealm.split(' ')[1],
-                mainPathProgress: 100
+                mainPathProgress: 0
             };
             const secondaryPathDailyXPAtTarget = XPCalculator.calculateDailyXPWithAbsorptionBonus(targetRealmPlayerData, 0);
             
@@ -796,7 +806,7 @@ class ViryaCalculator {
                         breakthroughPlayerData.secondaryPathRealm,
                         breakthroughPlayerData.secondaryPathProgress,
                         eminenceTargetRealm,
-                        100
+                        0
                     );
                     
                     // Calculate daily XP at target realm (more accurate than using starting realm daily XP)
@@ -806,7 +816,7 @@ class ViryaCalculator {
                         mainPathRealm: eminenceTargetRealm,
                         mainPathRealmMajor: targetMajor,
                         mainPathRealmMinor: targetMinor,
-                        mainPathProgress: 100
+                        mainPathProgress: 0
                     };
                     const secondaryPathDailyXPAtTarget = XPCalculator.calculateDailyXPWithAbsorptionBonus(targetRealmPlayerData, 0);
                     
@@ -888,8 +898,8 @@ class ViryaCalculator {
                 const targetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
                     ? `${previousMajor} Late` 
                     : `${previousMajor} Mid`;
-                const stageXP = this.calculateXPToReach(currentRealm, currentProgress, targetRealm, 100);
-                const stageDays = this.calculateDaysForStage(currentRealm, currentProgress, targetRealm, currentBonus, playerData);
+                const stageXP = this.calculateXPToReach(currentRealm, currentProgress, targetRealm, 0);
+                const stageDays = this.calculateDaysForStage(currentRealm, currentProgress, targetRealm, 0, currentBonus, playerData);
                 totalDays += stageDays;
             }
         } else if (targetScenario === SCENARIO_PERFECT) {
@@ -903,12 +913,12 @@ class ViryaCalculator {
                 const eminenceTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
                     ? `${previousMajor} Late` 
                     : `${previousMajor} Mid`;
-                const eminenceXP = this.calculateXPToReach(currentRealm, currentProgress, eminenceTargetRealm, 100);
+                const eminenceXP = this.calculateXPToReach(currentRealm, currentProgress, eminenceTargetRealm, 0);
                 if (eminenceXP > 0) {
-                    const eminenceDays = this.calculateDaysForStage(currentRealm, currentProgress, eminenceTargetRealm, currentBonus, playerData);
+                    const eminenceDays = this.calculateDaysForStage(currentRealm, currentProgress, eminenceTargetRealm, 0, currentBonus, playerData);
                     totalDays += eminenceDays;
                     currentRealm = eminenceTargetRealm;
-                    currentProgress = 100;
+                    currentProgress = 0;
                     currentBonus = scenarioBonuses[SCENARIO_EMINENCE];
                 }
                 
@@ -916,9 +926,9 @@ class ViryaCalculator {
                 const perfectTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
                     ? `${playerData.mainPathRealmMajor} Mid` 
                     : `${playerData.mainPathRealmMajor} Early`;
-                const perfectXP = this.calculateXPToReach(currentRealm, currentProgress, perfectTargetRealm, 100);
+                const perfectXP = this.calculateXPToReach(currentRealm, currentProgress, perfectTargetRealm, 0);
                 if (perfectXP > 0) {
-                    const perfectDays = this.calculateDaysForStage(currentRealm, currentProgress, perfectTargetRealm, currentBonus, playerData);
+                    const perfectDays = this.calculateDaysForStage(currentRealm, currentProgress, perfectTargetRealm, 0, currentBonus, playerData);
                     totalDays += perfectDays;
                 }
             }
@@ -934,12 +944,12 @@ class ViryaCalculator {
                 const eminenceTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
                     ? `${previousMajor} Late` 
                     : `${previousMajor} Mid`;
-                const eminenceXP = this.calculateXPToReach(currentRealm, currentProgress, eminenceTargetRealm, 100);
+                const eminenceXP = this.calculateXPToReach(currentRealm, currentProgress, eminenceTargetRealm, 0);
                 if (eminenceXP > 0) {
-                    const eminenceDays = this.calculateDaysForStage(currentRealm, currentProgress, eminenceTargetRealm, currentBonus, playerData);
+                    const eminenceDays = this.calculateDaysForStage(currentRealm, currentProgress, eminenceTargetRealm, 0, currentBonus, playerData);
                     totalDays += eminenceDays;
                     currentRealm = eminenceTargetRealm;
-                    currentProgress = 100;
+                    currentProgress = 0;
                     currentBonus = scenarioBonuses[SCENARIO_EMINENCE];
                 }
                 
@@ -947,12 +957,12 @@ class ViryaCalculator {
                 const perfectTargetRealm = playerData.mainPathRealmMajor === 'Voidbreak' 
                     ? `${playerData.mainPathRealmMajor} Mid` 
                     : `${playerData.mainPathRealmMajor} Early`;
-                const perfectXP = this.calculateXPToReach(currentRealm, currentProgress, perfectTargetRealm, 100);
+                const perfectXP = this.calculateXPToReach(currentRealm, currentProgress, perfectTargetRealm, 0);
                 if (perfectXP > 0) {
-                    const perfectDays = this.calculateDaysForStage(currentRealm, currentProgress, perfectTargetRealm, currentBonus, playerData);
+                    const perfectDays = this.calculateDaysForStage(currentRealm, currentProgress, perfectTargetRealm, 0, currentBonus, playerData);
                     totalDays += perfectDays;
                     currentRealm = perfectTargetRealm;
-                    currentProgress = 100;
+                    currentProgress = 0;
                     currentBonus = scenarioBonuses[SCENARIO_PERFECT];
                 }
                 
@@ -960,7 +970,7 @@ class ViryaCalculator {
                 const halfStepTargetRealm = `${playerData.mainPathRealmMajor} Late`;
                 const halfStepXP = this.calculateXPToReach(currentRealm, currentProgress, halfStepTargetRealm, 100);
                 if (halfStepXP > 0) {
-                    const halfStepDays = this.calculateDaysForStage(currentRealm, currentProgress, halfStepTargetRealm, currentBonus, playerData);
+                    const halfStepDays = this.calculateDaysForStage(currentRealm, currentProgress, halfStepTargetRealm, 100, currentBonus, playerData);
                     totalDays += halfStepDays;
                 }
             }
@@ -969,7 +979,7 @@ class ViryaCalculator {
         return totalDays;
     }
     
-    static calculateDaysForStage(startRealm, startProgress, endRealm, bonusActive, playerData) {
+    static calculateDaysForStage(startRealm, startProgress, endRealm, endProgress, bonusActive, playerData) {
         // Calculate days needed for a single stage (secondary path), accounting for realm progression
         // Uses average of daily XP at start and end of stage
         
@@ -989,7 +999,7 @@ class ViryaCalculator {
             mainPathRealm: endRealm,
             mainPathRealmMajor: endMajor,
             mainPathRealmMinor: endMinor,
-            mainPathProgress: 100
+            mainPathProgress: endProgress
         };
         const endDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(endPlayerData, bonusActive);
         
@@ -1000,7 +1010,7 @@ class ViryaCalculator {
             return Infinity;
         }
         
-        const stageXP = this.calculateXPToReach(startRealm, startProgress, endRealm, 100);
+        const stageXP = this.calculateXPToReach(startRealm, startProgress, endRealm, endProgress);
         return stageXP / averageDailyXP;
     }
     
