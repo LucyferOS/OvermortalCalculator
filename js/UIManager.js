@@ -390,9 +390,16 @@ class UIManager {
                     secondaryPathDailyXPBase
                 );
                 this.updateElementText(nextRealmId, maxNextRealm || '--');
+                
+                // Check if Completion cannot be reached and highlight row red
+                // Note: maxNextRealm may be a string indicating unreachability (not an error)
+                this.updateRowHighlighting(scenarioKey, maxNextRealm);
             } catch (error) {
+                // This is a calculation error, not an unreachable scenario
                 Logger.error('Error calculating max next realm scenario:', error);
-                this.updateElementText(nextRealmId, '--');
+                this.updateElementText(nextRealmId, 'Error');
+                // Clear highlighting on calculation error (don't highlight for errors)
+                this.updateRowHighlighting(scenarioKey, null);
             }
             
             Logger.groupEnd();
@@ -424,9 +431,16 @@ class UIManager {
                     secondaryPathDailyXPBase
                 );
                 this.updateElementText(nextRealmId, maxNextRealm || '--');
+                
+                // Check if Completion cannot be reached and highlight row red
+                // Note: maxNextRealm may be a string indicating unreachability (not an error)
+                this.updateRowHighlighting(scenarioKey, maxNextRealm);
             } catch (error) {
+                // This is a calculation error, not an unreachable scenario
                 Logger.error('Error calculating max next realm scenario:', error);
-                this.updateElementText(nextRealmId, '--');
+                this.updateElementText(nextRealmId, 'Error');
+                // Clear highlighting on calculation error (don't highlight for errors)
+                this.updateRowHighlighting(scenarioKey, null);
             }
             
             Logger.groupEnd();
@@ -508,12 +522,59 @@ class UIManager {
                 secondaryPathDailyXPBase
             );
             this.updateElementText(nextRealmId, maxNextRealm || '--');
+            
+            // Check if Completion cannot be reached and highlight row red
+            this.updateRowHighlighting(scenarioKey, maxNextRealm);
         } catch (error) {
             Logger.error('Error calculating max next realm scenario:', error);
             this.updateElementText(nextRealmId, '--');
+            // Clear highlighting on error
+            this.updateRowHighlighting(scenarioKey, null);
         }
         
         Logger.groupEnd();
+    }
+
+    static updateRowHighlighting(scenarioKey, maxNextRealmResult) {
+        // Map scenario keys to row IDs
+        const rowIdMap = {
+            'completion': 'virya-row-completion',
+            'eminence': 'virya-row-eminence',
+            'perfect': 'virya-row-perfect',
+            'halfstep': 'virya-row-halfstep'
+        };
+        
+        const rowId = rowIdMap[scenarioKey];
+        if (!rowId) {
+            return;
+        }
+        
+        const row = document.getElementById(rowId);
+        if (!row) {
+            return;
+        }
+        
+        // Check if Completion cannot be reached
+        // Unreachable scenarios return specific strings, not errors
+        const unreachableStrings = [
+            'Cannot reach Completion',
+            'Cannot reach scenario',
+            'Next realm not implemented yet'
+        ];
+        
+        const isUnreachable = unreachableStrings.includes(maxNextRealmResult) || 
+                             maxNextRealmResult === null ||
+                             maxNextRealmResult === '--';
+        
+        if (isUnreachable) {
+            // Highlight row red to indicate Completion cannot be reached
+            row.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+            row.style.borderLeft = '4px solid rgba(255, 0, 0, 0.8)';
+        } else {
+            // Clear highlighting - scenario is reachable
+            row.style.backgroundColor = '';
+            row.style.borderLeft = '';
+        }
     }
 
     static updatePathFocusIndicators(pathFocus) {
@@ -827,6 +888,76 @@ class UIManager {
             return parseFloat(percStr.replace('%', '').replace('+', ''));
         };
         
+        // Function to update overflow XP comparison cell with two-line format
+        const updateOverflowCell = (scenario, comp, cellId) => {
+            if (!comp) {
+                this.updateElementText(cellId, '--');
+                return;
+            }
+            
+            const scenarioOverflowXP = comp.scenario2.overflowXP || 0;
+            const completionOverflowXP = comp.scenario1.overflowXP || 0;
+            const overflowDiff = scenarioOverflowXP - completionOverflowXP;
+            
+            const scenarioXPRequired = comp.scenario2.xpRequiredToReach || 0;
+            const completionXPRequired = comp.scenario1.xpRequiredToReach || 0;
+            const requiredDiff = scenarioXPRequired - completionXPRequired;
+            
+            // Line 1: Overflow XP comparison (as percentage)
+            let overflowText = 'Overflow XP: ';
+            if (completionOverflowXP > 0) {
+                // Calculate percentage difference
+                const overflowPercent = (overflowDiff / completionOverflowXP) * 100;
+                if (overflowPercent > 0) {
+                    overflowText += `+${overflowPercent.toFixed(2)}%\n`;
+                } else if (overflowPercent < 0) {
+                    overflowText += `${overflowPercent.toFixed(2)}%\n`;
+                } else {
+                    overflowText += `0.00%\n`;
+                }
+                overflowText += `(${format(scenarioOverflowXP)} vs ${format(completionOverflowXP)})`;
+            } else {
+                // Fallback to raw value if completion overflow is 0
+                if (overflowDiff > 0) {
+                    overflowText += `+${format(overflowDiff)} XP\n`;
+                } else if (overflowDiff < 0) {
+                    overflowText += `${format(overflowDiff)} XP\n`;
+                } else {
+                    overflowText += `0 XP\n`;
+                }
+                overflowText += `(${format(scenarioOverflowXP)} vs ${format(completionOverflowXP)})`;
+            }
+            
+            // Line 2: XP to reach (just the value, not comparison)
+            overflowText += `\n\nXP to reach: `;
+            if (scenarioXPRequired > 0) {
+                overflowText += `${format(scenarioXPRequired)} XP`;
+            } else {
+                overflowText += `0 XP (already at scenario)`;
+            }
+            
+            this.updateElementText(cellId, overflowText);
+            
+            const cell = document.getElementById(cellId);
+            if (cell) {
+                cell.style.whiteSpace = 'pre-line';
+                cell.style.lineHeight = '1.4';
+                cell.style.padding = '8px 4px';
+                cell.style.fontSize = '0.9em';
+                
+                // Color code based on overflow XP difference (positive = good, negative = bad)
+                if (overflowDiff > 0) {
+                    cell.style.color = 'var(--success)';
+                } else if (overflowDiff < 0) {
+                    cell.style.color = 'var(--accent)';
+                } else {
+                    cell.style.color = 'var(--text)';
+                }
+                
+                cell.title = `Overflow XP: Main path XP gained after reaching scenario until timegate (excludes XP needed to reach scenario), compared to Completion.\nXP to reach: XP needed to reach this scenario from current state.`;
+            }
+        };
+        
         // Function to update a comparison cell with percentage, XP diff, total XP, and days
         const updateComparisonCell = (scenario, comp, cellId) => {
             if (!comp) {
@@ -929,33 +1060,33 @@ class UIManager {
             }
         };
         
-        // Eminence comparison
+        // Eminence comparison - use overflow XP format for "XP compared to overflow" column
         if (scenarioComparisons[SCENARIO_EMINENCE]) {
             const comp = scenarioComparisons[SCENARIO_EMINENCE];
-            updateComparisonCell(SCENARIO_EMINENCE, comp, 'virya-eminence-xp');
-            Logger.debug('Updated Eminence comparison cell');
+            updateOverflowCell(SCENARIO_EMINENCE, comp, 'virya-eminence-xp');
+            Logger.debug('Updated Eminence overflow comparison cell');
         } else {
-            this.updateElementText('virya-eminence-xp', '--\n--\n--\n--');
+            this.updateElementText('virya-eminence-xp', '--');
             Logger.warn('No Eminence comparison data');
         }
         
-        // Perfect comparison
+        // Perfect comparison - use overflow XP format for "XP compared to overflow" column
         if (scenarioComparisons[SCENARIO_PERFECT]) {
             const comp = scenarioComparisons[SCENARIO_PERFECT];
-            updateComparisonCell(SCENARIO_PERFECT, comp, 'virya-perfect-xp');
-            Logger.debug('Updated Perfect comparison cell');
+            updateOverflowCell(SCENARIO_PERFECT, comp, 'virya-perfect-xp');
+            Logger.debug('Updated Perfect overflow comparison cell');
         } else {
-            this.updateElementText('virya-perfect-xp', '--\n--\n--\n--');
+            this.updateElementText('virya-perfect-xp', '--');
             Logger.warn('No Perfect comparison data');
         }
         
-        // Half-Step comparison
+        // Half-Step comparison - use overflow XP format for "XP compared to overflow" column
         if (scenarioComparisons[SCENARIO_HALF_STEP]) {
             const comp = scenarioComparisons[SCENARIO_HALF_STEP];
-            updateComparisonCell(SCENARIO_HALF_STEP, comp, 'virya-halfstep-xp');
-            Logger.debug('Updated Half-Step comparison cell');
+            updateOverflowCell(SCENARIO_HALF_STEP, comp, 'virya-halfstep-xp');
+            Logger.debug('Updated Half-Step overflow comparison cell');
         } else {
-            this.updateElementText('virya-halfstep-xp', '--\n--\n--\n--');
+            this.updateElementText('virya-halfstep-xp', '--');
             Logger.warn('No Half-Step comparison data');
         }
         
@@ -966,15 +1097,23 @@ class UIManager {
             const totalXP = comp.scenario1.totalXP;
             const xpLostDuringFocus = comp.scenario1.xpLostDuringFocus || 0;
             const daysToReach = comp.scenario1.daysToReach;
+            const completionOverflowXP = comp.scenario1.overflowXP || 0;
             
             // Subtract XP lost during focus from the displayed total
             const netTotalXP = totalXP - xpLostDuringFocus;
             
-            let completionText = `Baseline: ${format(netTotalXP)} XP\n`;
-            if (daysToReach === 0) {
-                completionText += `Already at Completion`;
+            const completionXPRequired = comp.scenario1.xpRequiredToReach || 0;
+            
+            // Display Completion baseline with two-line format matching other scenarios
+            let completionText = 'Overflow XP: ';
+            completionText += `${format(completionOverflowXP)} XP\n`;
+            completionText += `(Completion baseline)`;
+            
+            completionText += `\n\nXP to reach: `;
+            if (completionXPRequired > 0) {
+                completionText += `${format(completionXPRequired)} XP`;
             } else {
-                completionText += `Days to reach: ${formatTime(daysToReach)}`;
+                completionText += `0 XP (already at Completion)`;
             }
             
             this.updateElementText('virya-completion-xp', completionText);
@@ -982,12 +1121,29 @@ class UIManager {
             const cell = document.getElementById('virya-completion-xp');
             if (cell) {
                 cell.style.whiteSpace = 'pre-line';
-                cell.style.lineHeight = '1.2';
+                cell.style.lineHeight = '1.4';
                 cell.style.padding = '8px 4px';
                 cell.style.fontSize = '0.9em';
-                cell.title = 'Completion scenario baseline XP';
+                cell.style.color = 'var(--text)';
+                cell.title = 'Completion scenario baseline values:\nOverflow XP: Main path XP gained after reaching Completion until timegate.\nXP to reach: XP needed to reach Completion from current state.';
             }
             Logger.debug('Updated Completion baseline cell');
+        }
+        
+        // Update overflow XP cells (these are in the fruits table, but we'll update them here for virya scenarios)
+        if (scenarioComparisons[SCENARIO_EMINENCE]) {
+            updateOverflowCell(SCENARIO_EMINENCE, scenarioComparisons[SCENARIO_EMINENCE], 'eminence-overflow-xp');
+        }
+        if (scenarioComparisons[SCENARIO_PERFECT]) {
+            updateOverflowCell(SCENARIO_PERFECT, scenarioComparisons[SCENARIO_PERFECT], 'perfect-overflow-xp');
+        }
+        if (scenarioComparisons[SCENARIO_HALF_STEP]) {
+            updateOverflowCell(SCENARIO_HALF_STEP, scenarioComparisons[SCENARIO_HALF_STEP], 'halfstep-overflow-xp');
+        }
+        if (scenarioComparisons[SCENARIO_EMINENCE]) {
+            const comp = scenarioComparisons[SCENARIO_EMINENCE];
+            const completionOverflowXP = comp.scenario1.overflowXP || 0;
+            this.updateElementText('completion-overflow-xp', format(completionOverflowXP));
         }
         
         // Update the recommendation display in the status bar
