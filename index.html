@@ -19,7 +19,7 @@
                     <h1>OverMortal Realm Breakthrough Calculator</h1>
                     <div class="subtitle">Plan your cultivation journey and optimize your breakthrough strategy</div>
                 </div>
-                <div class="version">v0.3.5.1 (BETA)</div>
+                <div class="version">v0.3.6 (BETA)</div>
             </div>
         </header>
         <div class="sidebar">
@@ -922,6 +922,48 @@
                         <canvas id="extractor-comparison-chart"></canvas>
                     </div>
                 </div>
+                <div class="card">
+                    <h2 class="card-title">Red Pills for Breakthrough
+                        <span class="tooltip-icon" title="Calculate how many red pills are needed to break through based on adjusted time to next major realm"><i class="fa-solid fa-circle-info"></i></span>
+                    </h2>
+                    <div class="red-pills-calculator">
+                        <div class="slider-container">
+                            <label for="time-adjustment-slider">Reduce Time to Next Major Realm (days):</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="time-adjustment-slider" min="0" max="1000" step="1" value="0">
+                                <div class="slider-value-display">
+                                    <span id="time-adjustment-value">0</span> days
+                                </div>
+                            </div>
+                            <div class="slider-info">
+                                <span>Base time: <span id="base-time-display">--</span> days</span>
+                                <span>Adjusted time: <span id="adjusted-time-display">--</span> days</span>
+                            </div>
+                        </div>
+                        <div class="red-pills-result">
+                            <div class="result-item">
+                                <span class="result-label">XP Needed:</span>
+                                <span class="result-value" id="red-pills-xp-needed">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">XP Gained (without red pills):</span>
+                                <span class="result-value" id="red-pills-xp-gained">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">XP Deficit:</span>
+                                <span class="result-value" id="red-pills-xp-deficit">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Red Pill XP per Pill:</span>
+                                <span class="result-value" id="red-pills-xp-per-pill">--</span>
+                            </div>
+                            <div class="result-item highlight">
+                                <span class="result-label">Red Pills Needed:</span>
+                                <span class="result-value" id="red-pills-needed">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- DEBUG SECTION -->
@@ -962,7 +1004,7 @@
 		</div>
 		
             <div class="footer">
-                <p>OverMortal Realm Breakthrough Calculator v0.3.5.1 (BETA)</p>
+                <p>OverMortal Realm Breakthrough Calculator v0.3.6 (BETA)</p>
                 <p>Coded by LucyferOS (Endless) | <a href="https://docs.google.com/spreadsheets/d/19xuznnncxhgHlUFwawAt8DPCu7YgwdGSP7mdHXGWTdk/edit?gid=1602589637#gid=1602589637" target="_blank">Based on original work by Zild and the Eternal Palace community, as well as Yutsu (Abyssal Hunt)</a></p>
                 <p>Want to give a tip? <a href="https://ko-fi.com/lucyferos" target="_blank">Buy me vouchers or a coffee!</a></p>
                 <p>Last updated: 02/01/2026</p>

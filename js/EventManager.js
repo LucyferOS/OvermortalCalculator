@@ -172,7 +172,25 @@ class EventManager {
         // Activate clicked nav item and corresponding section
         navItem.classList.add('active');
         const sectionId = navItem.getAttribute('data-section');
-        document.getElementById(sectionId).classList.add('active');
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.classList.add('active');
+            
+            // If switching to analytics section, ensure red pills calculator is initialized
+            if (sectionId === 'analytics') {
+                // Trigger a recalculation to ensure slider is initialized
+                setTimeout(() => {
+                    if (this.app && this.app.calculator) {
+                        const results = this.app.calculator.getResults();
+                        const playerData = this.app.calculator.getPlayerData();
+                        if (results && playerData) {
+                            const absorptionBonus = results.virya?.absorptionBonus || 0;
+                            UIManager.updateRedPillsCalculator(playerData, results, absorptionBonus);
+                        }
+                    }
+                }, 100);
+            }
+        }
     }
 
     handleExport() {

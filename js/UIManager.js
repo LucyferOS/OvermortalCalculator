@@ -5,6 +5,11 @@ import { Realms, XPData, GameConstants, RealmMajorTotalXP, timegateLength, PATH_
 import { Analytics } from './Analytics.js';
 
 class UIManager {
+    // Store latest values for red pills calculator
+    static latestResults = null;
+    static latestPlayerData = null;
+    static latestAbsorptionBonus = 0;
+    
     static updateDashboard(results, playerData) {
         Logger.group('🖥️ UI MANAGER - UPDATING DASHBOARD', Logger.INFO);
         
@@ -52,6 +57,10 @@ class UIManager {
         
         // Update timegate information
         this.updateTimegateInfo(playerData);
+        
+        // Store latest values for red pills calculator
+        UIManager.latestResults = results;
+        UIManager.latestPlayerData = playerData;
         
         // Update analytics
         this.updateAnalytics(results, playerData);
@@ -1159,6 +1168,9 @@ class UIManager {
             // Render extractor comparison bar chart
             Analytics.renderExtractorChart('extractor-comparison-chart', extractorComparison);
             
+            // Update red pills calculator
+            this.updateRedPillsCalculator(playerData, results, absorptionBonus);
+            
             Logger.success('Analytics updated');
         } catch (error) {
             Logger.error('Error updating analytics:', error);
@@ -1166,6 +1178,224 @@ class UIManager {
         }
         
         Logger.groupEnd();
+    }
+
+    static updateRedPillsCalculator(playerData, results, absorptionBonus) {
+        Logger.group('🔴 RED PILLS CALCULATOR UPDATE', Logger.DEBUG);
+        
+        try {
+            // Store latest values
+            UIManager.latestResults = results;
+            UIManager.latestPlayerData = playerData;
+            UIManager.latestAbsorptionBonus = absorptionBonus;
+            
+            // Get base time to next major realm - try both progression and realmProgression
+            const baseTimeToNextMajor = results.realmProgression?.mainPath?.timeToNextMajor || 
+                                        results.progression?.mainPath?.timeToNextMajor || 0;
+            
+            // Get slider element - try multiple times if not found
+            let slider = document.getElementById('time-adjustment-slider');
+            if (!slider) {
+                // Try again after a short delay in case DOM isn't ready
+                setTimeout(() => {
+                    slider = document.getElementById('time-adjustment-slider');
+                    if (slider) {
+                        UIManager.initializeSlider(slider, baseTimeToNextMajor, playerData, results, absorptionBonus);
+                    }
+                }, 100);
+                Logger.warn('Slider element not found - will retry');
+                Logger.groupEnd();
+                return;
+            }
+            
+            // Initialize or update slider
+            this.initializeSlider(slider, baseTimeToNextMajor, playerData, results, absorptionBonus);
+            
+            Logger.success('Red pills calculator updated');
+        } catch (error) {
+            Logger.error('Error updating red pills calculator:', error);
+            console.error('Red pills calculator update error:', error);
+        }
+        
+        Logger.groupEnd();
+    }
+    
+    static initializeSlider(slider, baseTimeToNextMajor, playerData, results, absorptionBonus) {
+        // Update slider max to match base time to next realm (always update this)
+        if (baseTimeToNextMajor > 0) {
+            slider.max = baseTimeToNextMajor;
+            slider.disabled = false;
+            slider.readOnly = false;
+            slider.style.pointerEvents = 'auto';
+            slider.style.opacity = '1';
+            slider.style.cursor = 'pointer';
+            slider.style.userSelect = 'none';
+            slider.style.webkitUserSelect = 'none';
+            slider.setAttribute('tabindex', '0'); // Make it focusable
+            slider.removeAttribute('readonly');
+            
+            // Ensure current value doesn't exceed new max
+            const currentValue = parseFloat(slider.value) || 0;
+            if (currentValue > baseTimeToNextMajor) {
+                slider.value = baseTimeToNextMajor;
+            }
+            
+            Logger.debug('Slider max updated to match base time', { 
+                baseTimeToNextMajor, 
+                sliderMax: slider.max,
+                currentValue: slider.value,
+                disabled: slider.disabled
+            });
+        } else {
+            // If base time is 0, check if it's because player is at max realm or no daily XP
+            // Allow slider to work with a reasonable default for testing purposes
+            const hasDailyXP = playerData.dailyXP > 0;
+            const isMaxRealm = playerData.mainPathRealmMajor === 'Supreme' && 
+                              playerData.mainPathRealmMinor === 'Late' && 
+                              playerData.mainPathProgress >= 100;
+            
+            if (isMaxRealm) {
+                // Player is at max realm - show message
+                slider.max = 0;
+                slider.disabled = true;
+                Logger.debug('Player is at maximum realm, slider disabled');
+            } else if (!hasDailyXP) {
+                // No daily XP - slider can't calculate
+                slider.max = 1000;
+                slider.disabled = true;
+                Logger.debug('No daily XP available, slider disabled');
+            } else {
+                // Unknown reason for 0 - enable with default max for testing
+                slider.max = 1000;
+                slider.disabled = false;
+                Logger.warn('Base time is 0 but daily XP exists - enabling slider with default max', {
+                    dailyXP: playerData.dailyXP,
+                    realm: playerData.mainPathRealm,
+                    progression: results.realmProgression?.mainPath
+                });
+            }
+        }
+            
+        // Initialize slider event listener if not already set
+        if (!slider.dataset.initialized) {
+            slider.dataset.initialized = 'true';
+            
+            // Handler for slider updates - use arrow function to preserve context
+            const handleSliderUpdate = (e) => {
+                try {
+                    // Get the slider value
+                    const sliderElement = e.target;
+                    const timeReduction = parseFloat(sliderElement.value) || 0;
+                    
+                    // Use stored latest values
+                    const currentResults = UIManager.latestResults;
+                    const currentPlayerData = UIManager.latestPlayerData;
+                    const currentAbsorptionBonus = UIManager.latestAbsorptionBonus;
+                    
+                    if (!currentResults || !currentPlayerData) {
+                        Logger.warn('No current results or player data available for slider');
+                        return;
+                    }
+                    
+                    const currentBaseTime = currentResults.realmProgression?.mainPath?.timeToNextMajor || 
+                                           currentResults.progression?.mainPath?.timeToNextMajor || 0;
+                    const adjustedTime = Math.max(0, currentBaseTime - timeReduction);
+                    
+                    Logger.debug('Slider updated:', { 
+                        timeReduction, 
+                        adjustedTime, 
+                        currentBaseTime,
+                        eventType: e.type
+                    });
+                    
+                    UIManager.calculateAndDisplayRedPills(
+                        currentPlayerData, 
+                        currentBaseTime, 
+                        adjustedTime, 
+                        timeReduction, 
+                        currentAbsorptionBonus
+                    );
+                } catch (error) {
+                    Logger.error('Error in slider handler:', error);
+                    console.error('Slider handler error:', error);
+                }
+            };
+            
+            // Update on input (while dragging) for real-time feedback
+            slider.addEventListener('input', handleSliderUpdate);
+            
+            // Update on change (when released) to ensure final calculation
+            slider.addEventListener('change', handleSliderUpdate);
+            
+            // Also listen for mousedown to ensure interaction works
+            slider.addEventListener('mousedown', (e) => {
+                Logger.debug('Slider mousedown detected', { value: slider.value });
+                e.stopPropagation(); // Prevent event bubbling
+            });
+            
+            // Prevent any parent elements from blocking interaction
+            slider.addEventListener('mousemove', (e) => {
+                if (e.buttons === 1) { // Left mouse button is pressed
+                    e.stopPropagation();
+                }
+            });
+            
+            Logger.debug('Slider event listeners initialized', { 
+                sliderExists: !!slider,
+                sliderValue: slider.value,
+                sliderMax: slider.max,
+                sliderMin: slider.min,
+                disabled: slider.disabled
+            });
+        }
+        
+        // Initial calculation
+        const timeReduction = parseFloat(slider.value) || 0;
+        const adjustedTime = Math.max(0, baseTimeToNextMajor - timeReduction);
+        this.calculateAndDisplayRedPills(playerData, baseTimeToNextMajor, adjustedTime, timeReduction, absorptionBonus);
+    }
+
+    static calculateAndDisplayRedPills(playerData, baseTimeToNextMajor, adjustedTime, timeReduction, absorptionBonus) {
+        const format = CalculatorUtils.formatLargeNumber;
+        
+        // Calculate red pills needed
+        const calculation = Analytics.calculateRedPillsForBreakthrough(
+            playerData, 
+            baseTimeToNextMajor, 
+            adjustedTime, 
+            absorptionBonus
+        );
+        
+        // Update base time display
+        this.updateElementText('base-time-display', baseTimeToNextMajor.toFixed(1));
+        
+        // Update adjusted time display
+        this.updateElementText('adjusted-time-display', adjustedTime.toFixed(1));
+        
+        // Update slider value display (show reduction amount)
+        const sliderValueDisplay = document.getElementById('time-adjustment-value');
+        if (sliderValueDisplay) {
+            sliderValueDisplay.textContent = timeReduction.toFixed(1);
+        }
+        
+        // Update results
+        this.updateElementText('red-pills-xp-needed', format(calculation.xpNeeded));
+        this.updateElementText('red-pills-xp-gained', format(calculation.xpGained));
+        this.updateElementText('red-pills-xp-deficit', format(calculation.xpDeficit));
+        this.updateElementText('red-pills-xp-per-pill', format(calculation.redPillXPPerPill));
+        this.updateElementText('red-pills-needed', calculation.redPillsNeeded.toLocaleString());
+        
+        // Highlight if red pills are needed
+        const redPillsNeededElement = document.getElementById('red-pills-needed');
+        if (redPillsNeededElement) {
+            if (calculation.redPillsNeeded > 0) {
+                redPillsNeededElement.style.color = 'var(--accent)';
+                redPillsNeededElement.style.fontWeight = 'bold';
+            } else {
+                redPillsNeededElement.style.color = 'var(--success)';
+                redPillsNeededElement.style.fontWeight = 'normal';
+            }
+        }
     }
 
     static updateDebugMenuVisibility(enabled) {

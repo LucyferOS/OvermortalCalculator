@@ -1,3 +1,12 @@
+#### Version 0.3.6 (BETA)
+  NOTE: THIS IS THE FINAL BETA RELEASE: NO MORE FEATURE REQUESTS UNTIL AFTER LAUNCH!!!
+
+  * Added pearl support
+  * Fixed and sanitized playerdata for debug - no values were wrong in calculations, but what was captured and displayed was incorrect.
+  * Fixed some edge cases where Virya Scenarios were not calculating correctly.
+  * Added a requested analytic - Red pills until next major realm
+
+
 #### Version 0.3.5.1 (BETA)
   * Factored in 5 star bonuses for mirror and vase- Thanks Jin for pointing this out! 
   * Improved UI for path focus - Thanks Djoki and Jin for pointing this out!
@@ -63,10 +72,8 @@
 	   ** NOTE - THIS IS STILL BEING TESTED FOR ACCCURACY!!!		
     * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. 
 	It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
-	* Debug Data is not yet santitized and ready for player use. For example, some things have not been rounded correctly, and junk values are not hidden.
 	* Although largely handled, Virya was a real pain... if the UI looks like something might not be right, inform me.
-    * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browser related bug,
-	feel free to report it, but it may be downprioritized.
+    * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browser related bug, feel free to report it, but it may be downprioritized.
 	
 
 ## Acknowledgments

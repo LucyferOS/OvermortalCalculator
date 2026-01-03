@@ -1,7 +1,7 @@
 import { XPCalculator } from './XPCalculator.js';
 import { FruitCalculator } from './FruitCalculator.js';
 import { Recommendations } from './Recommendations.js';
-import { GameConstants, XPData, MAX_EXTRACTOR_LEVEL } from './gameData.js';
+import { GameConstants, XPData, MAX_EXTRACTOR_LEVEL, Realms } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
 
 class Analytics {
@@ -336,6 +336,104 @@ class Analytics {
 
         // Store chart reference
         window[`${canvasId}Chart`] = chart;
+    }
+
+    /**
+     * Calculate red pills needed for breakthrough based on adjusted time
+     * @param {Object} playerData - Player data object
+     * @param {number} baseTimeToNextMajor - Base time to next major realm in days
+     * @param {number} adjustedTime - Adjusted time to next major realm in days (from slider)
+     * @param {number} absorptionBonus - Absorption bonus from Virya (0-0.4)
+     * @returns {Object} Object with calculation results
+     */
+    static calculateRedPillsForBreakthrough(playerData, baseTimeToNextMajor, adjustedTime, absorptionBonus) {
+        // Calculate XP needed to reach next major realm
+        const currentRealm = playerData.mainPathRealm;
+        const currentExp = playerData.mainPathExp;
+        const majorRealm = playerData.mainPathRealmMajor;
+        const realmMinor = currentRealm.split(' ')[1];
+        
+        let xpNeededForMajor = 0;
+        
+        if (realmMinor === 'Late') {
+            // Already at Late, just need remaining XP
+            const realmXP = Realms[currentRealm].xp;
+            xpNeededForMajor = realmXP - currentExp;
+        } else if (realmMinor === 'Mid') {
+            const realmXP = Realms[currentRealm].xp;
+            const nextRealm = majorRealm + ' Late';
+            xpNeededForMajor = (realmXP - currentExp) + Realms[nextRealm].xp;
+        } else {
+            // Early realm: remaining XP in Early + full XP for Mid + full XP for Late
+            const realmXP = Realms[currentRealm].xp;
+            const midRealm = majorRealm + ' Mid';
+            const lateRealm = majorRealm + ' Late';
+            xpNeededForMajor = (realmXP - currentExp) + Realms[midRealm].xp + Realms[lateRealm].xp;
+        }
+        
+        // Calculate daily XP without red pills
+        const abodeAura = XPCalculator.calculateAbodeAuraXP(playerData, absorptionBonus);
+        const gemBonus = abodeAura * (GameConstants.gemQuality[playerData.gemQuality] || 0);
+        
+        // Get pill breakdown without red pills
+        const realmXPKey = playerData.mainPathRealmMajor + "XP";
+        const realmXP = XPData[realmXPKey];
+        
+        if (!realmXP) {
+            return {
+                xpNeeded: xpNeededForMajor,
+                xpGained: 0,
+                xpDeficit: xpNeededForMajor,
+                redPillXPPerPill: 0,
+                redPillsNeeded: 0
+            };
+        }
+        
+        const goldPillXP = realmXP.gold 
+            * (1 + (playerData.pillBonusNirvanaChariotMansion / 100)) 
+            * playerData.goldPill;
+        
+        const purplePillXP = realmXP.purple 
+            * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100)) 
+            * playerData.purplePill;
+        
+        const bluePillXP = realmXP.blue 
+            * (1 + (playerData.pillBonusNirvanaGhostMansion / 100)) 
+            * playerData.bluePill;
+        
+        const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
+        const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
+        
+        const pillBonus = playerData.pillBonus || 1;
+        const multiplier = pillBonus * 1000;
+        
+        const totalPillXP = (goldPillXP + purplePillXP + bluePillXP + elixirXP + benedictionXP) * multiplier;
+        const respiraXP = XPCalculator.calculateRespiraXP(playerData);
+        const pearlXP = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
+        
+        const dailyXPWithoutRedPills = abodeAura + gemBonus + totalPillXP + respiraXP + pearlXP;
+        
+        // Calculate XP that will be gained in adjusted time
+        const xpGained = dailyXPWithoutRedPills * adjustedTime;
+        
+        // Calculate deficit
+        const xpDeficit = Math.max(0, xpNeededForMajor - xpGained);
+        
+        // Calculate red pill XP per pill
+        const redPillXPPerPill = realmXP.red * (1 + GameConstants.vaseBonus[playerData.vaseStars]) * multiplier;
+        
+        // Calculate red pills needed
+        const redPillsNeeded = redPillXPPerPill > 0 ? Math.ceil(xpDeficit / redPillXPPerPill) : 0;
+        
+        return {
+            xpNeeded: xpNeededForMajor,
+            xpGained: xpGained,
+            xpDeficit: xpDeficit,
+            redPillXPPerPill: redPillXPPerPill,
+            redPillsNeeded: redPillsNeeded,
+            baseTime: baseTimeToNextMajor,
+            adjustedTime: adjustedTime
+        };
     }
 
     /**
