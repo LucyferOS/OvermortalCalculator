@@ -30,10 +30,12 @@ class OvermortalCalculator {
             secondaryPathRealmMinor: 'Early',
             secondaryPathProgress: 0.0,
             secondaryPathExp: 0.0,
-            dailyXP: 0.0,
 			pathFocus: PATH_MAIN,
             timegateDays: 30,
             hadViryaLastRealm: 'No',
+            totalAbode: 0.0,
+            dailyXP: 0.0,
+            cosmoapsisValue: 0.0,
             vaseStars: '0 star',
             vaseSkin: 'No',
             mirrorStars: '0 star',
@@ -326,7 +328,10 @@ class OvermortalCalculator {
             secondaryPathExp,
             pathFocus: getStringValue('path-focus'),
             timegateDays: getNumberValue('timegate-days'),
-            hadViryaLastRealm: getStringValue('had-Virya')
+            hadViryaLastRealm: getStringValue('had-Virya'),
+            totalAbode: 0.0,
+            dailyXP: 0.0,
+            cosmoapsisValue: 0.0
         };
     }
 
@@ -487,9 +492,13 @@ class OvermortalCalculator {
         
         const viryaInfo = this.calculateViryaInfo();
         const { mainPathAbsorptionBonus, secondaryPathAbsorptionBonus } = this.calculatePathAbsorptionBonuses(viryaInfo);
+        // Calculate and store cosmoapsisValue using the correct main path absorption bonus (includes "had Virya last realm" bonus)
+        this.playerData.cosmoapsisValue = XPCalculator.calculateCosmoapsisValue(this.playerData, mainPathAbsorptionBonus);
         const fruitData = this.calculateFruitData();
         const { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP } = 
             this.calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus);
+        // Update dailyXP to use the correct main path absorption bonus (includes "had Virya last realm" bonus)
+        this.playerData.dailyXP = mainPathDailyXPBase;
         const { scenarioXPNeeded, scenarioFruitResults, nextScenario } = 
             this.calculateScenarioAnalysis(viryaInfo, mainPathDailyXPBase, this.playerData.dailyXP);
         const realmProgression = RealmCalculator.calculateProgression(this.playerData, mainPathDailyXPBase, secondaryPathDailyXPBase);
@@ -497,7 +506,7 @@ class OvermortalCalculator {
         
         this.calculationResults = this.assembleResults(
             viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase,
-            realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons
+            realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus
         );
         
         this.logDebugEnd();
@@ -516,9 +525,10 @@ class OvermortalCalculator {
         const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
         this.playerData.viryaScenario = viryaInfo.scenario;
         this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus;
-        // Calculate and store cosmoapsisValue for debugging
-        this.playerData.cosmoapsisValue = XPCalculator.calculateCosmoapsisValue(this.playerData, viryaInfo.absorptionBonus);
-        this.playerData.dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
+        // Calculate and store totalAbodeBonus and totalAbode for debugging
+        this.playerData.totalAbodeBonus = XPCalculator.calculateTotalAbodeBonus(this.playerData);
+        this.playerData.totalAbode = XPCalculator.calculateTotalAbode(this.playerData);
+        // Note: dailyXP will be updated later in calculateAll() with the correct mainPathAbsorptionBonus
         return viryaInfo;
     }
 
@@ -665,11 +675,12 @@ class OvermortalCalculator {
         return scenarioComparisons;
     }
 
-    assembleResults(viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase, realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons) {
+    assembleResults(viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase, realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus) {
         return {
             dailyXP: this.playerData.dailyXP,
             mainPathDailyXPBase,
             secondaryPathDailyXPBase,
+            mainPathAbsorptionBonus,
             realmProgression,
             fruitXPSingle: fruitData.fruitXPSingle,
             fruitXPTotal: fruitData.fruitXPTotal,

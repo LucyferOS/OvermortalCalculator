@@ -30,7 +30,7 @@ class XPCalculator {
         return total;
     }
 
-    static calculateCosmoapsisValue(playerData, absorptionBonus) {
+    static calculateTotalAbodeBonus(playerData) {
         const abodeBonuses = [
             playerData.abodeBonusCurio, playerData.abodeBonusTechnique, playerData.abodeBonusSectLevel,
             playerData.abodeBonusSectBarrier, playerData.abodeBonusCelestialSpring, playerData.abodeBonusEnergyArray,
@@ -39,12 +39,26 @@ class XPCalculator {
             playerData.abodeBonusNirvanaHornMansion, playerData.abodeBonusNirvanaNeckMansion
         ];
         
-        const totalAbodeBonus = abodeBonuses.reduce((sum, bonus) => sum + bonus, 0);
+        return abodeBonuses.reduce((sum, bonus) => sum + bonus, 0);
+    }
+
+    static calculateTotalAbode(playerData) {
+        const totalAbodeBonus = this.calculateTotalAbodeBonus(playerData);
+        // Multiply baseAbodeAura by totalAbodeBonus (as percentage) to get bonus amount
+        const bonusAmount = playerData.baseAbodeAura * (totalAbodeBonus / 100);
+        // Add baseAbodeAura to get total abode
+        return playerData.baseAbodeAura + bonusAmount;
+    }
+
+    static calculateCosmoapsisValue(playerData, absorptionBonus) {
+        const totalAbode = this.calculateTotalAbode(playerData);
         
         const baseAbsorption = Realms[playerData.mainPathRealm]?.absorption || 0;
         const effectiveAbsorption = baseAbsorption + absorptionBonus;
         
-        const cosmoapsisValue = playerData.baseAbodeAura * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
+        // Multiply total abode by effectiveAbsorption to get cosmoapsisValue
+        const cosmoapsisValue = totalAbode * effectiveAbsorption;
+        
         return cosmoapsisValue;
     }
 
