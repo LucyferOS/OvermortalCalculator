@@ -91,6 +91,7 @@ class OvermortalApp {
             'mirror-skin': p.mirrorSkin,
             'token-stars': p.tokenStars,
             'token-skin': p.tokenSkin,
+            'pearl-stars': p.pearlStars,
             
             // Pills and Elixirs
             'gold-pill': p.goldPill,

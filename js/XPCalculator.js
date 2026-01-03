@@ -20,14 +20,17 @@ class XPCalculator {
         const respiraXP = this.calculateRespiraXP(playerData);
         Logger.debug('Respira XP:', respiraXP);
         
-        const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP;
+        const pearlXP = this.calculatePearlXP(playerData, absorptionBonus);
+        Logger.debug('Pearl XP:', pearlXP);
+        
+        const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP + pearlXP;
         Logger.debug('Total Daily XP:', total);
         Logger.groupEnd();
 		
         return total;
     }
 
-    static calculateAbodeAuraXP(playerData, absorptionBonus) {
+    static calculateCosmoapsisValue(playerData, absorptionBonus) {
         const abodeBonuses = [
             playerData.abodeBonusCurio, playerData.abodeBonusTechnique, playerData.abodeBonusSectLevel,
             playerData.abodeBonusSectBarrier, playerData.abodeBonusCelestialSpring, playerData.abodeBonusEnergyArray,
@@ -41,9 +44,16 @@ class XPCalculator {
         const baseAbsorption = Realms[playerData.mainPathRealm]?.absorption || 0;
         const effectiveAbsorption = baseAbsorption + absorptionBonus;
         
-        // FIXED: Don't mutate playerData, use local variable
-        const cosmoapsisValue = playerData.cosmoapsis * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
-		Logger.debug('cosmoapsis:', cosmoapsisValue);
+        const cosmoapsisValue = playerData.baseAbodeAura * (1 + (totalAbodeBonus / 100)) * effectiveAbsorption;
+        return cosmoapsisValue;
+    }
+
+    static calculateAbodeAuraXP(playerData, absorptionBonus) {
+        // Use stored value if available, otherwise calculate it
+        const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
+            ? playerData.cosmoapsisValue 
+            : this.calculateCosmoapsisValue(playerData, absorptionBonus);
+        Logger.debug('cosmoapsisValue:', cosmoapsisValue);
         const dailyAuraXP = cosmoapsisValue * 10800;
         Logger.debug('dailyAuraXP:', dailyAuraXP);
         return dailyAuraXP;
@@ -168,6 +178,49 @@ class XPCalculator {
         Logger.groupEnd();
         
         return respiraExp;
+    }
+
+    static calculatePearlXP(playerData, absorptionBonus) {
+        Logger.group('🫧 XPCalculator.calculatePearlXP', Logger.DEBUG);
+        
+        if (!playerData.pearlStars || playerData.pearlStars === 'No artifact') {
+            Logger.debug('No pearl artifact');
+            Logger.groupEnd();
+            return 0;
+        }
+        
+        // Use stored value if available, otherwise calculate it
+        const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
+            ? playerData.cosmoapsisValue 
+            : this.calculateCosmoapsisValue(playerData, absorptionBonus);
+        Logger.debug('cosmoapsisValue:', cosmoapsisValue);
+        
+        // Calculate energy available per day (same logic as other artifacts)
+        const energyReplenished = GameConstants.artifactEnergyReplenishment[playerData.pearlStars] * GameConstants.taoistYearsPerDay;
+        Logger.debug('Energy replenished per day:', energyReplenished);
+        
+        // Energy cost per use: 90 if 5 stars, 100 otherwise
+        const energyCostPerUse = playerData.pearlStars === '5 stars' ? 90 : 100;
+        Logger.debug('Energy cost per use:', energyCostPerUse);
+        
+        // Calculate uses per day (starting energy + replenished energy) / cost per use
+        const usesPerDay = (energyReplenished + 100) / energyCostPerUse;
+        Logger.debug('Uses per day:', usesPerDay);
+        
+        // Calculate total energy used per day
+        const energyUsedPerDay = usesPerDay * energyCostPerUse;
+        Logger.debug('Energy used per day:', energyUsedPerDay);
+        
+        // XP multiplier: 1200 if 1+ stars, 1000 if 0 star
+        const xpMultiplier = playerData.pearlStars === '0 star' ? 1000 : 1200;
+        Logger.debug('XP multiplier:', xpMultiplier);
+        
+        // Calculate XP: (energy used / 100) * cosmoapsisValue * multiplier
+        const pearlXP = (energyUsedPerDay / 100) * cosmoapsisValue * xpMultiplier;
+        Logger.debug('Total Pearl XP:', pearlXP);
+        Logger.groupEnd();
+        
+        return pearlXP;
     }
 
     /**

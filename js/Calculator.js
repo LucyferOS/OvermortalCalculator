@@ -40,6 +40,7 @@ class OvermortalCalculator {
             mirrorSkin: 'No',
             tokenStars: '0 star',
             tokenSkin: 'No',
+            pearlStars: 'No artifact',
             goldPill: 0.0,
             purplePill: 0.0,
             bluePill: 20.0,
@@ -51,7 +52,7 @@ class OvermortalCalculator {
             fruitsCount: 0,
             weeklyFruits: 0,
             fruitsUsage: 'current',
-            cosmoapsis: 130.0,
+            baseAbodeAura: 130.0,
             gemBonus: 'Common',
             gemQuality: 'Common',
             respiraAttemptsTotal: 10,
@@ -291,7 +292,7 @@ class OvermortalCalculator {
 			extractorRank:getStringValue('extractor-rank'),
             
             // Miscellaneous
-            cosmoapsis: abodeAuraXPTotal,
+            baseAbodeAura: abodeAuraXPTotal,
             gemQuality: getStringValue('gem-quality'),
 			timegate: getNumberValue('timegate-days')
         };
@@ -372,7 +373,7 @@ class OvermortalCalculator {
             abodeBonusNirvanaPathofAscension: getNumberValue('abode-nirvana-path-of-ascension'),
             abodeBonusNirvanaHornMansion: getNumberValue('abode-nirvana-horn-mansion'),
             abodeBonusNirvanaNeckMansion: getNumberValue('abode-nirvana-neck-mansion'),
-            cosmoapsis: GameConstants.abodeBase
+            baseAbodeAura: GameConstants.abodeBase
         };
     }
 
@@ -411,7 +412,8 @@ class OvermortalCalculator {
             mirrorStars: getStringValue('mirror-stars'),
             mirrorSkin: getStringValue('mirror-skin'),
             tokenStars: getStringValue('token-stars'),
-            tokenSkin: getStringValue('token-skin')
+            tokenSkin: getStringValue('token-skin'),
+            pearlStars: getStringValue('pearl-stars')
         };
     }
 
@@ -514,6 +516,8 @@ class OvermortalCalculator {
         const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
         this.playerData.viryaScenario = viryaInfo.scenario;
         this.playerData.viryaAbsorptionBonus = viryaInfo.absorptionBonus;
+        // Calculate and store cosmoapsisValue for debugging
+        this.playerData.cosmoapsisValue = XPCalculator.calculateCosmoapsisValue(this.playerData, viryaInfo.absorptionBonus);
         this.playerData.dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, viryaInfo.absorptionBonus);
         return viryaInfo;
     }

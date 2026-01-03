@@ -74,18 +74,21 @@ class Analytics {
         
         const respira = XPCalculator.calculateRespiraXP(playerData);
         
+        const pearl = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
+        
         // Calculate total pills XP
         const totalPills = pillBreakdown.goldPills + pillBreakdown.purplePills + 
                           pillBreakdown.bluePills + pillBreakdown.elixir + 
                           pillBreakdown.benediction + pillBreakdown.redPills;
         
-        const total = abodeAura + gemBonus + totalPills + respira;
+        const total = abodeAura + gemBonus + totalPills + respira + pearl;
 
         return {
             abodeAura,
             gemBonus,
             ...pillBreakdown,
             respira,
+            pearl,
             total
         };
     }
@@ -138,7 +141,8 @@ class Analytics {
             { label: 'Elixir', value: breakdown.elixir || 0, color: '#06FFA5' },
             { label: 'Blessing Pills', value: breakdown.benediction || 0, color: '#FF9F00' },
             { label: 'Red Pills', value: breakdown.redPills || 0, color: '#E63946' },
-            { label: 'Respira', value: breakdown.respira, color: '--accent' }
+            { label: 'Respira', value: breakdown.respira, color: '--accent' },
+            { label: 'Pearl', value: breakdown.pearl || 0, color: '#FFB6C1' }
         ];
         
         // Filter out zero values
