@@ -286,6 +286,7 @@ class ViryaScenarioComparator {
         
         const daysUntilBreakthrough = Math.max(daysToReach, currentTimegateDays);
         let xpAfterScenarioUntilBreakthrough = 0;
+        let phase2Result = null; // Store Phase 2 result to use overflow conversion in Phase 3
         
         // Determine the state after reaching the scenario
         // For Completion, Eminence, Perfect, Half-Step: main path is at 100% Late in current major
@@ -361,7 +362,7 @@ class ViryaScenarioComparator {
             // Simulate XP gain until breakthrough
             // Since we're at or beyond 100% Late, we'll gain overflow XP (XP beyond 100%)
             // Use target scenario bonus (not current scenario bonus)
-            const phase2Result = phase2Simulator.simulateDays(
+            phase2Result = phase2Simulator.simulateDays(
                 daysAfterScenarioUntilBreakthrough,
                 targetScenarioBonus,
                 null, // No bonus end condition during this phase (we're at max realm, just overflowing)
@@ -375,6 +376,7 @@ class ViryaScenarioComparator {
                 'Days after scenario until breakthrough': daysAfterScenarioUntilBreakthrough.toFixed(2),
                 'Target scenario bonus': `${(targetScenarioBonus * 100).toFixed(1)}%`,
                 'XP gained': xpAfterScenarioUntilBreakthrough.toLocaleString(),
+                'Final realm': phase2Result.finalRealm,
                 'Final progress': `${phase2Result.finalProgress.toFixed(2)}%`
             });
         } else {
@@ -416,26 +418,77 @@ class ViryaScenarioComparator {
         let xpInNextRealmUntilTimegate = 0;
         
         if (daysAvailableForOverflow > 0) {
-            // Create player data at breakthrough state (next major Early, 0%)
-            // The "had Virya last realm" bonus depends on the scenario we reached
-            const breakthroughPlayerData = {
-                ...this.playerData,
-                mainPathRealm: `${nextMajor} Early`,
-                mainPathRealmMajor: nextMajor,
-                mainPathRealmMinor: 'Early',
-                mainPathProgress: 0,
-                mainPathExp: 0,
-                cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
-            };
+            // Create player data at breakthrough state
+            // IMPORTANT: If Phase 2 had overflow XP, the simulator converts it to next realm progress
+            // We should use the converted state from Phase 2, not start at 0% Early
+            let breakthroughPlayerData;
+            let phase2OverflowConverted = false;
+            
+            if (xpAfterScenarioUntilBreakthrough > 0 && phase2Result) {
+                // Check if Phase 2 resulted in overflow conversion to next realm
+                const phase2FinalRealm = phase2Result.finalRealm || '';
+                const phase2FinalProgress = phase2Result.finalProgress || 0;
+                
+                // If Phase 2 ended in the next major realm (overflow was converted), use that state
+                if (phase2FinalRealm.startsWith(nextMajor)) {
+                    const [major, minor] = phase2FinalRealm.split(' ');
+                    const phase2FinalRealmXP = Realms[phase2FinalRealm]?.xp || 0;
+                    const phase2FinalExp = (phase2FinalRealmXP * phase2FinalProgress) / 100;
+                    
+                    breakthroughPlayerData = {
+                        ...this.playerData,
+                        mainPathRealm: phase2FinalRealm,
+                        mainPathRealmMajor: major,
+                        mainPathRealmMinor: minor,
+                        mainPathProgress: phase2FinalProgress,
+                        mainPathExp: phase2FinalExp,
+                        cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
+                    };
+                    phase2OverflowConverted = true;
+                } else {
+                    // Phase 2 didn't convert to next realm (no overflow or still in current realm)
+                    breakthroughPlayerData = {
+                        ...this.playerData,
+                        mainPathRealm: `${nextMajor} Early`,
+                        mainPathRealmMajor: nextMajor,
+                        mainPathRealmMinor: 'Early',
+                        mainPathProgress: 0,
+                        mainPathExp: 0,
+                        cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
+                    };
+                }
+            } else {
+                // No Phase 2 XP, start at 0% Early
+                breakthroughPlayerData = {
+                    ...this.playerData,
+                    mainPathRealm: `${nextMajor} Early`,
+                    mainPathRealmMajor: nextMajor,
+                    mainPathRealmMinor: 'Early',
+                    mainPathProgress: 0,
+                    mainPathExp: 0,
+                    cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
+                };
+            }
+            
+            Logger.debug('Phase 3 breakthrough state:', {
+                'Using Phase 2 overflow conversion': phase2OverflowConverted,
+                'Realm': breakthroughPlayerData.mainPathRealm,
+                'Progress': `${breakthroughPlayerData.mainPathProgress.toFixed(2)}%`,
+                'XP': breakthroughPlayerData.mainPathExp.toLocaleString()
+            });
             
             // Calculate daily XP at breakthrough state (next major Early) for the simulator
             // The absorption bonus at breakthrough depends on the scenario reached
+            // IMPORTANT: Eminence bonus expires at the start of Early, so NO bonus in Early
+            // Perfect bonus is active in Early, Half-Step bonus is active in Early and Mid
             let breakthroughAbsorptionBonus = 0;
-            if (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT) {
-                breakthroughAbsorptionBonus = 0.2; // "Had Virya last realm" bonus
+            if (targetScenario === SCENARIO_PERFECT) {
+                breakthroughAbsorptionBonus = 0.2; // "Had Virya last realm" bonus - active in Early
             } else if (targetScenario === SCENARIO_HALF_STEP) {
-                breakthroughAbsorptionBonus = 0.4; // "Had Virya last realm" bonus
+                breakthroughAbsorptionBonus = 0.4; // "Had Virya last realm" bonus - active in Early and Mid
             }
+            // Eminence: bonus expires at start of Early, so breakthroughAbsorptionBonus = 0
+            // Completion: no bonus, so breakthroughAbsorptionBonus = 0
             
             const breakthroughDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(breakthroughPlayerData, breakthroughAbsorptionBonus);
             
@@ -452,16 +505,18 @@ class ViryaScenarioComparator {
             let hadViryaBonus = 0;
             let bonusEndCondition = null;
             
-            if (targetScenario === SCENARIO_EMINENCE) {
-                hadViryaBonus = 0.2;
-                bonusEndCondition = { endsAt: 'Next Major Early' }; // Expires immediately at Early
-            } else if (targetScenario === SCENARIO_PERFECT) {
+            // Eminence bonus expires at the start of Early, so no bonus during Phase 3
+            // Perfect bonus is active in Early, expires at Mid
+            // Half-Step bonus is active in Early and Mid, expires at Late
+            if (targetScenario === SCENARIO_PERFECT) {
                 hadViryaBonus = 0.2;
                 bonusEndCondition = { endsAt: 'Next Major Mid' }; // Expires at Mid
             } else if (targetScenario === SCENARIO_HALF_STEP) {
                 hadViryaBonus = 0.4;
                 bonusEndCondition = { endsAt: 'Next Major Late' }; // Expires at Late
             }
+            // Eminence: hadViryaBonus = 0 (bonus expires at start of Early)
+            // Completion: hadViryaBonus = 0 (no bonus)
             
             // Calculate max realm: next major Late (100%)
             const maxRealm = `${nextMajor} Late`;

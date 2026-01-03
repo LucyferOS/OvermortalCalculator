@@ -390,9 +390,16 @@ class UIManager {
                     secondaryPathDailyXPBase
                 );
                 this.updateElementText(nextRealmId, maxNextRealm || '--');
+                
+                // Check if Completion cannot be reached and highlight row red
+                // Note: maxNextRealm may be a string indicating unreachability (not an error)
+                this.updateRowHighlighting(scenarioKey, maxNextRealm);
             } catch (error) {
+                // This is a calculation error, not an unreachable scenario
                 Logger.error('Error calculating max next realm scenario:', error);
-                this.updateElementText(nextRealmId, '--');
+                this.updateElementText(nextRealmId, 'Error');
+                // Clear highlighting on calculation error (don't highlight for errors)
+                this.updateRowHighlighting(scenarioKey, null);
             }
             
             Logger.groupEnd();
@@ -424,9 +431,16 @@ class UIManager {
                     secondaryPathDailyXPBase
                 );
                 this.updateElementText(nextRealmId, maxNextRealm || '--');
+                
+                // Check if Completion cannot be reached and highlight row red
+                // Note: maxNextRealm may be a string indicating unreachability (not an error)
+                this.updateRowHighlighting(scenarioKey, maxNextRealm);
             } catch (error) {
+                // This is a calculation error, not an unreachable scenario
                 Logger.error('Error calculating max next realm scenario:', error);
-                this.updateElementText(nextRealmId, '--');
+                this.updateElementText(nextRealmId, 'Error');
+                // Clear highlighting on calculation error (don't highlight for errors)
+                this.updateRowHighlighting(scenarioKey, null);
             }
             
             Logger.groupEnd();
@@ -508,12 +522,59 @@ class UIManager {
                 secondaryPathDailyXPBase
             );
             this.updateElementText(nextRealmId, maxNextRealm || '--');
+            
+            // Check if Completion cannot be reached and highlight row red
+            this.updateRowHighlighting(scenarioKey, maxNextRealm);
         } catch (error) {
             Logger.error('Error calculating max next realm scenario:', error);
             this.updateElementText(nextRealmId, '--');
+            // Clear highlighting on error
+            this.updateRowHighlighting(scenarioKey, null);
         }
         
         Logger.groupEnd();
+    }
+
+    static updateRowHighlighting(scenarioKey, maxNextRealmResult) {
+        // Map scenario keys to row IDs
+        const rowIdMap = {
+            'completion': 'virya-row-completion',
+            'eminence': 'virya-row-eminence',
+            'perfect': 'virya-row-perfect',
+            'halfstep': 'virya-row-halfstep'
+        };
+        
+        const rowId = rowIdMap[scenarioKey];
+        if (!rowId) {
+            return;
+        }
+        
+        const row = document.getElementById(rowId);
+        if (!row) {
+            return;
+        }
+        
+        // Check if Completion cannot be reached
+        // Unreachable scenarios return specific strings, not errors
+        const unreachableStrings = [
+            'Cannot reach Completion',
+            'Cannot reach scenario',
+            'Next realm not implemented yet'
+        ];
+        
+        const isUnreachable = unreachableStrings.includes(maxNextRealmResult) || 
+                             maxNextRealmResult === null ||
+                             maxNextRealmResult === '--';
+        
+        if (isUnreachable) {
+            // Highlight row red to indicate Completion cannot be reached
+            row.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+            row.style.borderLeft = '4px solid rgba(255, 0, 0, 0.8)';
+        } else {
+            // Clear highlighting - scenario is reachable
+            row.style.backgroundColor = '';
+            row.style.borderLeft = '';
+        }
     }
 
     static updatePathFocusIndicators(pathFocus) {
@@ -842,16 +903,28 @@ class UIManager {
             const completionXPRequired = comp.scenario1.xpRequiredToReach || 0;
             const requiredDiff = scenarioXPRequired - completionXPRequired;
             
-            // Line 1: Overflow XP comparison
+            // Line 1: Overflow XP comparison (as percentage)
             let overflowText = 'Overflow XP: ';
-            if (overflowDiff > 0) {
-                overflowText += `+${format(overflowDiff)} XP\n`;
-                overflowText += `(${format(scenarioOverflowXP)} vs ${format(completionOverflowXP)})`;
-            } else if (overflowDiff < 0) {
-                overflowText += `${format(overflowDiff)} XP\n`;
+            if (completionOverflowXP > 0) {
+                // Calculate percentage difference
+                const overflowPercent = (overflowDiff / completionOverflowXP) * 100;
+                if (overflowPercent > 0) {
+                    overflowText += `+${overflowPercent.toFixed(2)}%\n`;
+                } else if (overflowPercent < 0) {
+                    overflowText += `${overflowPercent.toFixed(2)}%\n`;
+                } else {
+                    overflowText += `0.00%\n`;
+                }
                 overflowText += `(${format(scenarioOverflowXP)} vs ${format(completionOverflowXP)})`;
             } else {
-                overflowText += `0 XP\n`;
+                // Fallback to raw value if completion overflow is 0
+                if (overflowDiff > 0) {
+                    overflowText += `+${format(overflowDiff)} XP\n`;
+                } else if (overflowDiff < 0) {
+                    overflowText += `${format(overflowDiff)} XP\n`;
+                } else {
+                    overflowText += `0 XP\n`;
+                }
                 overflowText += `(${format(scenarioOverflowXP)} vs ${format(completionOverflowXP)})`;
             }
             
