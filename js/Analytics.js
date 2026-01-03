@@ -172,6 +172,9 @@ class Analytics {
             return;
         }
         
+        // Get Chart reference for defaults
+        const ChartRef = typeof Chart !== 'undefined' ? Chart : window.Chart;
+        
         // Create chart
         let chart;
         try {
@@ -197,6 +200,45 @@ class Analytics {
                             padding: 15,
                             font: {
                                 size: 14
+                            },
+                            generateLabels: function(chart) {
+                                // Call the default generateLabels from Chart.js
+                                const data = chart.data;
+                                if (!data.labels || !data.labels.length || !data.datasets || !data.datasets.length) {
+                                    return [];
+                                }
+                                
+                                const dataset = data.datasets[0];
+                                const backgroundColor = dataset.backgroundColor || [];
+                                
+                                // Generate labels based on chart data
+                                const labels = data.labels.map((label, i) => {
+                                    const meta = chart.getDatasetMeta(0);
+                                    const isHidden = meta && meta.data && meta.data[i] && meta.data[i].hidden;
+                                    
+                                    let labelText = label;
+                                    let fontColor = '#666';
+                                    let opacity = 1;
+                                    
+                                    // Add strikethrough for hidden items
+                                    if (isHidden) {
+                                        // Add strikethrough combining character after each character
+                                        labelText = label.split('').join('\u0336');
+                                        fontColor = '#999';
+                                        opacity = 0.6;
+                                    }
+                                    
+                                    return {
+                                        text: labelText,
+                                        fillStyle: Array.isArray(backgroundColor) ? backgroundColor[i] : backgroundColor,
+                                        hidden: false,
+                                        index: i,
+                                        fontColor: fontColor,
+                                        opacity: opacity
+                                    };
+                                });
+                                
+                                return labels;
                             }
                         },
                         onClick: (e, legendItem, legend) => {
@@ -258,7 +300,9 @@ class Analytics {
                         meta.data.forEach((element, index) => {
                             if (element.hidden) {
                                 const label = chart.data.labels[index];
-                                const value = labelToValueMap[label] || 0;
+                                // Get original label if it was modified with strikethrough
+                                const originalLabel = label.replace(/\u0336/g, '');
+                                const value = labelToValueMap[originalLabel] || labelToValueMap[label] || 0;
                                 modifiedTotal -= value;
                                 hasHiddenItems = true;
                             }
