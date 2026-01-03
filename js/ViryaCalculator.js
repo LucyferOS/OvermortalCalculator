@@ -437,6 +437,7 @@ class ViryaCalculator {
             const targetXP = targetRealmData.xp * (targetProgress / 100);
             // If we have overflow, it counts towards the target
             const totalCurrentXP = currentXP + overflowXP;
+            const xpNeeded = totalCurrentXP >= targetXP ? 0 : Math.max(0, targetXP - totalCurrentXP);
             if (totalCurrentXP >= targetXP) {
                 return 0;
             }
@@ -458,6 +459,7 @@ class ViryaCalculator {
         // The overflow counts towards reaching the target
         const totalCurrentXP = currentXP + overflowXP;
         
+        const xpNeeded = totalCurrentXP >= targetXP ? 0 : Math.max(0, targetXP - totalCurrentXP);
         if (totalCurrentXP >= targetXP) {
             return 0;
         }
@@ -678,6 +680,24 @@ class ViryaCalculator {
             };
         }
         // For Completion, secondary path stays unchanged
+        
+        // Check if secondary path is already beyond the requirement
+        const currentSecondaryRealmIndex = RealmCalculator.calculateRealmIndex(playerData.secondaryPathRealm);
+        const requiredSecondaryRealmIndex = RealmCalculator.calculateRealmIndex(secondaryPathAtScenario.realm);
+        const isSecondaryBeyondRequirement = currentSecondaryRealmIndex > requiredSecondaryRealmIndex || 
+            (currentSecondaryRealmIndex === requiredSecondaryRealmIndex && 
+             playerData.secondaryPathProgress > secondaryPathAtScenario.progress);
+        
+        // If secondary path is already beyond the requirement, use the current position instead
+        if (isSecondaryBeyondRequirement) {
+            secondaryPathAtScenario = {
+                realm: playerData.secondaryPathRealm,
+                major: playerData.secondaryPathRealmMajor,
+                minor: playerData.secondaryPathRealmMinor,
+                progress: playerData.secondaryPathProgress
+            };
+            Logger.debug('Secondary path already beyond requirement, using current position:', secondaryPathAtScenario);
+        }
         
         Logger.debug('Secondary path when reaching target scenario:', secondaryPathAtScenario);
         
