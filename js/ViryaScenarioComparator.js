@@ -326,17 +326,22 @@ class ViryaScenarioComparator {
                     mainPathRealmMajor: currentMajor,
                     mainPathRealmMinor: 'Late',
                     mainPathProgress: 100,
-                    mainPathExp: currentLateRealmXP
+                    mainPathExp: currentLateRealmXP,
+                    cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
                 };
             } else {
                 // Already at scenario - use current player state (which should be at 100% Late or beyond)
                 // This preserves any overflow XP the player already has
-                phase2PlayerData = { ...this.playerData };
+                phase2PlayerData = { 
+                    ...this.playerData,
+                    cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
+                };
             }
             
             // Calculate daily XP with target scenario bonus (after reaching the scenario)
             // The target scenario's bonus should be active during Phase 2
             const targetScenarioBonus = this.scenarioBonus[targetScenario] || 0;
+            
             const phase2DailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(phase2PlayerData, targetScenarioBonus);
             
             // Create simulator starting from appropriate state
@@ -419,7 +424,8 @@ class ViryaScenarioComparator {
                 mainPathRealmMajor: nextMajor,
                 mainPathRealmMinor: 'Early',
                 mainPathProgress: 0,
-                mainPathExp: 0
+                mainPathExp: 0,
+                cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
             };
             
             // Calculate daily XP at breakthrough state (next major Early) for the simulator
@@ -430,6 +436,7 @@ class ViryaScenarioComparator {
             } else if (targetScenario === SCENARIO_HALF_STEP) {
                 breakthroughAbsorptionBonus = 0.4; // "Had Virya last realm" bonus
             }
+            
             const breakthroughDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(breakthroughPlayerData, breakthroughAbsorptionBonus);
             
             // Create a temporary simulator for overflow calculation
@@ -461,6 +468,7 @@ class ViryaScenarioComparator {
             
             // Simulate overflow XP gain for the available days
             const phase3Result = overflowSimulator.simulateDays(daysAvailableForOverflow, hadViryaBonus, bonusEndCondition, maxRealm);
+            
             xpInNextRealmUntilTimegate = phase3Result.totalXP;
             
             Logger.debug('Phase 3 - XP in next realm until timegate:', {

@@ -47,7 +47,9 @@ class RealmProgressionSimulator {
             // Check if bonus should end based on current realm/progress
             if (bonusEndCondition && currentAbsorptionBonus > 0) {
                 const currentProgress = (currentXP / Realms[currentRealm]?.xp || 0) * 100;
-                if (this.shouldBonusEnd(currentRealm, currentProgress, bonusEndCondition, startingMajor)) {
+                const shouldEnd = this.shouldBonusEnd(currentRealm, currentProgress, bonusEndCondition, startingMajor);
+                
+                if (shouldEnd) {
                     Logger.info(`Bonus ending at ${currentRealm} - condition met: ${bonusEndCondition.endsAt}`);
                     currentAbsorptionBonus = 0;
                 }

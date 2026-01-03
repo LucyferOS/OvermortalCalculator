@@ -67,6 +67,7 @@ class XPCalculator {
         const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
             ? playerData.cosmoapsisValue 
             : this.calculateCosmoapsisValue(playerData, absorptionBonus);
+        
         Logger.debug('cosmoapsisValue:', cosmoapsisValue);
         const dailyAuraXP = cosmoapsisValue * 10800;
         Logger.debug('dailyAuraXP:', dailyAuraXP);
