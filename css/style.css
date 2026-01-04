@@ -719,6 +719,29 @@ tr:hover {
 
 /* Adjust for mobile */
 @media (max-width: 768px) {
+    /* Mobile body and container adjustments */
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    /* Remove sticky positioning from sidebar on mobile */
+    .sidebar {
+        position: static;
+        top: auto;
+    }
+    
+    /* Remove sticky positioning from buttons container on mobile */
+    .sticky-buttons-container {
+        position: static;
+        bottom: auto;
+        margin-bottom: 20px;
+    }
+    
     .virya-status-content {
         flex-direction: column;
         align-items: flex-start;
@@ -741,11 +764,143 @@ tr:hover {
     
     /* Release Notes section mobile adjustments */
     #Release\ Notes.active {
-        max-height: calc(100vh - 150px);
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
     }
     
     #Release\ Notes.active #release-notes-container {
-        max-height: calc(100vh - 250px);
+        max-height: calc(100vh - 180px);
+        padding: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Markdown content mobile adjustments */
+    #Release\ Notes .markdown-content {
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    #Release\ Notes .markdown-content h1 {
+        font-size: 1.5em;
+        margin: 1em 0 0.5em 0;
+        padding-bottom: 0.2em;
+    }
+    
+    #Release\ Notes .markdown-content h2 {
+        font-size: 1.3em;
+        margin: 0.9em 0 0.4em 0;
+    }
+    
+    #Release\ Notes .markdown-content h3 {
+        font-size: 1.15em;
+        margin: 0.8em 0 0.3em 0;
+    }
+    
+    #Release\ Notes .markdown-content h4 {
+        font-size: 1.05em;
+        margin: 0.7em 0 0.3em 0;
+    }
+    
+    #Release\ Notes .markdown-content p {
+        margin: 0.8em 0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    #Release\ Notes .markdown-content ul,
+    #Release\ Notes .markdown-content ol {
+        margin-left: 1.2em;
+        margin-bottom: 0.8em;
+        padding-right: 0;
+    }
+    
+    #Release\ Notes .markdown-content li {
+        margin-bottom: 0.4em;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    #Release\ Notes .markdown-content table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 1em 0;
+    }
+    
+    #Release\ Notes .markdown-content table thead,
+    #Release\ Notes .markdown-content table tbody,
+    #Release\ Notes .markdown-content table tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+    }
+    
+    #Release\ Notes .markdown-content th,
+    #Release\ Notes .markdown-content td {
+        padding: 6px 8px;
+        font-size: 0.9em;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    #Release\ Notes .markdown-content pre {
+        padding: 0.8em;
+        font-size: 0.85em;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0.8em 0;
+    }
+    
+    #Release\ Notes .markdown-content code {
+        font-size: 0.85em;
+        padding: 2px 4px;
+    }
+    
+    #Release\ Notes .markdown-content blockquote {
+        margin: 0.8em 0;
+        padding-left: 0.8em;
+        font-size: 0.95em;
+    }
+    
+    #Release\ Notes .card {
+        padding: 16px;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #Release\ Notes .card-title {
+        font-size: 1.2em;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+    }
+    
+    #Release\ Notes #release-notes-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure Release Notes section uses full width on mobile */
+    #Release\ Notes {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure main-content doesn't constrain Release Notes */
+    .main-content {
+        width: 100%;
+        max-width: 100%;
     }
 }
 

@@ -357,7 +357,7 @@ class OvermortalCalculator {
 
     calculateAll() {
         this.updateFromInputs();
-        this.logDebugStart();
+    
         
         const viryaInfo = this.calculateViryaInfo();
         const { mainPathAbsorptionBonus, secondaryPathAbsorptionBonus } = this.calculatePathAbsorptionBonuses(viryaInfo);
@@ -379,15 +379,11 @@ class OvermortalCalculator {
             realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus
         );
         
-        this.logDebugEnd();
+        
         return this.calculationResults;
     }
 
-    logDebugStart() {
-        if (this.debugEnabled) {
-            // Debug logging removed
-        }
-    }
+
 
     calculateViryaInfo() {
         const viryaInfo = ViryaCalculator.detectScenario(this.playerData);

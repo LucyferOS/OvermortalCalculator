@@ -203,3 +203,87 @@
     color: var(--error);
     margin-top: 0;
 }
+
+/* Mobile responsive styles for markdown content */
+@media (max-width: 768px) {
+    .markdown-content {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .markdown-content h1 {
+        font-size: 1.5em;
+        margin: 1em 0 0.5em 0;
+    }
+    
+    .markdown-content h2 {
+        font-size: 1.3em;
+        margin: 0.9em 0 0.4em 0;
+    }
+    
+    .markdown-content h3 {
+        font-size: 1.15em;
+        margin: 0.8em 0 0.3em 0;
+    }
+    
+    .markdown-content h4 {
+        font-size: 1.05em;
+        margin: 0.7em 0 0.3em 0;
+    }
+    
+    .markdown-content p {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .markdown-content ul,
+    .markdown-content ol {
+        margin-left: 1.2em;
+        padding-right: 0;
+    }
+    
+    .markdown-content table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .markdown-content table thead,
+    .markdown-content table tbody,
+    .markdown-content table tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+    }
+    
+    .markdown-content th,
+    .markdown-content td {
+        padding: 6px 8px;
+        font-size: 0.9em;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .markdown-content pre {
+        padding: 0.8em;
+        font-size: 0.85em;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .markdown-content code {
+        font-size: 0.85em;
+        padding: 2px 4px;
+    }
+    
+    .markdown-content blockquote {
+        padding-left: 0.8em;
+        font-size: 0.95em;
+    }
+    
+    .loading-markdown {
+        padding: 1.5em 1em;
+        font-size: 0.9em;
+    }
+}
