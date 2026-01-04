@@ -441,19 +441,19 @@ class UIManager {
             'Current scenario': viryaInfo.scenario
         });
         
-        // For Completion scenario, use mainPathDailyXPBase to match "Next Major Realm" calculation
-        // (includes "had Virya last realm" bonus when applicable)
-        // For secondary path scenarios (Eminence, Perfect, Half-Step), use secondaryPathDailyXPBase to match "Player Time to Cultivate" calculation
-        // This ensures the Virya bonus is correctly applied to the secondary path
-        // For other scenarios, use dailyXP (without temporary bonus) for time calculations
-        let mainPathXPForScenario = (scenario === SCENARIO_COMPLETION) ? mainPathDailyXPBase : dailyXP;
-        let secondaryPathXPForScenario = dailyXP;
+        // For all scenarios, use base values (full XP including elixir/benediction) for Virya table
+        // This ensures consistent calculations regardless of path focus
+        // If both paths are at the same realm, use the same base XP for consistency
+        // Otherwise, Completion uses main path base XP, secondary path scenarios use secondary path base XP
+        const arePathsAtSameRealm = playerData.mainPathRealmMajor === playerData.secondaryPathRealmMajor;
+        let mainPathXPForScenario = mainPathDailyXPBase;
+        // If paths are at same realm, use main path base XP for both to ensure consistency
+        // Otherwise, use secondary path base XP for secondary path scenarios
+        let secondaryPathXPForScenario = arePathsAtSameRealm ? mainPathDailyXPBase : secondaryPathDailyXPBase;
         
-        // For secondary path scenarios, use secondaryPathDailyXPBase to match "Player Time to Cultivate" calculation
-        // This includes the correct Virya bonus for the secondary path realm
-        if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
-            secondaryPathXPForScenario = secondaryPathDailyXPBase;
-        }
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UIManager.js:452',message:'Virya table XP values for scenario',data:{scenario,arePathsAtSameRealm,mainPathRealmMajor:playerData.mainPathRealmMajor,secondaryPathRealmMajor:playerData.secondaryPathRealmMajor,mainPathDailyXPBase,secondaryPathDailyXPBase,mainPathXPForScenario,secondaryPathXPForScenario},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
         
         const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, mainPathXPForScenario, secondaryPathXPForScenario);
         const daysToReach = scenarioInfo?.daysNeeded;
