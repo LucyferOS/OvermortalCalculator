@@ -1367,6 +1367,9 @@ class UIManager {
             // Initialize or update slider
             this.initializeSlider(slider, baseTimeToNextMajor, playerData, results, absorptionBonus);
             
+            // Set up event listener for current red pills input
+            this.setupCurrentRedPillsListener();
+            
             Logger.success('Red pills calculator updated');
         } catch (error) {
             Logger.error('Error updating red pills calculator:', error);
@@ -1539,6 +1542,7 @@ class UIManager {
         this.updateElementText('red-pills-xp-gained', format(calculation.xpGained));
         this.updateElementText('red-pills-xp-deficit', format(calculation.xpDeficit));
         this.updateElementText('red-pills-xp-per-pill', format(calculation.redPillXPPerPill));
+        this.updateElementText('red-pills-current', (calculation.currentRedPills || 0).toLocaleString());
         this.updateElementText('red-pills-needed', calculation.redPillsNeeded.toLocaleString());
         
         // Highlight if red pills are needed
@@ -1551,6 +1555,74 @@ class UIManager {
                 redPillsNeededElement.style.color = 'var(--success)';
                 redPillsNeededElement.style.fontWeight = 'normal';
             }
+        }
+    }
+
+    static setupCurrentRedPillsListener() {
+        const currentRedPillsInput = document.getElementById('current-red-pills');
+        if (!currentRedPillsInput) {
+            return;
+        }
+        
+        // Remove existing listener if any (by cloning and replacing)
+        const newInput = currentRedPillsInput.cloneNode(true);
+        currentRedPillsInput.parentNode.replaceChild(newInput, currentRedPillsInput);
+        
+        // Add event listener if not already initialized
+        if (!newInput.dataset.redPillsListenerInitialized) {
+            newInput.dataset.redPillsListenerInitialized = 'true';
+            
+            const handleCurrentRedPillsUpdate = () => {
+                try {
+                    // Use stored latest values
+                    const currentResults = UIManager.latestResults;
+                    const currentPlayerData = UIManager.latestPlayerData;
+                    const currentAbsorptionBonus = UIManager.latestAbsorptionBonus;
+                    
+                    if (!currentResults || !currentPlayerData) {
+                        Logger.warn('No current results or player data available for current red pills update');
+                        return;
+                    }
+                    
+                    // Update playerData with new current red pills value
+                    const updatedPlayerData = {
+                        ...currentPlayerData,
+                        currentRedPills: parseFloat(newInput.value) || 0
+                    };
+                    
+                    const currentBaseTime = currentResults.realmProgression?.mainPath?.timeToNextMajor || 
+                                           currentResults.progression?.mainPath?.timeToNextMajor || 0;
+                    
+                    // Get current slider value
+                    const slider = document.getElementById('time-adjustment-slider');
+                    const timeReduction = slider ? (parseFloat(slider.value) || 0) : 0;
+                    const adjustedTime = Math.max(0, currentBaseTime - timeReduction);
+                    
+                    Logger.debug('Current red pills updated:', {
+                        currentRedPills: updatedPlayerData.currentRedPills,
+                        adjustedTime
+                    });
+                    
+                    UIManager.calculateAndDisplayRedPills(
+                        updatedPlayerData,
+                        currentBaseTime,
+                        adjustedTime,
+                        timeReduction,
+                        currentAbsorptionBonus
+                    );
+                } catch (error) {
+                    Logger.error('Error in current red pills handler:', error);
+                    console.error('Current red pills handler error:', error);
+                }
+            };
+            
+            // Update on input (while typing) for real-time feedback
+            newInput.addEventListener('input', handleCurrentRedPillsUpdate);
+            
+            // Update on change (when focus is lost) to ensure final calculation
+            newInput.addEventListener('change', handleCurrentRedPillsUpdate);
+            
+            Logger.debug('Current red pills input listener initialized');
         }
     }
 
