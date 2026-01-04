@@ -50,11 +50,12 @@ class Analytics {
         const multiplier = pillBonus * 1000;
         
         // Calculate red pill XP with separate vase bonus
-        // Base XP per pill with pill bonus: realmXP.red * multiplier
+        // Base XP per pill: realmXP.red
         // Vase bonus per pill (separate, additive): realmXP.red * vaseBonus
         // Then multiply by number of red pills per day
+        // Then apply pill bonus multiplier (same as other pills)
         const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars];
-        const baseRedPillXPPerPill = realmXP.red * multiplier;
+        const baseRedPillXPPerPill = realmXP.red;
         const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
         const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
         const redPillXP = redPillXPPerPill * numRedPills;

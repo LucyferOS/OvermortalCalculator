@@ -1,3 +1,9 @@
+#### Version 0.3.6.1 (BETA)
+  * Fixed red pill calculating incorrectly when at 3* or higher vase
+  * We now account for current red pills in the related analytic.
+  * Focus now has visual change in the UI. Time to virya assumes you are using the correct path.
+
+
 #### Version 0.3.6 (BETA)
   NOTE: THIS IS THE FINAL BETA RELEASE: NO MORE FEATURE REQUESTS UNTIL AFTER LAUNCH!!!
 
