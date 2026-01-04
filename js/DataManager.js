@@ -18,7 +18,6 @@ class DataManager {
             });
             
             localStorage.setItem(this.storageKey, JSON.stringify(formData));
-            console.log('Data saved to localStorage');
             return true;
         } catch (error) {
             console.error('Error saving to localStorage:', error);
@@ -45,7 +44,6 @@ class DataManager {
                     }
                 });
                 
-                console.log('Data loaded from localStorage');
                 return true;
             }
         } catch (error) {
@@ -56,7 +54,6 @@ class DataManager {
 
     clearLocalStorage() {
         localStorage.removeItem(this.storageKey);
-        console.log('LocalStorage cleared');
         return true;
     }
 

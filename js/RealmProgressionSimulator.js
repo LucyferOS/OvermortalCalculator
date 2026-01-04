@@ -1,6 +1,5 @@
 import { Realms, RealmMajorTotalXP, timegateLength, REALM_ORDER_MAJOR, REALM_ORDER_MINOR } from './gameData.js';
 import { XPCalculator } from './XPCalculator.js';
-import { Logger } from './Logger.js';
 
 class RealmProgressionSimulator {
     constructor(playerData, baseDailyXP, simulationId = 'default') {
@@ -12,21 +11,6 @@ class RealmProgressionSimulator {
     }
     
     simulateDays(days, absorptionBonus = 0, bonusEndCondition = null, maxRealm = null) {
-        Logger.group(`🎮 REALM PROGRESSION SIMULATION [${this.simulationId}]`, Logger.DEBUG);
-        Logger.info(`Simulating ${days.toFixed(1)} days with ${absorptionBonus * 100}% absorption bonus`);
-        Logger.debug(`Starting from: ${this.playerData.mainPathRealm} (${this.playerData.mainPathProgress}%)`);
-        
-        Logger.section('INITIAL CONDITIONS', Logger.DEBUG);
-        Logger.table({
-            'Current Realm': this.playerData.mainPathRealm,
-            'Progress': `${this.playerData.mainPathProgress}%`,
-            'Absorption Bonus': `${absorptionBonus * 100}%`,
-            'Days to Simulate': days.toFixed(1),
-            'Base Daily XP': this.baseDailyXP.toLocaleString(),
-            'Max Realm': maxRealm || 'None',
-            'Bonus End Condition': bonusEndCondition ? bonusEndCondition.endsAt : 'None'
-        }, 'Simulation Parameters');
-        
         let currentRealm = this.playerData.mainPathRealm;
         let currentProgress = this.playerData.mainPathProgress;
         let currentXP = Realms[currentRealm]?.xp * (currentProgress / 100) || 0;
@@ -38,11 +22,9 @@ class RealmProgressionSimulator {
         // Store the starting major for bonus end condition checks
         const startingMajor = this.playerData.mainPathRealmMajor;
         
-        Logger.section('PROGRESSION STEPS', Logger.DEBUG);
         
         while (daysRemaining > 0 && currentRealm) {
             step++;
-            Logger.group(`Step ${step}: ${currentRealm}`, Logger.DEBUG);
             
             // Check if bonus should end based on current realm/progress
             if (bonusEndCondition && currentAbsorptionBonus > 0) {
@@ -50,7 +32,6 @@ class RealmProgressionSimulator {
                 const shouldEnd = this.shouldBonusEnd(currentRealm, currentProgress, bonusEndCondition, startingMajor);
                 
                 if (shouldEnd) {
-                    Logger.info(`Bonus ending at ${currentRealm} - condition met: ${bonusEndCondition.endsAt}`);
                     currentAbsorptionBonus = 0;
                 }
             }
@@ -70,31 +51,24 @@ class RealmProgressionSimulator {
                     if (currentProgress >= 100) {
                         // Continue simulating remaining days - don't stop here
                         // The bonus should allow us to gain more XP in the remaining time
-                        Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to simulate remaining ${daysRemaining.toFixed(1)} days to show bonus benefit`);
                         // Don't break - continue to simulate remaining days
                     }
                 }
                 
                 // If we would exceed max realm, stop
                 if (this.isRealmAtOrBeyond(currentRealm, maxRealm) && currentRealm !== maxRealm) {
-                    Logger.info(`Reached maximum realm ${maxRealm}, stopping progression`);
                     break;
                 }
             }
             
             const realmInfo = Realms[currentRealm];
             if (!realmInfo) {
-                Logger.error(`Unknown realm: ${currentRealm}`);
                 break;
             }
             
             const xpInCurrentRealm = realmInfo.xp;
             const effectiveDailyXP = this.calculateEffectiveDailyXP(currentRealm, currentAbsorptionBonus);
             
-            Logger.debug(`Realm XP total: ${xpInCurrentRealm.toLocaleString()}`);
-            Logger.debug(`Current XP in realm: ${currentXP.toLocaleString()}`);
-            Logger.debug(`Effective daily XP: ${effectiveDailyXP.toLocaleString()}`);
-            Logger.debug(`Current absorption bonus: ${currentAbsorptionBonus * 100}%`);
             
             // Check if we already have overflow XP (currentXP > xpInCurrentRealm)
             const hasOverflow = currentXP > xpInCurrentRealm;
@@ -125,15 +99,6 @@ class RealmProgressionSimulator {
             totalXP += xpGained;
             currentXP += xpGained;
             
-            Logger.info(`Progress in ${currentRealm}:`);
-            Logger.table({
-                'Days spent': daysForThisRealm.toFixed(2),
-                'XP gained': xpGained.toLocaleString(),
-                'New realm progress': `${((currentXP / xpInCurrentRealm) * 100).toFixed(2)}%`,
-                'Total XP so far': totalXP.toLocaleString(),
-                'Days remaining': daysRemaining.toFixed(2)
-            });
-            
             realmHistory.push({
                 realm: currentRealm,
                 days: daysForThisRealm,
@@ -153,7 +118,6 @@ class RealmProgressionSimulator {
                 // We have overflow - progress to next realm immediately
                 const nextRealm = this.getNextRealm(currentRealm);
                 if (!nextRealm) {
-                    Logger.warn('Reached highest possible realm');
                     break;
                 }
                 
@@ -164,13 +128,11 @@ class RealmProgressionSimulator {
                 // Check if we've reached 100% Late in the max realm
                 if (maxRealm && currentRealm === maxRealm && currentMinor === 'Late') {
                     // Continue simulating remaining days - don't progress
-                    Logger.info(`Reached 100% Late in max realm ${maxRealm} with overflow, continuing to overflow for remaining ${daysRemaining.toFixed(1)} days (overflow will convert to next realm)`);
                     // currentXP already has the overflow, just continue
                     continue;
                 }
                 
                 // Progress to next realm with overflow
-                Logger.info(`Progressing from ${currentRealm} to ${nextRealm} with ${currentOverflow.toLocaleString()} overflow XP`);
                 currentXP = currentOverflow; // Carry overflow to next realm
                 currentRealm = nextRealm;
                 continue; // Continue loop to process next realm
@@ -179,18 +141,11 @@ class RealmProgressionSimulator {
             // Check if we completed this realm
             if (currentXP >= xpInCurrentRealm && daysRemaining > 0) {
                 const completionStatus = currentXP >= xpInCurrentRealm ? "COMPLETED" : "PARTIAL";
-                Logger.success(`✓ ${currentRealm} ${completionStatus}`, {
-                    'Total XP in realm': xpInCurrentRealm.toLocaleString(),
-                    'XP achieved': currentXP.toLocaleString(),
-                    'Overflow XP': (currentXP - xpInCurrentRealm).toLocaleString()
-                });
-                
                 // Check if bonus should end NOW that we've completed this realm at 100%
                 // This needs to happen AFTER we complete the realm but BEFORE we progress
                 if (bonusEndCondition && currentAbsorptionBonus > 0) {
                     const currentProgress = (currentXP / Realms[currentRealm]?.xp || 0) * 100;
                     if (this.shouldBonusEnd(currentRealm, currentProgress, bonusEndCondition, startingMajor)) {
-                        Logger.info(`Bonus ending at ${currentRealm} - condition met: ${bonusEndCondition.endsAt}`);
                         currentAbsorptionBonus = 0;
                     }
                 }
@@ -199,7 +154,6 @@ class RealmProgressionSimulator {
                 const nextRealm = this.getNextRealm(currentRealm);
                 
                 if (!nextRealm) {
-                    Logger.warn('Reached highest possible realm');
                     break;
                 }
                 
@@ -216,7 +170,6 @@ class RealmProgressionSimulator {
                     // Continue simulating remaining days - don't stop here and don't progress to next realm
                     // The bonus should allow us to gain more XP in the remaining time
                     // Overflow XP will accumulate and be converted to next realm at the end
-                    Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to overflow for remaining ${daysRemaining.toFixed(1)} days (overflow will convert to next realm)`);
                     // Don't break and don't progress - continue simulating in current realm
                     // Skip the rest of the realm progression logic and continue the loop
                     continue;
@@ -235,14 +188,11 @@ class RealmProgressionSimulator {
                     if (maxRealm && (maxRealm === nextMajorLate || maxRealm === currentRealm)) {
                         // Continue to next major
                         if (maxRealm === nextMajorLate) {
-                            Logger.info(`Continuing to ${nextMajor} to reach max realm ${maxRealm}`);
                         } else {
-                            Logger.info(`Continuing to ${nextMajor} (maxRealm ${maxRealm} is soft limit, allowing progression)`);
                         }
                         // Don't break - continue to next realm
                     } else {
                         // Stop at 100% Late (either maxRealm is null, or maxRealm is not next major's Late and not current realm)
-                        Logger.info(`Reached 100% Late in ${currentMajor}, stopping here to work on virya scenarios instead of progressing to ${nextMajor}`);
                         break;
                     }
                 }
@@ -251,7 +201,6 @@ class RealmProgressionSimulator {
                 // Only stop if nextRealm is BEYOND maxRealm (not equal to it - we need to reach the max realm)
                 // IMPORTANT: Allow progression TO the max realm, only stop if going BEYOND it
                 if (maxRealm && nextRealm !== maxRealm && this.isRealmAtOrBeyond(nextRealm, maxRealm)) {
-                    Logger.info(`Next realm ${nextRealm} would exceed max realm ${maxRealm}, stopping`);
                     break;
                 }
                 
@@ -285,7 +234,6 @@ class RealmProgressionSimulator {
                             progressEnd: '100%'
                         });
                         
-                        Logger.info(`Reached 100% Late in max realm ${maxRealm}, continuing to simulate remaining ${daysRemaining.toFixed(1)} days to show bonus benefit`);
                         // Don't break - continue simulating remaining days
                         // The check at line 163 will handle continuing the simulation
                     }
@@ -299,8 +247,6 @@ class RealmProgressionSimulator {
                     const currentEffective = this.getEffectiveAbsorption(currentRealm, currentAbsorptionBonus);
                     const nextEffective = this.getEffectiveAbsorption(nextRealm, 0);
                     
-                    Logger.info(`Absorption optimization: Staying in ${currentRealm} (${currentEffective}) vs ${nextRealm} (${nextEffective})`);
-                    Logger.info(`Calculating XP for ${nextRealm} using ${currentRealm} absorption bonus`);
                     
                     // Calculate XP needed for next realm using current (better) absorption
                     const nextRealmXP = Realms[nextRealm]?.xp || 0;
@@ -356,22 +302,15 @@ class RealmProgressionSimulator {
                     // Carry overflow XP to the next realm instead of resetting to 0
                     const overflowXP = currentXP - xpInCurrentRealm;
                     if (overflowXP > 0) {
-                        Logger.info(`Carrying ${overflowXP.toLocaleString()} overflow XP to ${nextRealm}`);
                         currentXP = overflowXP;
                     } else {
                         currentXP = 0;
                     }
-                    Logger.info(`Transitioning to: ${nextRealm}`);
                     currentRealm = nextRealm;
                 }
             } else if (daysRemaining > 0) {
-                Logger.debug(`Continuing in ${currentRealm}`, {
-                    'Remaining XP in realm': (xpInCurrentRealm - currentXP).toLocaleString(),
-                    'Days needed': ((xpInCurrentRealm - currentXP) / effectiveDailyXP).toFixed(2)
-                });
             }
             
-            Logger.groupEnd();
         }
         
         // At the end of simulation, convert any overflow XP to next realm progress
@@ -382,41 +321,14 @@ class RealmProgressionSimulator {
             const nextRealm = this.getNextRealm(currentRealm);
             
             if (nextRealm && overflowXP > 0) {
-                Logger.info(`Converting ${overflowXP.toLocaleString()} overflow XP from ${currentRealm} to ${nextRealm} progress`);
                 const nextRealmInfo = Realms[nextRealm];
                 if (nextRealmInfo) {
                     // Convert overflow XP to progress in next realm
                     currentXP = overflowXP;
                     currentRealm = nextRealm;
-                    Logger.info(`Converted overflow: Now at ${nextRealm} with ${((currentXP / nextRealmInfo.xp) * 100).toFixed(2)}% progress`);
                 }
             }
         }
-        
-        Logger.section('SIMULATION RESULTS', Logger.INFO);
-        Logger.table({
-            'Total XP Gained': totalXP.toLocaleString(),
-            'Final Realm': currentRealm,
-            'Final Progress': `${((currentXP / Realms[currentRealm]?.xp || 1) * 100).toFixed(2)}%`,
-            'Total Days Simulated': (days - daysRemaining).toFixed(2),
-            'Days Unused': daysRemaining.toFixed(2),
-            'Steps Taken': step
-        });
-        
-        Logger.section('REALM HISTORY', Logger.DEBUG);
-        if (Logger.level <= Logger.DEBUG) {
-            realmHistory.forEach((entry, index) => {
-                Logger.debug(`Step ${index + 1}: ${entry.realm}`, {
-                    'Days': entry.days.toFixed(2),
-                    'XP gained': Math.round(entry.xpGained).toLocaleString(),
-                    'Daily XP': Math.round(entry.dailyXP).toLocaleString(),
-                    'Progress': `${entry.progressStart} → ${entry.progressEnd}`,
-                    'Absorption bonus': `${entry.absorptionBonus * 100}%`
-                });
-            });
-        }
-        
-        Logger.groupEnd();
         
         return {
             totalXP,
@@ -429,7 +341,6 @@ class RealmProgressionSimulator {
     }
     
     calculateEffectiveDailyXP(realm, absorptionBonus) {
-        Logger.debug(`Calculating daily XP for ${realm} with ${absorptionBonus * 100}% bonus`, Logger.DEBUG);
         
         // Create temporary player data for this realm
         const tempPlayerData = { 
@@ -444,13 +355,6 @@ class RealmProgressionSimulator {
         
         // Calculate daily XP with given absorption bonus
         const dailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(tempPlayerData, absorptionBonus);
-        
-        Logger.debug(`Effective daily XP: ${dailyXP.toLocaleString()}`, {
-            'Realm': realm,
-            'Base Absorption': Realms[realm]?.absorption || 0,
-            'Absorption Bonus': absorptionBonus,
-            'Total Absorption': (Realms[realm]?.absorption || 0) + absorptionBonus
-        });
         
         return dailyXP;
     }
@@ -471,23 +375,13 @@ class RealmProgressionSimulator {
     }
     
     getRealmAtBreakthrough(currentTimegateDays, absorptionBonus = 0) {
-        Logger.group(`🎯 CALCULATING REALM AT BREAKTHROUGH`, Logger.DEBUG);
-        Logger.info(`Timegate days: ${currentTimegateDays}, Absorption bonus: ${absorptionBonus * 100}%`);
         
         const result = this.simulateDays(currentTimegateDays, absorptionBonus);
         
-        Logger.info(`At breakthrough, player will be at:`, {
-            'Realm': result.finalRealm,
-            'Progress': `${result.finalProgress.toFixed(2)}%`,
-            'Total XP gained': result.totalXP.toLocaleString()
-        });
-        
-        Logger.groupEnd();
         return result;
     }
     
     calculateDaysToReachRealm(targetRealm, targetProgress = 100, absorptionBonus = 0) {
-        Logger.group(`⏱️ CALCULATING DAYS TO REACH ${targetRealm} (${targetProgress}%)`, Logger.DEBUG);
         
         let currentRealm = this.playerData.mainPathRealm;
         let currentProgress = this.playerData.mainPathProgress;
@@ -496,8 +390,6 @@ class RealmProgressionSimulator {
         
         const targetRealmXP = Realms[targetRealm]?.xp * (targetProgress / 100);
         if (!targetRealmXP) {
-            Logger.error(`Unknown target realm: ${targetRealm}`);
-            Logger.groupEnd();
             return Infinity;
         }
         
@@ -505,17 +397,12 @@ class RealmProgressionSimulator {
         const currentIndex = this.getRealmIndex(currentRealm);
         const targetIndex = this.getRealmIndex(targetRealm);
         
-        Logger.info(`Realm indices: Current=${currentIndex} (${currentRealm}), Target=${targetIndex} (${targetRealm})`);
         
         if (currentIndex > targetIndex) {
-            Logger.success(`Already past target realm ${targetRealm}`);
-            Logger.groupEnd();
             return 0;
         }
         
         if (currentRealm === targetRealm && currentProgress >= targetProgress) {
-            Logger.success(`Already at or beyond target progress in ${targetRealm}`);
-            Logger.groupEnd();
             return 0;
         }
         
@@ -523,19 +410,8 @@ class RealmProgressionSimulator {
         let xpNeeded = 0;
         if (currentRealm === targetRealm) {
             xpNeeded = Math.max(0, targetRealmXP - currentXP);
-            Logger.debug(`Same realm calculation:`, {
-                'Current XP': currentXP.toLocaleString(),
-                'Target XP': targetRealmXP.toLocaleString(),
-                'XP needed': xpNeeded.toLocaleString()
-            });
         } else {
             // Sum XP through all intermediate realms
-            Logger.debug(`Calculating XP through multiple realms:`, {
-                'From': currentRealm,
-                'To': targetRealm,
-                'Steps': targetIndex - currentIndex
-            });
-            
             for (let i = currentIndex; i <= targetIndex; i++) {
                 const realm = this.getRealmFromIndex(i);
                 const realmXP = Realms[realm].xp;
@@ -543,33 +419,17 @@ class RealmProgressionSimulator {
                 if (i === currentIndex) {
                     // Current realm - partial
                     xpNeeded += (realmXP - currentXP);
-                    Logger.debug(`Step ${i - currentIndex + 1}: ${realm} (partial)`, {
-                        'Realm XP': realmXP.toLocaleString(),
-                        'Current XP in realm': currentXP.toLocaleString(),
-                        'XP needed from realm': (realmXP - currentXP).toLocaleString(),
-                        'Cumulative XP needed': xpNeeded.toLocaleString()
-                    });
                 } else if (i === targetIndex) {
                     // Target realm - partial to target progress
                     xpNeeded += targetRealmXP;
-                    Logger.debug(`Step ${i - currentIndex + 1}: ${realm} (target - partial)`, {
-                        'Target XP in realm': targetRealmXP.toLocaleString(),
-                        'Cumulative XP needed': xpNeeded.toLocaleString()
-                    });
                 } else {
                     // Full intermediate realm
                     xpNeeded += realmXP;
-                    Logger.debug(`Step ${i - currentIndex + 1}: ${realm} (full)`, {
-                        'Realm XP': realmXP.toLocaleString(),
-                        'Cumulative XP needed': xpNeeded.toLocaleString()
-                    });
                 }
             }
         }
         
         if (xpNeeded <= 0) {
-            Logger.success(`No XP needed to reach target`);
-            Logger.groupEnd();
             return 0;
         }
         
@@ -577,15 +437,6 @@ class RealmProgressionSimulator {
         const effectiveDailyXP = this.calculateEffectiveDailyXP(currentRealm, absorptionBonus);
         const daysNeeded = effectiveDailyXP > 0 ? xpNeeded / effectiveDailyXP : Infinity;
         
-        Logger.info(`Final calculation:`, {
-            'Total XP needed': xpNeeded.toLocaleString(),
-            'Effective daily XP': effectiveDailyXP.toLocaleString(),
-            'Days needed': daysNeeded === Infinity ? '∞' : daysNeeded.toFixed(2),
-            'Weeks needed': daysNeeded === Infinity ? '∞' : (daysNeeded / 7).toFixed(2),
-            'Months needed': daysNeeded === Infinity ? '∞' : (daysNeeded / 30).toFixed(2)
-        });
-        
-        Logger.groupEnd();
         return daysNeeded;
     }
     
@@ -595,7 +446,6 @@ class RealmProgressionSimulator {
         const minorIndex = this.minorOrder.indexOf(minor);
         
         if (majorIndex === -1 || minorIndex === -1) {
-            Logger.error(`Invalid realm name: ${realmName}`);
             return -1;
         }
         
@@ -663,8 +513,6 @@ class RealmProgressionSimulator {
     }
     
     getMaximumReachableRealm(startRealm, startProgress, daysAvailable, absorptionBonus = 0) {
-        Logger.group(`🎯 CALCULATING MAXIMUM REACHABLE REALM`, Logger.DEBUG);
-        Logger.info(`Starting from: ${startRealm} (${startProgress}%), Days: ${daysAvailable}, Bonus: ${absorptionBonus * 100}%`);
         
         let currentRealm = startRealm;
         let currentXP = Realms[currentRealm]?.xp * (startProgress / 100) || 0;
@@ -704,8 +552,6 @@ class RealmProgressionSimulator {
                                 
                                 if (daysNeededForNextMajorLate <= daysRemainingAfterCurrentLate) {
                                     // Can reach next major's Late - that's our max realm
-                                    Logger.info(`Maximum reachable realm: ${nextMajorLateRealm} at 100% (stopping here for virya scenarios)`);
-                                    Logger.groupEnd();
                                     return nextMajorLateRealm;
                                 }
                             }
@@ -713,14 +559,10 @@ class RealmProgressionSimulator {
                     }
                     
                     // Cannot reach next major's Late, so current Late is our max
-                    Logger.info(`Maximum reachable realm: ${currentRealm} at 100% (stopping here for virya scenarios)`);
-                    Logger.groupEnd();
                     return currentRealm;
                 } else {
                     // Cannot reach 100% Late
                     const finalProgress = ((currentXP + effectiveDailyXP * daysRemaining) / realmInfo.xp * 100);
-                    Logger.info(`Maximum reachable realm: ${currentRealm} (${finalProgress.toFixed(2)}%)`);
-                    Logger.groupEnd();
                     return currentRealm;
                 }
             }
@@ -737,8 +579,6 @@ class RealmProgressionSimulator {
                 const nextRealm = this.getNextRealm(currentRealm);
                 
                 if (!nextRealm) {
-                    Logger.info(`Reached highest realm: ${currentRealm}`);
-                    Logger.groupEnd();
                     return currentRealm;
                 }
                 
@@ -753,14 +593,10 @@ class RealmProgressionSimulator {
                     
                     if (daysNeededFor100Late <= daysRemaining) {
                         // Can reach 100% Late - this is our maximum reachable realm
-                        Logger.info(`Maximum reachable realm: ${nextRealm} at 100% (stopping here for virya scenarios)`);
-                        Logger.groupEnd();
                         return nextRealm;
                     } else {
                         // Cannot reach 100% Late
                         const finalProgress = (nextEffectiveDailyXP * daysRemaining / nextRealmXP * 100);
-                        Logger.info(`Maximum reachable realm: ${nextRealm} (${finalProgress.toFixed(2)}%)`);
-                        Logger.groupEnd();
                         return nextRealm;
                     }
                 }
@@ -768,14 +604,10 @@ class RealmProgressionSimulator {
                 currentRealm = nextRealm;
             } else {
                 // Cannot complete this realm
-                Logger.info(`Maximum reachable realm: ${currentRealm} (${((currentXP + effectiveDailyXP * daysRemaining) / realmInfo.xp * 100).toFixed(2)}%)`);
-                Logger.groupEnd();
                 return currentRealm;
             }
         }
         
-        Logger.info(`Maximum reachable realm: ${currentRealm}`);
-        Logger.groupEnd();
         return currentRealm;
     }
 }

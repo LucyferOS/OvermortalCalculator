@@ -518,9 +518,7 @@ class OvermortalCalculator {
 
     logDebugStart() {
         if (this.debugEnabled) {
-            console.clear();
-            console.log('=== OVERMORTAL CALCULATOR DEBUG ===');
-            console.log('Player Data:', this.playerData);
+            // Debug logging removed
         }
     }
 
@@ -546,19 +544,15 @@ class OvermortalCalculator {
             const isMainPathBonusActive = OvermortalCalculator.isHadViryaBonusActive(hadViryaLastRealm, this.playerData.mainPathRealmMinor);
             if (isMainPathBonusActive && hadViryaBonus > 0) {
                 mainPathAbsorptionBonus = hadViryaBonus;
-                console.log(`Using "had Virya last realm" bonus (${hadViryaLastRealm}) for main path: ${hadViryaBonus * 100}%`);
             } else {
                 mainPathAbsorptionBonus = 0;
-                console.log(`"had Virya last realm" bonus (${hadViryaLastRealm}) is not active for main path (${this.playerData.mainPathRealmMinor})`);
             }
             
             const isSecondaryPathBonusActive = OvermortalCalculator.isHadViryaBonusActive(hadViryaLastRealm, this.playerData.secondaryPathRealmMinor);
             if (isSecondaryPathBonusActive && hadViryaBonus > 0) {
                 secondaryPathAbsorptionBonus = hadViryaBonus;
-                console.log(`Using "had Virya last realm" bonus (${hadViryaLastRealm}) for secondary path: ${hadViryaBonus * 100}%`);
             } else {
                 secondaryPathAbsorptionBonus = 0;
-                console.log(`"had Virya last realm" bonus (${hadViryaLastRealm}) is not active for secondary path (${this.playerData.secondaryPathRealmMinor})`);
             }
         }
         
@@ -570,10 +564,6 @@ class OvermortalCalculator {
         const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
         const maxExtractorResult = Recommendations.calculateMaxLevelXP(this.playerData, MAX_EXTRACTOR_LEVEL);
         const fruitXPTotalMax = maxExtractorResult.fruitXPTotal;
-        
-        console.log('\n=== FRUIT CALCULATIONS ===');
-        console.log('Fruit XP per fruit:', fruitXPSingle);
-        console.log('Total Fruit XP (', this.playerData.fruitsCount, 'fruits):', fruitXPTotal);
         
         return { fruitXPSingle, fruitXPTotal, fruitXPTotalMax };
     }
@@ -612,8 +602,6 @@ class OvermortalCalculator {
                 benedictionXPWithMultiplier = benedictionXP * multiplier;
                 // Calculate base value (for analytics/Virya table) - full XP including benediction
                 secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
-            } else {
-                console.warn(`Warning: Realm XP data not found for secondary path realm "${realmXPKey}" (realm: ${this.playerData.secondaryPathRealmMajor}), skipping secondary path daily XP calculation`);
             }
         }
         
@@ -634,10 +622,6 @@ class OvermortalCalculator {
             secondaryPathDailyXP = secondaryPathFocusXP + benedictionXPWithMultiplier;
         }
         
-        console.log(`Main path daily XP (with ${mainPathAbsorptionBonus * 100}% bonus): ${mainPathDailyXP.toLocaleString()}`);
-        console.log(`Secondary path daily XP (with ${secondaryPathAbsorptionBonus * 100}% bonus): ${secondaryPathDailyXP.toLocaleString()}`);
-        
-        
         return { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP };
     }
 
@@ -645,9 +629,6 @@ class OvermortalCalculator {
         const scenarioXPNeeded = {};
         const scenarioFruitResults = {};
         const currentIndex = VIRYA_SCENARIO_ORDER.indexOf(viryaInfo.scenario);
-        
-        console.log('\n=== VIRYA SCENARIO ANALYSIS ===');
-        console.log('Current scenario:', viryaInfo.scenario, '(index:', currentIndex + ')');
         
         for (let i = currentIndex; i < VIRYA_SCENARIO_ORDER.length; i++) {
             const scenario = VIRYA_SCENARIO_ORDER[i];
@@ -657,28 +638,9 @@ class OvermortalCalculator {
             const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, this.playerData, dailyXPForScenario, dailyXPForScenario);
             scenarioXPNeeded[scenario] = scenarioInfo.xpNeeded;
             
-            console.log(`\n--- ${scenario} Scenario ---`);
-            console.log('XP needed:', scenarioInfo.xpNeeded);
-            console.log('Days needed:', scenarioInfo.daysNeeded);
-            console.log('Required path focus:', scenarioInfo.requiredPathFocus);
-            
             if (this.playerData.fruitsCount > 0 && scenarioInfo.xpNeeded > 0 && isFinite(scenarioInfo.xpNeeded)) {
-                console.log(`Calculating fruit recommendations for ${scenario}...`);
                 const fruitResult = Recommendations.findMinLevelsFruitFromCurrent(this.playerData, scenarioInfo.xpNeeded, MAX_EXTRACTOR_LEVEL);
                 scenarioFruitResults[scenario] = fruitResult;
-                
-                if (fruitResult && fruitResult.recommendedSolution) {
-                    console.log(`✅ ${scenario} fruit solution found!`);
-                    console.log('Recommended levels:', fruitResult.recommendedSolution);
-                    console.log('Efficiency:', fruitResult.comparison.singleXPPercentOfMax, 'of max XP');
-                } else {
-                    console.log(`❌ No fruit solution found for ${scenario}`);
-                }
-            } else {
-                console.log(`Skipping fruit recommendations for ${scenario}:`);
-                if (this.playerData.fruitsCount <= 0) console.log('- No fruits available');
-                if (scenarioInfo.xpNeeded <= 0) console.log('- Already achieved or no XP needed');
-                if (!isFinite(scenarioInfo.xpNeeded)) console.log('- XP needed is infinite (unreachable)');
             }
         }
         
@@ -691,20 +653,10 @@ class OvermortalCalculator {
         const comparisonScenarios = [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP];
         const comparator = new ViryaScenarioComparator(this.playerData, this.playerData.dailyXP, 'default', mainPathDailyXPBase, secondaryPathDailyXPBase);
         
-        console.log('\n=== SCENARIO COMPARISONS (Completion as baseline) ===');
         for (const targetScenario of comparisonScenarios) {
-            console.log(`\n--- Comparing Completion vs ${targetScenario} ---`);
-            
             try {
                 const comparison = comparator.compareScenarios(SCENARIO_COMPLETION, targetScenario);
                 scenarioComparisons[targetScenario] = comparison;
-                
-                console.log(`Total XP by next timegate end:`);
-                console.log(`- Completion: ${comparison.scenario1.totalXP.toLocaleString()}`);
-                console.log(`- ${targetScenario}: ${comparison.scenario2.totalXP.toLocaleString()}`);
-                console.log(`Better scenario: ${comparison.comparison.betterScenario}`);
-                console.log(`Difference: ${comparison.comparison.difference.toLocaleString()} XP (${comparison.comparison.percentage})`);
-                console.log(`Total days until next timegate: ${comparison.comparison.totalDaysUntilNextTimegateEnd}`);
             } catch (error) {
                 console.error(`Error comparing Completion vs ${targetScenario}:`, error);
             }
@@ -735,9 +687,7 @@ class OvermortalCalculator {
 
     logDebugEnd() {
         if (this.debugEnabled) {
-            console.log('\n=== FINAL CALCULATION RESULTS ===');
-            console.log('Calculation Results:', this.calculationResults);
-            console.log('=== END DEBUG ===');
+            // Debug logging removed
         }
     }
 

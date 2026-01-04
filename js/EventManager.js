@@ -104,14 +104,11 @@ class EventManager {
                 const resultBox = e.target.closest('.result-box[data-path]');
                 if (resultBox) {
                     const path = resultBox.getAttribute('data-path');
-                    console.log('Dashboard result box clicked:', path, resultBox);
                     if (path === PATH_MAIN || path === PATH_SECONDARY) {
                         this.app.switchPathFocus(path);
                     }
                 }
             });
-        } else {
-            console.warn('Dashboard element not found for path switching');
         }
     }
     

@@ -1,31 +1,20 @@
 import { XPData, GameConstants, Realms } from './gameData.js';
 import { CalculatorUtils } from './utils.js';
-import { Logger } from './Logger.js';
 
 class XPCalculator {
     static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {
-        Logger.group('🧮 XPCalculator.calculateDailyXPWithAbsorptionBonus', Logger.DEBUG);
-        Logger.debug('Input:', { absorptionBonus, mainRealm: playerData.mainPathRealm });
         
         const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
-        Logger.debug('Abode Aura XP:', abodeAuraXP);
         
         const gemBonusXP = abodeAuraXP * GameConstants.gemQuality[playerData.gemQuality];
-		Logger.debug('Gem Quality:', GameConstants.gemQuality[playerData.gemQuality]);
-        Logger.debug('Gem Bonus XP:', gemBonusXP);
         
         const pillXP = this.calculatePillXP(playerData);
-        Logger.debug('Pill XP:', pillXP);
         
         const respiraXP = this.calculateRespiraXP(playerData);
-        Logger.debug('Respira XP:', respiraXP);
         
         const pearlXP = this.calculatePearlXP(playerData, absorptionBonus);
-        Logger.debug('Pearl XP:', pearlXP);
         
         const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP + pearlXP;
-        Logger.debug('Total Daily XP:', total);
-        Logger.groupEnd();
 		
         return total;
     }
@@ -68,50 +57,38 @@ class XPCalculator {
             ? playerData.cosmoapsisValue 
             : this.calculateCosmoapsisValue(playerData, absorptionBonus);
         
-        Logger.debug('cosmoapsisValue:', cosmoapsisValue);
         const dailyAuraXP = cosmoapsisValue * 10800;
-        Logger.debug('dailyAuraXP:', dailyAuraXP);
         return dailyAuraXP;
     }
 
     static calculatePillXP(playerData) {
-        Logger.group('💊 XPCalculator.calculatePillXP', Logger.DEBUG);
         
         const realmXPKey = playerData.mainPathRealmMajor + "XP";
         const realmXP = XPData[realmXPKey];
-        Logger.debug('Realm XP Values:', realmXP);
         
         // Safety check: if realmXP is undefined, return 0
         if (!realmXP) {
-            Logger.warn(`Warning: Realm XP data not found for key "${realmXPKey}" (realm: ${playerData.mainPathRealmMajor})`);
-            Logger.groupEnd();
             return 0;
         }
         
         const goldPillXP = realmXP.gold 
             * (1 + (playerData.pillBonusNirvanaChariotMansion / 100)) 
             * playerData.goldPill;
-        Logger.debug('Gold Pill XP:', goldPillXP);
         
         const purplePillXP = realmXP.purple 
             * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100)) 
             * playerData.purplePill;
-        Logger.debug('Purple Pill XP:', purplePillXP);
         
         const bluePillXP = realmXP.blue 
             * (1 + (playerData.pillBonusNirvanaGhostMansion / 100)) 
             * playerData.bluePill;
-        Logger.debug('Blue Pill XP:', bluePillXP);
         
         const elixirXP = this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
-        Logger.debug('Elixir XP (with efficiency):', elixirXP);
         
         // Benediction pills only apply to secondary path, not main path
         // const benedictionXP = this.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
-        // Logger.debug('Benediction XP (with efficiency):', benedictionXP);
         
         const numRedPills = this.calculateRedPills(playerData);
-        Logger.debug('Red Pills Count:', numRedPills);
         
         // Calculate red pill XP with separate vase bonus
         // Base XP per pill: realmXP.red
@@ -122,13 +99,10 @@ class XPCalculator {
         const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
         const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
         const redPillXP = redPillXPPerPill * numRedPills;
-        Logger.debug('Red Pill XP:', redPillXP);
         
         const basePillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP;
         const totalPillXP = basePillXP * playerData.pillBonus * 1000;
         
-        Logger.debug('Total Pill XP:', totalPillXP);
-        Logger.groupEnd();
         
         return totalPillXP;
     }
@@ -178,7 +152,6 @@ class XPCalculator {
     }
 
     static calculateRespiraXP(playerData) {
-        Logger.group('🌀 XPCalculator.calculateRespiraXP', Logger.DEBUG);
         
         const probabilities = [0.55, 0.30, 0.1475, 0.0025];
         const multipliers = [1, 2, 5, 10];
@@ -187,29 +160,21 @@ class XPCalculator {
         for (let i = 0; i < probabilities.length; i++) {
             expectedGushValue += probabilities[i] * multipliers[i];
         }
-        Logger.debug('Expected Gush Value:', expectedGushValue);
         
         const respiraAttemptsGush = playerData.respiraAttemptsTotal * expectedGushValue;
-        Logger.debug('Respira Attempts Gush:', respiraAttemptsGush);
         
         const realmRespiraXP = XPData[playerData.mainPathRealmMajor + "XP"].respira;
-        Logger.debug('Realm Respira XP:', realmRespiraXP);
         
         const baseRespiraXP = respiraAttemptsGush * realmRespiraXP * 1000;
         const respiraExp = baseRespiraXP * playerData.respiraBonusTotal;
         
-        Logger.debug('Total Respira XP:', respiraExp);
-        Logger.groupEnd();
         
         return respiraExp;
     }
 
     static calculatePearlXP(playerData, absorptionBonus) {
-        Logger.group('🫧 XPCalculator.calculatePearlXP', Logger.DEBUG);
         
         if (!playerData.pearlStars || playerData.pearlStars === 'No artifact') {
-            Logger.debug('No pearl artifact');
-            Logger.groupEnd();
             return 0;
         }
         
@@ -217,32 +182,24 @@ class XPCalculator {
         const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
             ? playerData.cosmoapsisValue 
             : this.calculateCosmoapsisValue(playerData, absorptionBonus);
-        Logger.debug('cosmoapsisValue:', cosmoapsisValue);
         
         // Calculate energy available per day (same logic as other artifacts)
         const energyReplenished = GameConstants.artifactEnergyReplenishment[playerData.pearlStars] * GameConstants.taoistYearsPerDay;
-        Logger.debug('Energy replenished per day:', energyReplenished);
         
         // Energy cost per use: 90 if 5 stars, 100 otherwise
         const energyCostPerUse = playerData.pearlStars === '5 stars' ? 90 : 100;
-        Logger.debug('Energy cost per use:', energyCostPerUse);
         
         // Calculate uses per day (starting energy + replenished energy) / cost per use
         const usesPerDay = (energyReplenished + 100) / energyCostPerUse;
-        Logger.debug('Uses per day:', usesPerDay);
         
         // Calculate total energy used per day
         const energyUsedPerDay = usesPerDay * energyCostPerUse;
-        Logger.debug('Energy used per day:', energyUsedPerDay);
         
         // XP multiplier: 1200 if 1+ stars, 1000 if 0 star
         const xpMultiplier = playerData.pearlStars === '0 star' ? 1000 : 1200;
-        Logger.debug('XP multiplier:', xpMultiplier);
         
         // Calculate XP: (energy used / 100) * cosmoapsisValue * multiplier
         const pearlXP = (energyUsedPerDay / 100) * cosmoapsisValue * xpMultiplier;
-        Logger.debug('Total Pearl XP:', pearlXP);
-        Logger.groupEnd();
         
         return pearlXP;
     }
@@ -255,15 +212,12 @@ class XPCalculator {
      * @returns {number} Total XP from all daily elixers with efficiency applied
      */
     static calculateElixirXPWithEfficiency(playerData, dailyElixirCount) {
-        Logger.group('🧪 XPCalculator.calculateElixirXPWithEfficiency', Logger.DEBUG);
         
         // Get base elixir XP for the player's realm
         const realmXPKey = playerData.mainPathRealmMajor + "XP";
         const realmXP = XPData[realmXPKey];
         
         if (!realmXP || !realmXP.elixer) {
-            Logger.warn(`Warning: Elixir XP data not found for realm "${realmXPKey}"`);
-            Logger.groupEnd();
             return 0;
         }
         
@@ -271,9 +225,6 @@ class XPCalculator {
         const totalConsumed = playerData.elixirConsumed || 0;
         const efficiencyLevels = GameConstants.elixerData.elixerEfficiencyLevels;
         
-        Logger.debug('Base Elixir XP:', baseElixirXP);
-        Logger.debug('Total Consumed:', totalConsumed);
-        Logger.debug('Daily Elixir Count:', dailyElixirCount);
         
         let totalElixirXP = 0;
         
@@ -309,11 +260,8 @@ class XPCalculator {
             const elixirXP = baseElixirXP * (efficiencyPercent / 100);
             totalElixirXP += elixirXP;
             
-            Logger.debug(`Elixir ${i} (cumulative: ${cumulativeCount}): ${efficiencyPercent}% efficiency = ${elixirXP.toFixed(2)} XP`);
         }
         
-        Logger.debug('Total Elixir XP (with efficiency):', totalElixirXP);
-        Logger.groupEnd();
         
         return totalElixirXP;
     }
@@ -326,15 +274,12 @@ class XPCalculator {
      * @returns {number} Total XP from all daily benediction pills with efficiency applied
      */
     static calculateBenedictionXPWithEfficiency(playerData, dailyBenedictionCount) {
-        Logger.group('✨ XPCalculator.calculateBenedictionXPWithEfficiency', Logger.DEBUG);
         
         // Get base benediction XP for the player's realm
         const realmXPKey = playerData.mainPathRealmMajor + "XP";
         const realmXP = XPData[realmXPKey];
         
         if (!realmXP || !realmXP.benediction) {
-            Logger.warn(`Warning: Benediction XP data not found for realm "${realmXPKey}"`);
-            Logger.groupEnd();
             return 0;
         }
         
@@ -342,9 +287,6 @@ class XPCalculator {
         const totalConsumed = playerData.benedictionConsumed || 0;
         const efficiencyLevels = GameConstants.benedictionData.benedictionEfficiencyLevels;
         
-        Logger.debug('Base Benediction XP:', baseBenedictionXP);
-        Logger.debug('Total Consumed:', totalConsumed);
-        Logger.debug('Daily Benediction Count:', dailyBenedictionCount);
         
         let totalBenedictionXP = 0;
         
@@ -380,11 +322,8 @@ class XPCalculator {
             const benedictionXP = baseBenedictionXP * (efficiencyPercent / 100);
             totalBenedictionXP += benedictionXP;
             
-            Logger.debug(`Benediction ${i} (cumulative: ${cumulativeCount}): ${efficiencyPercent}% efficiency = ${benedictionXP.toFixed(2)} XP`);
         }
         
-        Logger.debug('Total Benediction XP (with efficiency):', totalBenedictionXP);
-        Logger.groupEnd();
         
         return totalBenedictionXP;
     }

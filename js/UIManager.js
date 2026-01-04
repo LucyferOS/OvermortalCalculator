@@ -1,6 +1,5 @@
 import { CalculatorUtils } from './utils.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
-import { Logger } from './Logger.js';
 import { Realms, XPData, GameConstants, RealmMajorTotalXP, timegateLength, PATH_MAIN, PATH_SECONDARY, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, REALM_ORDER_MAJOR } from './gameData.js';
 import { Analytics } from './Analytics.js';
 
@@ -11,17 +10,9 @@ class UIManager {
     static latestAbsorptionBonus = 0;
     
     static updateDashboard(results, playerData) {
-        Logger.group('🖥️ UI MANAGER - UPDATING DASHBOARD', Logger.INFO);
-        
-        Logger.debug('DEBUG updateDashboard - results.virya:', results.virya);
-        Logger.debug('DEBUG updateDashboard - results.virya.scenario:', results.virya?.scenario);
-        
         // Update Virya display
         if (results.virya) {
-            Logger.debug('DEBUG: Calling updateViryaDisplay with:', results.virya.scenario);
             this.updateViryaDisplay(results.virya, playerData, results.dailyXP, results.mainPathDailyXPBase, results.secondaryPathDailyXPBase);
-        } else {
-            Logger.warn('DEBUG: results.virya is falsy!');
         }
         
         // Update basic path information
@@ -64,14 +55,9 @@ class UIManager {
         
         // Update analytics
         this.updateAnalytics(results, playerData);
-        
-        Logger.success('Dashboard update complete');
-        Logger.groupEnd();
     }
 
     static updatePathResults(prefix, pathData, isFocused = false) {
-        Logger.debug(`Updating ${prefix} path results`, pathData);
-        
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
 
@@ -117,7 +103,6 @@ class UIManager {
     }
     
     static updateFruitDisplays(results, playerData) {
-        Logger.debug('Updating fruit displays');
         
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
@@ -182,14 +167,7 @@ class UIManager {
                     this.updateElementText('fruits-major-secondary-date-display', `Estimated: ${formatDate(majorTimeWithFruits)}`);
                 }
             }
-            
-            Logger.debug('Fruit calculations complete', {
-                'Fruit XP Total': fruitXPTotal.toLocaleString(),
-                'Daily XP': dailyXP.toLocaleString(),
-                'Days Saved': daysSaved.toFixed(2)
-            });
         } else {
-            Logger.debug('No fruits or no daily XP, showing original times');
             // No fruits or no daily XP, show original times
             this.updateElementText('fruits-days-saved-display', '0d');
             if (results.realmProgression?.mainPath) {
@@ -206,7 +184,6 @@ class UIManager {
     }
     
     static updateMaxFruitDisplays(results, playerData) {
-        Logger.debug('Updating max fruit displays');
         
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
@@ -271,14 +248,7 @@ class UIManager {
                     this.updateElementText('fruits-max-major-secondary-date-display', `Estimated: ${formatDate(majorTimeWithFruits)}`);
                 }
             }
-            
-            Logger.debug('Max fruit calculations complete', {
-                'Fruit XP Total Max': fruitXPTotalMax.toLocaleString(),
-                'Daily XP': dailyXP.toLocaleString(),
-                'Days Saved': daysSaved.toFixed(2)
-            });
         } else {
-            Logger.debug('No max fruits or no daily XP, showing original times');
             // No fruits or no daily XP, show original times
             this.updateElementText('fruits-max-days-saved-display', '0d');
             if (results.realmProgression?.mainPath) {
@@ -295,8 +265,6 @@ class UIManager {
     }
     
     static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {
-        Logger.group('👑 VIRYA DISPLAY UPDATE', Logger.DEBUG);
-        Logger.info('Updating Virya display with scenario:', viryaInfo.scenario);
         
         // Update status bar
         this.updateElementText('current-virya-scenario', viryaInfo.scenario);
@@ -337,7 +305,6 @@ class UIManager {
                 row.classList.remove('active');
                 if (scenario === viryaInfo.scenario) {
                     row.classList.add('active');
-                    Logger.debug(`Highlighting active row: ${scenario}`);
                 }
             }
             
@@ -345,19 +312,14 @@ class UIManager {
             this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase, secondaryPathDailyXPBase);
         });
         
-        Logger.success('Virya display updated');
-        Logger.groupEnd();
     }
 
     static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {
-        Logger.group(`⏱️ Virya Time Estimate: ${scenario}`, Logger.DEBUG);
         
         // Add null/undefined check for viryaInfo
         if (!viryaInfo) {
-            Logger.error('viryaInfo is undefined!');
             this.updateElementText(`virya-${scenarioKey}-time`, 'Error: No Virya Info');
             this.updateElementText(`virya-${scenarioKey}-date`, '--');
-            Logger.groupEnd();
             return;
         }
         
@@ -371,7 +333,6 @@ class UIManager {
         
         // Check if this is the current scenario
         if (scenario === viryaInfo.scenario) {
-            Logger.info(`Scenario ${scenario} is currently active`);
             this.updateElementText(timeId, ' Active Now');
             this.updateElementText(dateId, '--');
             // Determine required path focus for current scenario
@@ -396,13 +357,11 @@ class UIManager {
                 this.updateRowHighlighting(scenarioKey, maxNextRealm);
             } catch (error) {
                 // This is a calculation error, not an unreachable scenario
-                Logger.error('Error calculating max next realm scenario:', error);
                 this.updateElementText(nextRealmId, 'Error');
                 // Clear highlighting on calculation error (don't highlight for errors)
                 this.updateRowHighlighting(scenarioKey, null);
             }
             
-            Logger.groupEnd();
             return;
         }
         
@@ -412,7 +371,6 @@ class UIManager {
         
         // If we're already beyond this scenario (e.g., at Half-Step but looking at Eminence)
         if (currentIndex > targetIndex) {
-            Logger.info(`Already beyond ${scenario} (currently at ${viryaInfo.scenario})`);
             this.updateElementText(timeId, ' Already Passed');
             this.updateElementText(dateId, '--');
             // Determine required path focus for this scenario
@@ -437,24 +395,15 @@ class UIManager {
                 this.updateRowHighlighting(scenarioKey, maxNextRealm);
             } catch (error) {
                 // This is a calculation error, not an unreachable scenario
-                Logger.error('Error calculating max next realm scenario:', error);
                 this.updateElementText(nextRealmId, 'Error');
                 // Clear highlighting on calculation error (don't highlight for errors)
                 this.updateRowHighlighting(scenarioKey, null);
             }
             
-            Logger.groupEnd();
             return;
         }
         
         // Calculate days needed to reach this scenario using both path daily XP values
-        Logger.debug('Calculation parameters:', {
-            'Scenario': scenario,
-            'Main Path Daily XP Base': mainPathDailyXPBase,
-            'Secondary Path Daily XP Base': secondaryPathDailyXPBase,
-            'Current scenario': viryaInfo.scenario
-        });
-        
         // For all scenarios, use base values (full XP including elixir/benediction) for Virya table
         // This ensures consistent calculations regardless of path focus
         // If both paths are at the same realm, use the same base XP for consistency
@@ -470,18 +419,14 @@ class UIManager {
         const daysToReach = scenarioInfo?.daysNeeded;
         const requiredPathFocus = scenarioInfo?.requiredPathFocus || PATH_MAIN;
         
-        Logger.debug('Days to reach scenario:', daysToReach);
-        Logger.debug('Required path focus:', requiredPathFocus);
         
         // Update required path focus display
         this.updateElementText(focusId, requiredPathFocus);
         
         if (daysToReach === 0) {
-            Logger.info('Scenario already achieved');
             this.updateElementText(timeId, ' Already Met');
             this.updateElementText(dateId, '--');
         } else if (daysToReach === Infinity || isNaN(daysToReach) || daysToReach > 36500) {
-            Logger.warn('Scenario not reachable');
             
             // Check why it's not reachable
             let reason = 'Not reachable';
@@ -496,16 +441,9 @@ class UIManager {
             this.updateElementText(timeId, reason);
             this.updateElementText(dateId, '--');
         } else if (daysToReach < 0) {
-            Logger.error('Invalid negative days');
             this.updateElementText(timeId, 'Error');
             this.updateElementText(dateId, '--');
         } else {
-            Logger.info('Valid time calculated', {
-                'Days': daysToReach.toFixed(2),
-                'Formatted': format(daysToReach),
-                'Date': formatDate(daysToReach),
-                'Required Focus': requiredPathFocus
-            });
             this.updateElementText(timeId, format(daysToReach));
             this.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
         }
@@ -523,13 +461,11 @@ class UIManager {
             // Check if Completion cannot be reached and highlight row red
             this.updateRowHighlighting(scenarioKey, maxNextRealm);
         } catch (error) {
-            Logger.error('Error calculating max next realm scenario:', error);
             this.updateElementText(nextRealmId, '--');
             // Clear highlighting on error
             this.updateRowHighlighting(scenarioKey, null);
         }
         
-        Logger.groupEnd();
     }
 
     static updateRowHighlighting(scenarioKey, maxNextRealmResult) {
@@ -649,8 +585,6 @@ class UIManager {
                 box.classList.remove('focused');
             }
         });
-        
-        console.log('Result boxes updated with focused class');
     }
 
     static updateProgressBar(elementId, percent) {
@@ -660,7 +594,6 @@ class UIManager {
             const visualWidth = Math.min(100, percent);
             element.style.width = `${visualWidth}%`;
             element.textContent = `${percent.toFixed(1)}%`;
-            Logger.debug(`Updated progress bar ${elementId}: ${percent.toFixed(1)}% (visual: ${visualWidth}%)`);
         }
     }
 
@@ -668,13 +601,10 @@ class UIManager {
         const element = document.getElementById(elementId);
         if (element) {
             element.textContent = text;
-            Logger.debug(`Updated element ${elementId}: "${text}"`);
         }
     }
 
     static showNotification(message, isError = false) {
-        Logger[isError ? 'error' : 'info'](`Notification: ${message}`);
-        
         // Remove any existing notification
         const existingNotification = document.querySelector('.simple-notification');
         if (existingNotification) {
@@ -718,7 +648,6 @@ class UIManager {
         if (button) {
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
             button.disabled = true;
-            Logger.debug(`Showing loading on button ${buttonId}`);
         }
     }
 
@@ -727,12 +656,10 @@ class UIManager {
         if (button) {
             button.innerHTML = originalText;
             button.disabled = false;
-            Logger.debug(`Hiding loading on button ${buttonId}`);
         }
     }
 
     static updateFruitRecommendations(results) {
-        Logger.group('🍎 FRUIT RECOMMENDATIONS UPDATE', Logger.DEBUG);
         
         const scenarios = [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP];
         
@@ -744,7 +671,6 @@ class UIManager {
             
             if (!fruitResult) {
                 // No fruit result for this scenario
-                Logger.debug(`No fruit result for ${scenario}`);
                 this.updateCell(`${scenarioKey}-gush`, '--');
                 this.updateCell(`${scenarioKey}-xp`, '--');
                 this.updateCell(`${scenarioKey}-quality`, '--');
@@ -764,12 +690,6 @@ class UIManager {
                 const rec = fruitResult.recommendedSolution;
                 const max = fruitResult.maxLevelComparison;
                 const comparison = fruitResult.comparison;
-                
-                Logger.debug(`Found fruit solution for ${scenario}:`, {
-                    'Levels': `${rec.xpLevel}/${rec.gushLevel}/${rec.qualityLevel}`,
-                    'Total levels': rec.totalLevels,
-                    'Efficiency': comparison.singleXPPercentOfMax
-                });
                 
                 // Update level cells with color coding based on efficiency
                 this.updateCell(`${scenarioKey}-gush`, rec.gushLevel);
@@ -813,23 +733,19 @@ class UIManager {
                     if (canReach) {
                         row.classList.add('achievable');
                         row.title = `Using ${rec.totalLevels} total levels, you can reach ${scenario} with current fruits`;
-                        Logger.debug(`${scenario}: Achievable with current fruits`);
                     } else {
                         row.classList.add('not-achievable');
                         row.title = `Cannot reach ${scenario} even with current fruits at max extractor levels`;
-                        Logger.warn(`${scenario}: Not achievable even with max levels`);
                     }
                     
                     // Add tooltip with more details
                     if (rec.alreadyMeetsTarget) {
                         row.classList.add('already-met');
                         row.title = `Already meets ${scenario} requirements with current fruits`;
-                        Logger.info(`${scenario}: Already meets requirements`);
                     }
                 }
             } else {
                 // No solution found (can't reach scenario even with fruits)
-                Logger.warn(`No fruit solution found for ${scenario}`);
                 this.updateCell(`${scenarioKey}-gush`, 'N/A');
                 this.updateCell(`${scenarioKey}-xp`, 'N/A');
                 this.updateCell(`${scenarioKey}-quality`, 'N/A');
@@ -858,8 +774,6 @@ class UIManager {
             }
         });
         
-        Logger.success('Fruit recommendations updated');
-        Logger.groupEnd();
     }
 
     // Helper method to update table cells
@@ -872,8 +786,6 @@ class UIManager {
     
     // Update Virya comparison cells
     static updateViryaComparisonCells(scenarioComparisons) {
-        Logger.group('📊 VIRYA COMPARISON CELLS UPDATE', Logger.DEBUG);
-        Logger.info('Updating Virya comparison cells with:', scenarioComparisons);
         
         // Format large numbers for display
         const format = CalculatorUtils.formatLargeNumber;
@@ -958,7 +870,6 @@ class UIManager {
         // Function to update a comparison cell with percentage, XP diff, total XP, and days
         const updateComparisonCell = (scenario, comp, cellId) => {
             if (!comp) {
-                Logger.warn(`No comparison data for ${scenario}`);
                 this.updateElementText(cellId, '--\n--\n--\n--');
                 return;
             }
@@ -1061,30 +972,24 @@ class UIManager {
         if (scenarioComparisons[SCENARIO_EMINENCE]) {
             const comp = scenarioComparisons[SCENARIO_EMINENCE];
             updateOverflowCell(SCENARIO_EMINENCE, comp, 'virya-eminence-xp');
-            Logger.debug('Updated Eminence overflow comparison cell');
         } else {
             this.updateElementText('virya-eminence-xp', '--');
-            Logger.warn('No Eminence comparison data');
         }
         
         // Perfect comparison - use overflow XP format for "XP compared to overflow" column
         if (scenarioComparisons[SCENARIO_PERFECT]) {
             const comp = scenarioComparisons[SCENARIO_PERFECT];
             updateOverflowCell(SCENARIO_PERFECT, comp, 'virya-perfect-xp');
-            Logger.debug('Updated Perfect overflow comparison cell');
         } else {
             this.updateElementText('virya-perfect-xp', '--');
-            Logger.warn('No Perfect comparison data');
         }
         
         // Half-Step comparison - use overflow XP format for "XP compared to overflow" column
         if (scenarioComparisons[SCENARIO_HALF_STEP]) {
             const comp = scenarioComparisons[SCENARIO_HALF_STEP];
             updateOverflowCell(SCENARIO_HALF_STEP, comp, 'virya-halfstep-xp');
-            Logger.debug('Updated Half-Step overflow comparison cell');
         } else {
             this.updateElementText('virya-halfstep-xp', '--');
-            Logger.warn('No Half-Step comparison data');
         }
         
         // Also update Completion baseline information if we have it
@@ -1124,7 +1029,6 @@ class UIManager {
                 cell.style.color = 'var(--text)';
                 cell.title = 'Completion scenario baseline values:\nOverflow XP: Main path XP gained after reaching Completion until timegate.\nXP to reach: XP needed to reach Completion from current state.';
             }
-            Logger.debug('Updated Completion baseline cell');
         }
         
         // Update overflow XP cells (these are in the fruits table, but we'll update them here for virya scenarios)
@@ -1146,19 +1050,15 @@ class UIManager {
         // Update the recommendation display in the status bar
         this.updateViryaRecommendation(scenarioComparisons);
         
-        Logger.success('Virya comparison cells updated');
-        Logger.groupEnd();
     }
     
     // Update the Virya recommendation in the status bar
     static updateViryaRecommendation(scenarioComparisons) {
         const recommendationElement = document.getElementById('virya-recommendation-display');
         if (!recommendationElement) {
-            Logger.error('Virya recommendation element not found');
             return;
         }
         
-        Logger.debug('Updating Virya recommendation');
         
         // Helper function to parse percentage string
         const parsePercentage = (percStr) => {
@@ -1186,7 +1086,6 @@ class UIManager {
                     bestPerc = percValue;
                 }
             } else {
-                Logger.debug('Eminence is not reachable before next realm timegate - skipping from recommendations');
             }
         }
         
@@ -1205,7 +1104,6 @@ class UIManager {
                     bestPerc = percValue;
                 }
             } else {
-                Logger.debug('Perfect is not reachable before next realm timegate - skipping from recommendations');
             }
         }
         
@@ -1224,7 +1122,6 @@ class UIManager {
                     bestPerc = percValue;
                 }
             } else {
-                Logger.debug('Half-Step is not reachable before next realm timegate - skipping from recommendations');
             }
         }
         
@@ -1241,11 +1138,9 @@ class UIManager {
         }
         
         recommendationElement.textContent = recommendationText;
-        Logger.info('Virya recommendation updated:', recommendationText);
     }
 
     static updateTimegateInfo(playerData) {
-        Logger.group('⏰ TIMEGATE INFO UPDATE', Logger.DEBUG);
         
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
@@ -1259,14 +1154,6 @@ class UIManager {
         const nextMajor = currentIndex < REALM_ORDER_MAJOR.length - 1 ? REALM_ORDER_MAJOR[currentIndex + 1] : null;
         const nextTimegateLength = nextMajor ? (timegateLength[nextMajor] || 0) : 0;
         const totalDaysToNextTimegate = currentTimegateDays + nextTimegateLength;
-        
-        Logger.info('Timegate calculations:', {
-            'Current timegate days': currentTimegateDays,
-            'Current major realm': currentMajor,
-            'Next major realm': nextMajor || 'N/A (Last realm)',
-            'Next timegate length': nextTimegateLength,
-            'Total days to next timegate': totalDaysToNextTimegate
-        });
         
         // Update current timegate display
         if (currentTimegateDays > 0) {
@@ -1286,12 +1173,9 @@ class UIManager {
             this.updateElementText('timegate-next-date', '--');
         }
         
-        Logger.success('Timegate info updated');
-        Logger.groupEnd();
     }
 
     static updateAnalytics(results, playerData) {
-        Logger.group('📊 ANALYTICS UPDATE', Logger.DEBUG);
         
         try {
             // Use the dailyXP from playerData which includes the correct main path absorption bonus
@@ -1309,14 +1193,12 @@ class UIManager {
             
             // Calculate daily XP breakdown - this should match playerData.dailyXP
             const breakdown = Analytics.calculateDailyXPBreakdown(playerData, absorptionBonus);
-            Logger.debug('Daily XP breakdown:', breakdown);
             
             // Render daily XP pie chart
             Analytics.renderDailyXPChart('daily-xp-chart', breakdown);
             
             // Calculate extractor comparison
             const extractorComparison = Analytics.calculateExtractorComparison(playerData);
-            Logger.debug('Extractor comparison:', extractorComparison);
             
             // Render extractor comparison bar chart
             Analytics.renderExtractorChart('extractor-comparison-chart', extractorComparison);
@@ -1324,17 +1206,13 @@ class UIManager {
             // Update red pills calculator
             this.updateRedPillsCalculator(playerData, results, absorptionBonus);
             
-            Logger.success('Analytics updated');
         } catch (error) {
-            Logger.error('Error updating analytics:', error);
             console.error('Analytics update error:', error);
         }
         
-        Logger.groupEnd();
     }
 
     static updateRedPillsCalculator(playerData, results, absorptionBonus) {
-        Logger.group('🔴 RED PILLS CALCULATOR UPDATE', Logger.DEBUG);
         
         try {
             // Store latest values
@@ -1356,8 +1234,6 @@ class UIManager {
                         UIManager.initializeSlider(slider, baseTimeToNextMajor, playerData, results, absorptionBonus);
                     }
                 }, 100);
-                Logger.warn('Slider element not found - will retry');
-                Logger.groupEnd();
                 return;
             }
             
@@ -1367,13 +1243,10 @@ class UIManager {
             // Set up event listener for current red pills input
             this.setupCurrentRedPillsListener();
             
-            Logger.success('Red pills calculator updated');
         } catch (error) {
-            Logger.error('Error updating red pills calculator:', error);
             console.error('Red pills calculator update error:', error);
         }
         
-        Logger.groupEnd();
     }
     
     static initializeSlider(slider, baseTimeToNextMajor, playerData, results, absorptionBonus) {
@@ -1395,13 +1268,6 @@ class UIManager {
             if (currentValue > baseTimeToNextMajor) {
                 slider.value = baseTimeToNextMajor;
             }
-            
-            Logger.debug('Slider max updated to match base time', { 
-                baseTimeToNextMajor, 
-                sliderMax: slider.max,
-                currentValue: slider.value,
-                disabled: slider.disabled
-            });
         } else {
             // If base time is 0, check if it's because player is at max realm or no daily XP
             // Allow slider to work with a reasonable default for testing purposes
@@ -1414,21 +1280,14 @@ class UIManager {
                 // Player is at max realm - show message
                 slider.max = 0;
                 slider.disabled = true;
-                Logger.debug('Player is at maximum realm, slider disabled');
             } else if (!hasDailyXP) {
                 // No daily XP - slider can't calculate
                 slider.max = 1000;
                 slider.disabled = true;
-                Logger.debug('No daily XP available, slider disabled');
             } else {
                 // Unknown reason for 0 - enable with default max for testing
                 slider.max = 1000;
                 slider.disabled = false;
-                Logger.warn('Base time is 0 but daily XP exists - enabling slider with default max', {
-                    dailyXP: playerData.dailyXP,
-                    realm: playerData.mainPathRealm,
-                    progression: results.realmProgression?.mainPath
-                });
             }
         }
             
@@ -1449,20 +1308,12 @@ class UIManager {
                     const currentAbsorptionBonus = UIManager.latestAbsorptionBonus;
                     
                     if (!currentResults || !currentPlayerData) {
-                        Logger.warn('No current results or player data available for slider');
                         return;
                     }
                     
                     const currentBaseTime = currentResults.realmProgression?.mainPath?.timeToNextMajor || 
                                            currentResults.progression?.mainPath?.timeToNextMajor || 0;
                     const adjustedTime = Math.max(0, currentBaseTime - timeReduction);
-                    
-                    Logger.debug('Slider updated:', { 
-                        timeReduction, 
-                        adjustedTime, 
-                        currentBaseTime,
-                        eventType: e.type
-                    });
                     
                     UIManager.calculateAndDisplayRedPills(
                         currentPlayerData, 
@@ -1472,7 +1323,6 @@ class UIManager {
                         currentAbsorptionBonus
                     );
                 } catch (error) {
-                    Logger.error('Error in slider handler:', error);
                     console.error('Slider handler error:', error);
                 }
             };
@@ -1485,7 +1335,6 @@ class UIManager {
             
             // Also listen for mousedown to ensure interaction works
             slider.addEventListener('mousedown', (e) => {
-                Logger.debug('Slider mousedown detected', { value: slider.value });
                 e.stopPropagation(); // Prevent event bubbling
             });
             
@@ -1496,13 +1345,7 @@ class UIManager {
                 }
             });
             
-            Logger.debug('Slider event listeners initialized', { 
-                sliderExists: !!slider,
-                sliderValue: slider.value,
-                sliderMax: slider.max,
-                sliderMin: slider.min,
-                disabled: slider.disabled
-            });
+
         }
         
         // Initial calculation
@@ -1577,7 +1420,6 @@ class UIManager {
                     const currentAbsorptionBonus = UIManager.latestAbsorptionBonus;
                     
                     if (!currentResults || !currentPlayerData) {
-                        Logger.warn('No current results or player data available for current red pills update');
                         return;
                     }
                     
@@ -1595,11 +1437,6 @@ class UIManager {
                     const timeReduction = slider ? (parseFloat(slider.value) || 0) : 0;
                     const adjustedTime = Math.max(0, currentBaseTime - timeReduction);
                     
-                    Logger.debug('Current red pills updated:', {
-                        currentRedPills: updatedPlayerData.currentRedPills,
-                        adjustedTime
-                    });
-                    
                     UIManager.calculateAndDisplayRedPills(
                         updatedPlayerData,
                         currentBaseTime,
@@ -1608,7 +1445,6 @@ class UIManager {
                         currentAbsorptionBonus
                     );
                 } catch (error) {
-                    Logger.error('Error in current red pills handler:', error);
                     console.error('Current red pills handler error:', error);
                 }
             };
@@ -1619,7 +1455,6 @@ class UIManager {
             // Update on change (when focus is lost) to ensure final calculation
             newInput.addEventListener('change', handleCurrentRedPillsUpdate);
             
-            Logger.debug('Current red pills input listener initialized');
         }
     }
 

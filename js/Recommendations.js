@@ -3,13 +3,10 @@ import { ViryaCalculator } from './ViryaCalculator.js';
 import { XPCalculator } from './XPCalculator.js';
 import { timegateLength, Realms, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE } from './gameData.js';
 import { ViryaScenarioComparator } from './ViryaScenarioComparator.js';
-import { Logger } from './Logger.js';
 
 class Recommendations {
     // FRUIT eat timing compare-inator
     static findMinLevelsFruitFromCurrent(playerData, targetFruitXP, maxLevel = MAX_EXTRACTOR_LEVEL) {
-        Logger.group('🍎 FRUIT EXTRACTOR OPTIMIZATION', Logger.INFO);
-        Logger.section('SEARCHING FOR MINIMAL EXTRACTOR LEVELS', Logger.INFO);
         
         const currentLevels = {
             xp: playerData.extractorXPLevel,
@@ -17,34 +14,12 @@ class Recommendations {
             quality: playerData.extractorQualityLevel
         };
 
-        Logger.info('INPUT PARAMETERS:', {
-            'Target Fruit XP': targetFruitXP.toLocaleString(),
-            'Max Level': maxLevel,
-            'Fruits Count': playerData.fruitsCount,
-            'Current Levels': currentLevels,
-            'Extractor Rank': playerData.extractorRank,
-            'Main Realm': playerData.mainPathRealmMajor
-        });
-        
-        Logger.section('CURRENT FRUIT CALCULATIONS', Logger.DEBUG);
-        
         // Get current SINGLE fruit XP and TOTAL fruit XP
         const currentFruitXPSingle = FruitCalculator.fruitXP(playerData);
         const currentFruitXPTotal = currentFruitXPSingle * playerData.fruitsCount;
         
-        Logger.table({
-            'Metric': ['Single Fruit XP', 'Total Fruit XP', 'Target XP', 'Meets Target'],
-            'Value': [
-                currentFruitXPSingle.toLocaleString(),
-                currentFruitXPTotal.toLocaleString(),
-                targetFruitXP.toLocaleString(),
-                currentFruitXPTotal >= targetFruitXP ? '✓ YES' : '✗ NO'
-            ]
-        });
-        
         // Check if player already meets target with current total fruit XP
         if (currentFruitXPTotal >= targetFruitXP) {
-            Logger.success('Player already meets target with current fruits!');
             
             // Calculate max level XP for comparison
             const maxLevelXPResult = this.calculateMaxLevelXP(playerData, maxLevel);
@@ -55,35 +30,6 @@ class Recommendations {
                 maxLevelXPResult.fruitXPTotal
             );
             
-            Logger.table({
-                'Solution': ['Current Levels', 'Max Levels', 'Difference', 'Efficiency'],
-                'Gush Level': [
-                    currentLevels.gush, 
-                    maxLevelXPResult.gushLevel, 
-                    '+'.repeat(maxLevelXPResult.gushLevel - currentLevels.gush), 
-                    ''
-                ],
-                'XP Level': [
-                    currentLevels.xp, 
-                    maxLevelXPResult.xpLevel, 
-                    '+'.repeat(maxLevelXPResult.xpLevel - currentLevels.xp), 
-                    ''
-                ],
-                'Quality Level': [
-                    currentLevels.quality, 
-                    maxLevelXPResult.qualityLevel, 
-                    '+'.repeat(maxLevelXPResult.qualityLevel - currentLevels.quality), 
-                    ''
-                ],
-                'Single Fruit XP': [
-                    currentFruitXPSingle.toLocaleString(),
-                    maxLevelXPResult.fruitXPSingle.toLocaleString(),
-                    (maxLevelXPResult.fruitXPSingle - currentFruitXPSingle).toLocaleString(),
-                    comparison.singleXPPercentOfMax
-                ]
-            });
-            
-            Logger.groupEnd();
             return {
                 recommendedSolution: {
                     xpLevel: currentLevels.xp,
@@ -114,14 +60,6 @@ class Recommendations {
         );
         const maxTripleJumps = Math.ceil(maxJumpDistance / JUMP);
 
-        Logger.section('COARSE SEARCH SETUP', Logger.DEBUG);
-        Logger.table({
-            'Parameter': ['Jump Size', 'Max Jump Distance', 'Max Triple Jumps', 'Starting Levels'],
-            'Value': [JUMP, maxJumpDistance, maxTripleJumps, `${currentLevels.xp}/${currentLevels.gush}/${currentLevels.quality}`]
-        });
-        
-        Logger.section('COARSE SEARCH (Triple Jumps)', Logger.DEBUG);
-        
         // Coarse search with triple jumps only
         for (let jump = 0; jump <= maxTripleJumps; jump++) {
             // Calculate levels for this triple jump
@@ -142,15 +80,6 @@ class Recommendations {
             
             const meetsTarget = fruitXPTotal >= targetFruitXP;
             const totalLevels = xp + gush + quality;
-            
-            Logger.debug(`Jump ${jump}: Levels (${xp}, ${gush}, ${quality})`, {
-                'Single XP': fruitXPSingle.toLocaleString(),
-                'Total XP': fruitXPTotal.toLocaleString(),
-                'Target': targetFruitXP.toLocaleString(),
-                'Meets Target': meetsTarget ? '✓ YES' : '✗ NO',
-                'Total Levels': totalLevels,
-                'Deficit': meetsTarget ? 'N/A' : (targetFruitXP - fruitXPTotal).toLocaleString()
-            });
 
             if (fruitXPTotal >= targetFruitXP) {
                 foundSolutions++;
@@ -166,37 +95,16 @@ class Recommendations {
                         jumpNumber: jump,
                         totalLevels: totalLevels
                     };
-                    Logger.success(`New best solution found!`, {
-                        'Jump': jump,
-                        'Levels': `${xp}/${gush}/${quality}`,
-                        'Total Levels': totalLevels,
-                        'Fruit XP': fruitXPSingle.toLocaleString(),
-                        'Total XP': fruitXPTotal.toLocaleString()
-                    });
                 }
             }
         }
 
-        Logger.section('COARSE SEARCH RESULTS', Logger.INFO);
-        Logger.table({
-            'Metric': ['Evaluations', 'Solutions Found', 'Best Solution Levels', 'Best Solution Total Levels', 'Best Jump'],
-            'Value': [
-                evaluations,
-                foundSolutions,
-                bestSolution ? `${bestSolution.xp}/${bestSolution.gush}/${bestSolution.quality}` : 'None',
-                bestSolution ? bestSolution.totalLevels : 'N/A',
-                bestSolution ? bestSolution.jumpNumber : 'N/A'
-            ]
-        });
-
         // FIXED: Now bestSolution is defined at the top level, so we can safely check it
         if (!bestSolution) {
-            Logger.error('No solution found even at max triple jump');
             
             // Calculate max level XP for comparison
             const maxLevelXPResult = this.calculateMaxLevelXP(playerData, maxLevel);
             
-            Logger.groupEnd();
             return {
                 recommendedSolution: null,
                 maxLevelComparison: maxLevelXPResult,
@@ -211,8 +119,6 @@ class Recommendations {
             };
         }
 
-        Logger.section('REFINEMENT PROCESS', Logger.DEBUG);
-        Logger.info(`Refining around best coarse solution from jump ${bestSolution.jumpNumber}`);
         
         // Refine around the best coarse solution
         const refinedSolution = this.refineSolution(playerData, targetFruitXP, bestSolution, currentLevels, JUMP, maxLevel);
@@ -228,29 +134,6 @@ class Recommendations {
             maxLevelXPResult.fruitXPTotal
         );
         
-        Logger.section('FINAL RECOMMENDATION', Logger.INFO);
-        Logger.table({
-            'Aspect': ['Levels (Gush/XP/Quality)', 'Total Levels', 'Single Fruit XP', 'Total Fruit XP', 'Efficiency vs Max', 'Status'],
-            'Recommended': [
-                `${refinedSolution.xpLevel}/${refinedSolution.gushLevel}/${refinedSolution.qualityLevel}`,
-                refinedSolution.totalLevels,
-                refinedSolution.fruitXPSingle.toLocaleString(),
-                refinedSolution.fruitXPTotal.toLocaleString(),
-                comparison.singleXPPercentOfMax,
-                refinedSolution.alreadyMeetsTarget ? 'Already Meets Target' : 'Optimized'
-            ],
-            'Maximum': [
-                `${maxLevelXPResult.xpLevel}/${maxLevelXPResult.gushLevel}/${maxLevelXPResult.qualityLevel}`,
-                maxLevelXPResult.totalLevels,
-                maxLevelXPResult.fruitXPSingle.toLocaleString(),
-                maxLevelXPResult.fruitXPTotal.toLocaleString(),
-                '100%',
-                'Max Potential'
-            ]
-        });
-        
-        Logger.success('Fruit extractor optimization complete!');
-        Logger.groupEnd();
         
         return {
             recommendedSolution: refinedSolution,
@@ -260,21 +143,9 @@ class Recommendations {
     }
 
     static refineSolution(playerData, targetFruitXP, coarseSolution, currentLevels, jumpSize, maxLevel = MAX_EXTRACTOR_LEVEL) {
-        Logger.group('🔧 SOLUTION REFINEMENT', Logger.DEBUG);
-        Logger.info('Refining solution around coarse solution:', coarseSolution);
         
         const { xp: coarseXp, gush: coarseGush, quality: coarseQuality, fruitXPTotal: coarseTotalXP, jumpNumber: coarseJump } = coarseSolution;
 
-        Logger.info('Refinement Setup:', {
-            'Coarse solution at jump': coarseJump,
-            'Coarse solution levels': `(${coarseXp}, ${coarseGush}, ${coarseQuality})`,
-            'Coarse solution total XP': coarseTotalXP.toLocaleString(),
-            'Target XP': targetFruitXP.toLocaleString(),
-            'Jump size': jumpSize,
-            'Current levels': currentLevels,
-            'Max level': maxLevel
-        });
-        
         // Refinement: Try to reduce levels from coarse solution while still meeting target
         // Start from coarse solution and work backwards to find minimal levels
         let bestRefined = {
@@ -338,20 +209,10 @@ class Recommendations {
             alreadyMeetsTarget: refinedFruitXPTotal >= targetFruitXP
         };
         
-        Logger.info('Refinement Complete:', {
-            'Coarse Levels': `(${coarseXp}, ${coarseGush}, ${coarseQuality})`,
-            'Refined Levels': `(${refinedSolution.xpLevel}, ${refinedSolution.gushLevel}, ${refinedSolution.qualityLevel})`,
-            'Level Reduction': (coarseXp + coarseGush + coarseQuality) - refinedSolution.totalLevels,
-            'Refined Total XP': refinedFruitXPTotal.toLocaleString(),
-            'Target XP': targetFruitXP.toLocaleString()
-        });
-        
-        Logger.groupEnd();
         return refinedSolution;
     }
 
     static calculateMaxLevelXP(playerData, maxLevel = MAX_EXTRACTOR_LEVEL) {
-        Logger.group('🏆 CALCULATING MAX LEVEL XP', Logger.DEBUG);
         
         // Create test data with max levels
         const maxTestData = {
@@ -365,14 +226,6 @@ class Recommendations {
         const fruitXPSingle = FruitCalculator.fruitXP(maxTestData);
         const fruitXPTotal = fruitXPSingle * playerData.fruitsCount;
         
-        Logger.info('Max Level Calculations:', {
-            'Max Level': maxLevel,
-            'Single Fruit XP at Max': fruitXPSingle.toLocaleString(),
-            'Total Fruit XP at Max': fruitXPTotal.toLocaleString(),
-            'Player Fruits Count': playerData.fruitsCount,
-            'Extractor Rank': playerData.extractorRank
-        });
-        
         const result = {
             xpLevel: maxLevel,
             gushLevel: maxLevel,
@@ -383,24 +236,10 @@ class Recommendations {
             isMaxLevel: true
         };
         
-        Logger.table({
-            'Max Level Stats': ['XP Level', 'Gush Level', 'Quality Level', 'Total Levels', 'Single Fruit XP', 'Total Fruit XP'],
-            'Values': [
-                result.xpLevel,
-                result.gushLevel,
-                result.qualityLevel,
-                result.totalLevels,
-                result.fruitXPSingle.toLocaleString(),
-                result.fruitXPTotal.toLocaleString()
-            ]
-        });
-        
-        Logger.groupEnd();
         return result;
     }
 
     static compareSolutions(recommendedSingleXP, recommendedTotalXP, maxSingleXP, maxTotalXP) {
-        Logger.group('📊 SOLUTION COMPARISON', Logger.DEBUG);
         
         const comparison = {
             // Basic comparison
@@ -437,15 +276,6 @@ class Recommendations {
             comparison.note = 'Low efficiency - large gap to max XP, consider upgrading further';
         }
         
-        Logger.info('Comparison Results:', {
-            'Single XP Ratio': comparison.singleXPRatio.toFixed(3),
-            'Single XP % of Max': comparison.singleXPPercentOfMax,
-            'Efficiency Rating': comparison.note,
-            'Single XP Difference': comparison.singleXPDifference.toLocaleString(),
-            'Total XP Difference': comparison.totalXPDifference.toLocaleString()
-        });
-        
-        Logger.groupEnd();
         return comparison;
     }
 
