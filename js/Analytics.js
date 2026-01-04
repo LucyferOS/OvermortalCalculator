@@ -43,12 +43,21 @@ class Analytics {
         // const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
         
         const numRedPills = XPCalculator.calculateRedPills(playerData);
-        const redPillXP = realmXP.red * (1 + GameConstants.vaseBonus[playerData.vaseStars]) * numRedPills;
         
         // Apply pill bonus multiplier (pillBonus is already a multiplier like 1.XX)
         // The total is multiplied by pillBonus * 1000, so apply the same to each component
         const pillBonus = playerData.pillBonus || 1;
         const multiplier = pillBonus * 1000;
+        
+        // Calculate red pill XP with separate vase bonus
+        // Base XP per pill with pill bonus: realmXP.red * multiplier
+        // Vase bonus per pill (separate, additive): realmXP.red * vaseBonus
+        // Then multiply by number of red pills per day
+        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars];
+        const baseRedPillXPPerPill = realmXP.red * multiplier;
+        const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
+        const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
+        const redPillXP = redPillXPPerPill * numRedPills;
 
         return {
             goldPills: goldPillXP * multiplier,
@@ -422,16 +431,35 @@ class Analytics {
         const xpDeficit = Math.max(0, xpNeededForMajor - xpGained);
         
         // Calculate red pill XP per pill
-        const redPillXPPerPill = realmXP.red * (1 + GameConstants.vaseBonus[playerData.vaseStars]) * multiplier;
+        // Separate calculations: pill bonus multiplier and vase bonus (from stars)
+        // Base XP with pill bonus: realmXP.red * multiplier
+        // Vase bonus (separate, additive): realmXP.red * vaseBonus * 1000 (base multiplier, not pill bonus)
+        // Total: base with pill bonus + vase bonus
+        const baseRedPillXP = realmXP.red * multiplier;
+        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars] || 0;
+        const vaseBonusXP = realmXP.red * vaseBonusMultiplier * 1000;
+        const redPillXPPerPill = Number(baseRedPillXP) + Number(vaseBonusXP);
         
-        // Calculate red pills needed
-        const redPillsNeeded = redPillXPPerPill > 0 ? Math.ceil(xpDeficit / redPillXPPerPill) : 0;
+        // Get current red pills from player data (default to 0)
+        const currentRedPills = playerData.currentRedPills || 0;
+        
+        // Calculate XP from current red pills
+        const xpFromCurrentRedPills = currentRedPills * redPillXPPerPill;
+        
+        // Calculate adjusted deficit after accounting for current red pills
+        const adjustedDeficit = Math.max(0, xpDeficit - xpFromCurrentRedPills);
+        
+        // Calculate remaining red pills needed
+        const redPillsNeeded = redPillXPPerPill > 0 ? Math.ceil(adjustedDeficit / redPillXPPerPill) : 0;
         
         return {
             xpNeeded: xpNeededForMajor,
             xpGained: xpGained,
             xpDeficit: xpDeficit,
             redPillXPPerPill: redPillXPPerPill,
+            currentRedPills: currentRedPills,
+            xpFromCurrentRedPills: xpFromCurrentRedPills,
+            adjustedDeficit: adjustedDeficit,
             redPillsNeeded: redPillsNeeded,
             baseTime: baseTimeToNextMajor,
             adjustedTime: adjustedTime

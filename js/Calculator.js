@@ -50,6 +50,7 @@ class OvermortalCalculator {
             elixirConsumed: 0.0,
             benediction: 0.0,
             benedictionConsumed: 0.0,
+            currentRedPills: 0,
             pillBonus: 0.0,
             fruitsCount: 0,
             weeklyFruits: 0,
@@ -357,7 +358,8 @@ class OvermortalCalculator {
             elixir: getNumberValue('elixir'),
             elixirConsumed: getNumberValue('elixir-consumed'),
             benediction: getNumberValue('benediction'),
-            benedictionConsumed: getNumberValue('benediction-consumed')
+            benedictionConsumed: getNumberValue('benediction-consumed'),
+            currentRedPills: getNumberValue('current-red-pills')
         };
     }
 

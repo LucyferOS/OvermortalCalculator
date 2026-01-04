@@ -67,6 +67,7 @@ class XPCalculator {
         const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
             ? playerData.cosmoapsisValue 
             : this.calculateCosmoapsisValue(playerData, absorptionBonus);
+        
         Logger.debug('cosmoapsisValue:', cosmoapsisValue);
         const dailyAuraXP = cosmoapsisValue * 10800;
         Logger.debug('dailyAuraXP:', dailyAuraXP);
@@ -112,7 +113,15 @@ class XPCalculator {
         const numRedPills = this.calculateRedPills(playerData);
         Logger.debug('Red Pills Count:', numRedPills);
         
-        const redPillXP = realmXP.red * (1 + GameConstants.vaseBonus[playerData.vaseStars]) * numRedPills;
+        // Calculate red pill XP with separate vase bonus
+        // Base XP per pill: realmXP.red
+        // Vase bonus per pill (separate, additive): realmXP.red * vaseBonus
+        // Then multiply by number of red pills per day
+        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars];
+        const baseRedPillXPPerPill = realmXP.red;
+        const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
+        const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
+        const redPillXP = redPillXPPerPill * numRedPills;
         Logger.debug('Red Pill XP:', redPillXP);
         
         const basePillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP;
