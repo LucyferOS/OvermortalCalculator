@@ -589,6 +589,12 @@ class OvermortalCalculator {
                     mainPathRealmMinor: this.playerData.secondaryPathRealmMinor
                 };
                 secondaryPathDailyXPBase = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
+                // Add benediction pills XP to secondary path (benediction only applies to secondary path)
+                const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
+                const pillBonus = this.playerData.pillBonus || 1;
+                const multiplier = pillBonus * 1000;
+                const benedictionXPWithMultiplier = benedictionXP * multiplier;
+                secondaryPathDailyXPBase += benedictionXPWithMultiplier;
             } else {
                 console.warn(`Warning: Realm XP data not found for secondary path realm "${realmXPKey}" (realm: ${this.playerData.secondaryPathRealmMajor}), skipping secondary path daily XP calculation`);
             }

@@ -39,7 +39,8 @@ class Analytics {
         
         const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
         
-        const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
+        // Benediction pills only apply to secondary path, not main path
+        // const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
         
         const numRedPills = XPCalculator.calculateRedPills(playerData);
         const redPillXP = realmXP.red * (1 + GameConstants.vaseBonus[playerData.vaseStars]) * numRedPills;
@@ -54,7 +55,7 @@ class Analytics {
             purplePills: purplePillXP * multiplier,
             bluePills: bluePillXP * multiplier,
             elixir: elixirXP * multiplier,
-            benediction: benedictionXP * multiplier,
+            benediction: 0, // Benediction only applies to secondary path
             redPills: redPillXP * multiplier
         };
     }
@@ -402,12 +403,13 @@ class Analytics {
             * playerData.bluePill;
         
         const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
-        const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
+        // Benediction pills only apply to secondary path, not main path
+        // const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
         
         const pillBonus = playerData.pillBonus || 1;
         const multiplier = pillBonus * 1000;
         
-        const totalPillXP = (goldPillXP + purplePillXP + bluePillXP + elixirXP + benedictionXP) * multiplier;
+        const totalPillXP = (goldPillXP + purplePillXP + bluePillXP + elixirXP) * multiplier;
         const respiraXP = XPCalculator.calculateRespiraXP(playerData);
         const pearlXP = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
         
