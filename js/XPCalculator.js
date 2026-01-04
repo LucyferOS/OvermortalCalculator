@@ -106,8 +106,9 @@ class XPCalculator {
         const elixirXP = this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
         Logger.debug('Elixir XP (with efficiency):', elixirXP);
         
-        const benedictionXP = this.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
-        Logger.debug('Benediction XP (with efficiency):', benedictionXP);
+        // Benediction pills only apply to secondary path, not main path
+        // const benedictionXP = this.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
+        // Logger.debug('Benediction XP (with efficiency):', benedictionXP);
         
         const numRedPills = this.calculateRedPills(playerData);
         Logger.debug('Red Pills Count:', numRedPills);
@@ -123,7 +124,7 @@ class XPCalculator {
         const redPillXP = redPillXPPerPill * numRedPills;
         Logger.debug('Red Pill XP:', redPillXP);
         
-        const basePillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + benedictionXP + redPillXP;
+        const basePillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP;
         const totalPillXP = basePillXP * playerData.pillBonus * 1000;
         
         Logger.debug('Total Pill XP:', totalPillXP);
