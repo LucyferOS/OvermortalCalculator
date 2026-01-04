@@ -101,6 +101,7 @@ class OvermortalApp {
             'elixir-consumed': p.elixirConsumed,
             'benediction': p.benediction,
             'benediction-consumed': p.benedictionConsumed,
+            'current-red-pills': p.currentRedPills || 0,
             
             // Aura Gem
             'gem-quality': p.gemQuality || p.gemBonus || 'Common',

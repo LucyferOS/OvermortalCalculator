@@ -112,7 +112,15 @@ class XPCalculator {
         const numRedPills = this.calculateRedPills(playerData);
         Logger.debug('Red Pills Count:', numRedPills);
         
-        const redPillXP = realmXP.red * (1 + GameConstants.vaseBonus[playerData.vaseStars]) * numRedPills;
+        // Calculate red pill XP with separate vase bonus
+        // Base XP per pill: realmXP.red
+        // Vase bonus per pill (separate, additive): realmXP.red * vaseBonus
+        // Then multiply by number of red pills per day
+        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars];
+        const baseRedPillXPPerPill = realmXP.red;
+        const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
+        const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
+        const redPillXP = redPillXPPerPill * numRedPills;
         Logger.debug('Red Pill XP:', redPillXP);
         
         const basePillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + benedictionXP + redPillXP;
