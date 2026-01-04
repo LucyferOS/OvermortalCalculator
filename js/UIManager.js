@@ -465,9 +465,6 @@ class UIManager {
         // Otherwise, use secondary path base XP for secondary path scenarios
         let secondaryPathXPForScenario = arePathsAtSameRealm ? mainPathDailyXPBase : secondaryPathDailyXPBase;
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UIManager.js:452',message:'Virya table XP values for scenario',data:{scenario,arePathsAtSameRealm,mainPathRealmMajor:playerData.mainPathRealmMajor,secondaryPathRealmMajor:playerData.secondaryPathRealmMajor,mainPathDailyXPBase,secondaryPathDailyXPBase,mainPathXPForScenario,secondaryPathXPForScenario},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-        // #endregion
         
         const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, mainPathXPForScenario, secondaryPathXPForScenario);
         const daysToReach = scenarioInfo?.daysNeeded;

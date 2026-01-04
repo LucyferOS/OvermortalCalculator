@@ -2,9 +2,6 @@ import { Realms, RealmMajorTotalXP, REALM_ORDER_MAJOR, REALM_ORDER_MINOR } from 
 
 class RealmCalculator {
     static calculateProgression(playerData, mainPathDailyXP, secondaryPathDailyXP) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RealmCalculator.js:4',message:'calculateProgression entry',data:{mainPathDailyXP,secondaryPathDailyXP,pathFocus:playerData.pathFocus},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-        // #endregion
         // Use the provided daily XP values directly
         // Note: pathFocus is no longer used here since we're passing the actual daily XP for each path
         // The caller is responsible for determining which path gets XP based on pathFocus
@@ -25,9 +22,6 @@ class RealmCalculator {
             playerData.secondaryPathRealmMajor
         );
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RealmCalculator.js:25',message:'calculateProgression return',data:{mainPathTimeToNextMinor:mainPathProgression.timeToNextMinor,mainPathTimeToNextMajor:mainPathProgression.timeToNextMajor,secondaryPathTimeToNextMinor:secondaryPathProgression.timeToNextMinor,secondaryPathTimeToNextMajor:secondaryPathProgression.timeToNextMajor},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-        // #endregion
         return {
             mainPath: mainPathProgression,
             secondaryPath: secondaryPathProgression

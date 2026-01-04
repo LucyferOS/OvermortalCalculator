@@ -180,22 +180,13 @@ class ViryaCalculator {
         let requiredPathFocus = PATH_MAIN;
         let dailyXPToUse = mainPathDailyXP || 0;
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:181',message:'Before scenario XP selection',data:{targetScenario,mainPathDailyXP,secondaryPathDailyXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
         
         if (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP) {
             requiredPathFocus = PATH_SECONDARY;
             // For secondary path scenarios in Virya table, use mainPathDailyXP to match Completion
             // This ensures Completion and Eminence show the same time when they should match
             dailyXPToUse = mainPathDailyXP || 0;
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:186',message:'Secondary path scenario - using mainPathDailyXP for consistency',data:{targetScenario,dailyXPToUse,mainPathDailyXP,secondaryPathDailyXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
-            // #endregion
         } else {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:190',message:'Main path scenario - using mainPathDailyXP',data:{targetScenario,dailyXPToUse,mainPathDailyXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
-            // #endregion
         }
 
         Logger.debug('Required path focus:', requiredPathFocus);
@@ -241,15 +232,9 @@ class ViryaCalculator {
             switch(targetScenario) {
                 case SCENARIO_COMPLETION:
                     xpNeeded = this.calculateXPForCompletion(playerData);
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:234',message:'Completion XP needed',data:{targetScenario,xpNeeded,dailyXPToUse},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-                    // #endregion
                     break;
                 case SCENARIO_EMINENCE:
                     xpNeeded = this.calculateXPForEminence(playerData);
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:238',message:'Eminence XP needed',data:{targetScenario,xpNeeded,dailyXPToUse},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-                    // #endregion
                     break;
                 case SCENARIO_PERFECT:
                     xpNeeded = this.calculateXPForPerfect(playerData);
@@ -264,9 +249,6 @@ class ViryaCalculator {
             }
 
             Logger.debug('XP needed:', xpNeeded);
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:258',message:'XP needed calculated',data:{targetScenario,xpNeeded,dailyXPToUse,requiredPathFocus},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-            // #endregion
 
             if (xpNeeded <= 0) {
                 Logger.debug('No XP needed (already there)');
@@ -292,14 +274,8 @@ class ViryaCalculator {
             
             if (requiredPathFocus === PATH_SECONDARY && (targetScenario === SCENARIO_EMINENCE || targetScenario === SCENARIO_PERFECT || targetScenario === SCENARIO_HALF_STEP) && !isSecondaryRequirementMet) {
                 daysNeeded = this.calculateDaysToScenarioWithBonuses(targetScenario, currentScenario, playerData, xpNeeded, mainPathDailyXP, secondaryPathDailyXP);
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:268',message:'Secondary scenario days calculated with bonuses',data:{targetScenario,xpNeeded,daysNeeded,mainPathDailyXP,secondaryPathDailyXP,isSecondaryRequirementMet},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'I'})}).catch(()=>{});
-                // #endregion
             } else {
                 daysNeeded = xpNeeded / dailyXPToUse;
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:272',message:'Simple days calculation',data:{targetScenario,xpNeeded,dailyXPToUse,daysNeeded,isSecondaryRequirementMet},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'I'})}).catch(()=>{});
-                // #endregion
             }
             
             Logger.debug('Days needed:', daysNeeded);
@@ -363,14 +339,8 @@ class ViryaCalculator {
 		const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
 		const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= PERCENTAGE_COMPLETE;
 		
-		// #region agent log
-		fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:330',message:'calculateXPForEminence entry',data:{mainPathRealmMajor:playerData.mainPathRealmMajor,previousMajor,isMainPath100Late,viryaScenario:playerData.viryaScenario,secondaryPathRealm:playerData.secondaryPathRealm,secondaryPathProgress:playerData.secondaryPathProgress},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-		// #endregion
 		
 		if (playerData.viryaScenario === SCENARIO_EMINENCE || playerData.viryaScenario === SCENARIO_PERFECT || playerData.viryaScenario === SCENARIO_HALF_STEP) {
-			// #region agent log
-			fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:337',message:'Already at Eminence or beyond',data:{viryaScenario:playerData.viryaScenario},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-			// #endregion
 			return 0;
 		} else { 
 			let targetRealm;
@@ -379,9 +349,6 @@ class ViryaCalculator {
 			} else {
 				targetRealm = `${previousMajor} Mid`;
 			}
-			// #region agent log
-			fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:343',message:'Eminence target realm',data:{targetRealm,previousMajor,isMainPath100Late},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-			// #endregion
 			if (!isMainPath100Late) {
 				const completionXP = this.calculateXPForCompletion(playerData);
 				// Check if secondary path requirement is already met
@@ -399,9 +366,6 @@ class ViryaCalculator {
 											  targetRealm, 0);
 				}
 				const totalXP = completionXP + secondaryXP;
-				// #region agent log
-				fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ViryaCalculator.js:348',message:'Eminence XP breakdown',data:{completionXP,secondaryXP,totalXP,isSecondaryPathRequirementMet,targetRealm,secondaryPathRealm:playerData.secondaryPathRealm,secondaryPathProgress:playerData.secondaryPathProgress},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'J'})}).catch(()=>{});
-				// #endregion
 				return totalXP;
 			} else {
 			return this.calculateXPToReach(playerData.secondaryPathRealm, 

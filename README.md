@@ -1,3 +1,38 @@
+Welcome to the Overmortal realm breakthrough Calculator! On the left side are a series of tabs. You should first use the player input tab to enter in the relevant info for your taoist, then you can look at the dashboard and analytics tabs to get information about your breakthrough! 
+
+Anywhere that you see an <i class="fas fa-info-circle"></i> icon, you can hover over it for more information. This can be helpful if you do not know what something means, or need help interpreting some of the data.
+
+To get information about your taoist, check in game. You should check under the abode where you can see your bonus rating - many of the abode aura related values are there. For immortal friends and techniques, you can compare with a fellow taoist and check the details section to get the information you need. For other things, you may have to check the feature itself (for citta, for example.)
+
+If you want to double check that you have done things correctly, or if you are interested in some of the values that are used for calculations, you can click the "turn on debug" option, and look at the new tab that opens up on the left. Anything with an arrow here can be expanded and opened for more info.
+
+For the dashboard, know that the virya scenario table is open to interpretation - i do not tell you what is best, you must decide for yourself what you care about. This table is only meant to help you understand what your options are and what will happen in the worst case scenario if you pursue them. It does not account for fruits eaten (simply subtract days from the fruits table).
+
+
+
+### How to get support for this calculator
+
+Largely, unless we are in a sect together, you are on your own, this calculator is delivered as is without the guarantee of its effectiveness or support. However, if you think that something with the calculator is not working correctly, please message me on discord and include your taoist data from the "export data" function, as well as what you think is wrong:
+
+lucyfer_os
+
+
+# Limitations / Known issues
+
+* NOTE - THIS IS STILL BEING TESTED FOR ACCCURACY!!!		
+* I am currently only focusing on Spiritual World as this is what my sect is at currently. If you are in Immortal World, I do not account for your extra bonuses yet.
+* This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
+* Although largely handled, Virya was a real pain... almost 3/4ths of my time on this project has been chasing down issues with this. If the UI looks like something might not be right, please inform me.
+* Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browse related bug, feel free to report it, but it may be downprioritized.
+	
+
+
+# Release Notes
+
+#### Version 0.3.6.2 (BETA)
+  * Tool tip updates
+  * changes release notes to "how to use this calculator". Shifted it to be the first page that you land on when you start.
+
 #### Version 0.3.6.1 (BETA)
   * Fixed red pill calculating incorrectly when at 3* or higher vase
   * We now account for current red pills in the related analytic.
@@ -73,28 +108,15 @@
     * This function may be used to save multiple taoists for ease of swapping between character views. 
     * you may optionally edit this json directly using your preferred text editor instead of using the UI, then upload it.
 
-## Limitations / Known issues
 
-	   ** NOTE - THIS IS STILL BEING TESTED FOR ACCCURACY!!!		
-    * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. 
-	It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
-	* Although largely handled, Virya was a real pain... if the UI looks like something might not be right, inform me.
-    * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browser related bug, feel free to report it, but it may be downprioritized.
-	
 
-## Acknowledgments
+# Acknowledgments
 
-	* Thank you for trying out my take on the old google sheets calculator! Inspiration came from the calculator mentioned in the footer, which is currently maintained
-	by Yutsu.
-	* I also wish to thank Endless for the great effort they have put into educating this lowley taoist in the ways of the dao, as well as 'R' for encouraging me along
-	the way while i developed this version of the calculator.
-	* If you have questions or requests, please add me on discord and mention that you have been directed from this calculator. For any bug reports, please include a 
-	copy of your exported json and screenshots from your taoist. 
+* Thank you for trying out my take on the old google sheets calculator! Inspiration came from the calculator mentioned in the footer, which is currently maintained by Yutsu.
+
+* I also wish to thank Endless for the great effort they have put into educating this lowley taoist in the ways of the dao, as well as 'R' for encouraging me along the way while i developed this version of the calculator. 
+
+* Shoutout to Djoki, Faisal, and Jin for being the first to test out this calc for me!
   
   Best Regards,
   ***lucyfer_os***
-  
-  ## TODO
-  * Tutorial?
-	* Add Auraseep
-	* Add analytics (open to suggestions for what should go here)

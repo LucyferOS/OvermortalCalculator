@@ -738,6 +738,15 @@ tr:hover {
         width: 200px;
         font-size: 0.8em;
     }
+    
+    /* Release Notes section mobile adjustments */
+    #Release\ Notes.active {
+        max-height: calc(100vh - 150px);
+    }
+    
+    #Release\ Notes.active #release-notes-container {
+        max-height: calc(100vh - 250px);
+    }
 }
 
 .section {
@@ -747,6 +756,52 @@ tr:hover {
 .section.active {
     display: block;
     animation: fadeIn 0.3s ease;
+}
+
+/* Release Notes section - ensure it fits within viewport */
+#Release\ Notes {
+    display: none;
+}
+
+#Release\ Notes.active {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#Release\ Notes .card {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+#Release\ Notes #release-notes-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: calc(100vh - 300px);
+    padding-right: 8px;
+}
+
+/* Custom scrollbar for release notes */
+#Release\ Notes #release-notes-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#Release\ Notes #release-notes-container::-webkit-scrollbar-track {
+    background: var(--light);
+    border-radius: 4px;
+}
+
+#Release\ Notes #release-notes-container::-webkit-scrollbar-thumb {
+    background: var(--secondary);
+    border-radius: 4px;
+}
+
+#Release\ Notes #release-notes-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 

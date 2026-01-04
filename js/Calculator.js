@@ -504,9 +504,6 @@ class OvermortalCalculator {
         const { scenarioXPNeeded, scenarioFruitResults, nextScenario } = 
             this.calculateScenarioAnalysis(viryaInfo, mainPathDailyXPBase, this.playerData.dailyXP);
         // Player Time to Cultivate uses focus-dependent values (mainPathDailyXP, secondaryPathDailyXP)
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:505',message:'Before calculateProgression call',data:{mainPathDailyXP,secondaryPathDailyXP,pathFocus:this.playerData.pathFocus},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
         const realmProgression = RealmCalculator.calculateProgression(this.playerData, mainPathDailyXP, secondaryPathDailyXP);
         const scenarioComparisons = this.calculateScenarioComparisons(mainPathDailyXPBase, secondaryPathDailyXPBase);
         
@@ -582,9 +579,6 @@ class OvermortalCalculator {
     }
 
     calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:579',message:'calculatePathDailyXP entry',data:{pathFocus:this.playerData.pathFocus,mainPathAbsorptionBonus,secondaryPathAbsorptionBonus,elixir:this.playerData.elixir,benediction:this.playerData.benediction,pillBonus:this.playerData.pillBonus},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         // Calculate focus XP (full daily XP excluding elixir/benediction)
         const mainPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, mainPathAbsorptionBonus);
         
@@ -593,9 +587,6 @@ class OvermortalCalculator {
         const multiplier = pillBonus * 1000;
         const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(this.playerData, this.playerData.elixir || 0);
         const elixirXPWithMultiplier = elixirXP * multiplier;
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:592',message:'Focus XP and elixir calculated',data:{mainPathFocusXP,elixirXP,elixirXPWithMultiplier,multiplier},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         
         // Calculate base values (for analytics/Virya table) - full XP including path-specific sources
         const mainPathDailyXPBase = mainPathFocusXP + elixirXPWithMultiplier;
@@ -621,9 +612,6 @@ class OvermortalCalculator {
                 benedictionXPWithMultiplier = benedictionXP * multiplier;
                 // Calculate base value (for analytics/Virya table) - full XP including benediction
                 secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:612',message:'Secondary path XP calculated',data:{secondaryPathFocusXP,benedictionXP,benedictionXPWithMultiplier,secondaryPathDailyXPBase},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                // #endregion
             } else {
                 console.warn(`Warning: Realm XP data not found for secondary path realm "${realmXPKey}" (realm: ${this.playerData.secondaryPathRealmMajor}), skipping secondary path daily XP calculation`);
             }
@@ -633,34 +621,22 @@ class OvermortalCalculator {
         let mainPathDailyXP = 0;
         let secondaryPathDailyXP = 0;
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:621',message:'Before focus-dependent calculation',data:{pathFocus:this.playerData.pathFocus,PATH_MAIN,PATH_SECONDARY,isMainPath:this.playerData.pathFocus===PATH_MAIN},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         
         if (this.playerData.pathFocus === PATH_MAIN) {
             // Main path focused: gets focus XP + path-specific (elixir)
             mainPathDailyXP = mainPathFocusXP + elixirXPWithMultiplier;
             // Secondary path not focused: only gets path-specific (benediction)
             secondaryPathDailyXP = benedictionXPWithMultiplier;
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:625',message:'Main path focused branch',data:{mainPathDailyXP,secondaryPathDailyXP,mainPathFocusXP,elixirXPWithMultiplier,benedictionXPWithMultiplier},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
         } else {
             // Main path not focused: only gets path-specific (elixir)
             mainPathDailyXP = elixirXPWithMultiplier;
             // Secondary path focused: gets focus XP + path-specific (benediction)
             secondaryPathDailyXP = secondaryPathFocusXP + benedictionXPWithMultiplier;
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:631',message:'Secondary path focused branch',data:{mainPathDailyXP,secondaryPathDailyXP,elixirXPWithMultiplier,secondaryPathFocusXP,benedictionXPWithMultiplier},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
         }
         
         console.log(`Main path daily XP (with ${mainPathAbsorptionBonus * 100}% bonus): ${mainPathDailyXP.toLocaleString()}`);
         console.log(`Secondary path daily XP (with ${secondaryPathAbsorptionBonus * 100}% bonus): ${secondaryPathDailyXP.toLocaleString()}`);
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7b124798-9ea4-4e46-9db5-5dcc847b936b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Calculator.js:637',message:'calculatePathDailyXP return',data:{mainPathDailyXPBase,secondaryPathDailyXPBase,mainPathDailyXP,secondaryPathDailyXP},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
         
         return { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP };
     }

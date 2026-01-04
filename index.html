@@ -23,7 +23,7 @@
             </div>
         </header>
         <div class="sidebar">
-            <div class="nav-item active" data-section="dashboard">
+            <div class="nav-item" data-section="dashboard">
                 <span>Dashboard</span>
             </div>
             <div class="nav-item" data-section="player-input">
@@ -36,13 +36,13 @@
             <div class="nav-item" data-section="debug">
                 <span>Debug Data</span>
             </div>
-			<div class="nav-item" data-section="Release Notes">
-                <span>Release notes</span>
+			<div class="nav-item active" data-section="Release Notes">
+                <span>How to use this calculator</span>
             </div>
         </div>
         <div class="main-content">
             <!-- DASHBOARD SECTION -->
-            <div id="dashboard" class="section active">
+            <div id="dashboard" class="section">
                 <div class="card">
                     <h2 class="card-title">Player Time to Cultivate</h2>
                     <div class="grid grid-path-row">
@@ -434,7 +434,9 @@
                         </div>
 
                         <div class="input-group required">
-                            <label for="current-red-pills">Current Red Pills</label>
+                            <label for="current-red-pills">Current Red Pills
+                                <span class="tooltip-icon" title="The number of pills you have saved if you want to wait to use them until you can hit completion."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
                             <input type="number" id="current-red-pills" step="1" value="0">
                         </div>
                     </div>
@@ -999,9 +1001,9 @@
                 </div>
             </div>
 
-			<div id="Release Notes" class="section">
+			<div id="Release Notes" class="section active">
 				 <div class="card">
-					<h2 class="card-title">Release Notes</h2>
+					<h2 class="card-title">How to use this calculator</h2>
 					        <div id="release-notes-container">
 								<div class="loading-markdown">
 								<i class="fas fa-spinner fa-spin"></i> Loading release notes...
