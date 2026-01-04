@@ -12,7 +12,7 @@ class OvermortalApp {
 		this.markdownLoader = new MarkdownLoader(); // Add this line
 
     }
-
+    // when the app starts, we need to load the saved data and calculate the results
     init() {
         document.addEventListener('DOMContentLoaded', () => this.onDOMContentLoaded());
     }
@@ -171,10 +171,12 @@ class OvermortalApp {
         UIManager.updatePathFocusIndicators(p.pathFocus);
     }
 
+    //showing errors in the app, this was mostly used for debugging but keeping it for now.
     showNotification(message, isError = false) {
         UIManager.showNotification(message, isError);
     }
 
+    // some extra functionality for the app to switch the path focus with the cards on the dashboard.
     switchPathFocus(path) {
         const currentPath = this.calculator.getPlayerData().pathFocus;
         if (currentPath !== path) {
@@ -197,5 +199,3 @@ class OvermortalApp {
 // Initialize the application
 const app = new OvermortalApp();
 app.init();
-
-// Make debug manager available globally for testing

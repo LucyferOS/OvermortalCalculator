@@ -1,5 +1,6 @@
 // Utility functions
 class CalculatorUtils {
+    // These are all self explanatory functions based on the name of the function. They are simply helper functions to format the data for the UI, or to add timeouts.
     static formatTimeDays(days) {
         if (days === undefined || days === null || isNaN(days) || days <= 0) {
             return 'Calculating...';

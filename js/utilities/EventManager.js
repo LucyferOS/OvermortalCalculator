@@ -2,7 +2,7 @@ import { DataManager } from './DataManager.js';
 import { CalculatorUtils } from './utils.js';
 import { UIManager } from './UIManager.js';
 import { PATH_MAIN, PATH_SECONDARY } from './gameData.js';
-
+    // all of the functions here are used to set up the event listeners for the app, theres a few for handling the data and some for handling the UI.
 class EventManager {
     constructor(app) {
         this.app = app;

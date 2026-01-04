@@ -4,13 +4,12 @@ import { Realms, XPData, GameConstants, RealmMajorTotalXP, timegateLength, PATH_
 import { Analytics } from '../analytics/Analytics.js';
 
 class UIManager {
-    // Store latest values for red pills calculator
     static latestResults = null;
     static latestPlayerData = null;
     static latestAbsorptionBonus = 0;
-    
+    // this is the main function that updates the dashboard with the latest results.
     static updateDashboard(results, playerData) {
-        // Update Virya display
+        // Update Virya display - this is the main display that shows the virya scenario and the bonus.
         if (results.virya) {
             this.updateViryaDisplay(results.virya, playerData, results.dailyXP, results.mainPathDailyXPBase, results.secondaryPathDailyXPBase);
         }
@@ -1178,20 +1177,11 @@ class UIManager {
     static updateAnalytics(results, playerData) {
         
         try {
-            // Use the dailyXP from playerData which includes the correct main path absorption bonus
-            // (includes "had Virya last realm" bonus if active)
-            // The breakdown will be calculated using the same values that produced playerData.dailyXP
-            // For consistency, we'll use playerData.dailyXP and reverse-calculate the effective absorption bonus
-            // Actually, let's just use the breakdown that matches playerData.dailyXP - use mainPathDailyXPBase logic
-            // But we need the absorption bonus to calculate breakdown... let's use results.mainPathDailyXPBase if available
-            // Actually, the analytics should match playerData.dailyXP, so let's calculate breakdown with the same absorption bonus
-            // that was used to calculate playerData.dailyXP. Since playerData.dailyXP = mainPathDailyXPBase,
-            // we should use the absorption bonus that gives us mainPathDailyXPBase.
-            // For now, use playerData.dailyXP directly for the total, but we still need absorptionBonus for individual components
-            // Let's use the virya absorption bonus as a fallback, but ideally we'd have mainPathAbsorptionBonus in results
+            // get the absorption bonus from the virya scenario
             const absorptionBonus = results.virya?.absorptionBonus || 0;
             
             // Calculate daily XP breakdown - this should match playerData.dailyXP
+            // this is the main function that calculates the daily XP breakdown for the main path and the secondary path.
             const breakdown = Analytics.calculateDailyXPBreakdown(playerData, absorptionBonus);
             
             // Render daily XP pie chart
@@ -1212,6 +1202,7 @@ class UIManager {
         
     }
 
+    // these next 4 functions are for the analytics tab, are used to calculate the red pills needed for the breakthrough.
     static updateRedPillsCalculator(playerData, results, absorptionBonus) {
         
         try {
@@ -1457,7 +1448,7 @@ class UIManager {
             
         }
     }
-
+    // last two are for the debug tab, used to toggle the visibility of the debug menu.
     static updateDebugMenuVisibility(enabled) {
         const debugNavItem = document.querySelector('.nav-item[data-section="debug"]');
         const debugSection = document.getElementById('debug');

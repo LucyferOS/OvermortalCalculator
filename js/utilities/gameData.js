@@ -1,4 +1,4 @@
-// Game data constants
+// Game data constants - consider this the my hidden static sheet
 export const XPData = {
     IncarnationXP: 	{ respira: 5.30,  red: 192.00, 	 gold: 96.00,   purple: 48.00,   blue: 25.60,   elixer: 0, 	     benediction: 0 },
     VoidbreakXP: 	{ respira: 7.80,  red: 288.00, 	 gold: 144.00,  purple: 72.00,   blue: 38.40,   elixer: 60.00,   benediction: 87.00 },

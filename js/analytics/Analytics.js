@@ -39,7 +39,7 @@ class Analytics {
         
         const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
         
-        // Benediction pills only apply to secondary path, not main path
+        // Benediction pills only apply to secondary path, not main path - if we change our mind, we can add this back in.
         // const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
         
         const numRedPills = XPCalculator.calculateRedPills(playerData);

@@ -1,6 +1,6 @@
 // markdownLoader.js
 import { marked } from 'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
-
+// This can be largely ignored. It's used to load the release notes from the README.md file, which is displayed in the Release Notes section of the app (in ui it is called "how to use this calculator")
 export class MarkdownLoader {
     constructor() {
         // Initialize marked options
