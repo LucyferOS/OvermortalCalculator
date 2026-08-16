@@ -100,8 +100,6 @@ class OvermortalCalculator {
             pillBonusCurio: 0,
             pillBonusImmortalFriends: 0,
             pillBonusTechnique: 0,
-            pillAttemptsTechnique: 0,
-            pillAttemptsImmortalFriends: 0,
             
             // Extractor
             extractorRank: 'common',

@@ -137,7 +137,6 @@ class OvermortalApp {
             'abode-nirvana-neck-mansion': p.abodeBonusNirvanaNeckMansion,
             
             // Techniques
-            'pill-attempts-technique': p.pillAttemptsTechnique || 0,
             'pill-bonus-technique': p.pillBonusTechnique,
             'respira-attempt-technique': p.respiraAttemptsTechnique,
             'respira-bonus-technique': p.respiraBonusTechnique,
@@ -151,7 +150,6 @@ class OvermortalApp {
             'abode-temper-aura-curio': p.abodeTemperAuraCurio || 0,
             
             // Immortal Friends
-            'pill-attempts-immortal-friends': p.pillAttemptsImmortalFriends || 0,
             'pill-bonus-immortal-friends': p.pillBonusImmortalFriends,
             'respira-attempt-immortal-friends': p.respiraAttemptsImmortalFriend,
             'respira-bonus-immortal-friends': p.respiraBonusImmortalFriend,

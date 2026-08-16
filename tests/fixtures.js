@@ -71,8 +71,6 @@ const BASE = {
     pillBonusCurio: 0,
     pillBonusImmortalFriends: 0,
     pillBonusTechnique: 0,
-    pillAttemptsTechnique: 0,
-    pillAttemptsImmortalFriends: 0,
 
     fruitsCount: 0,
     weeklyFruits: 0,
