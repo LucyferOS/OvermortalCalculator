@@ -17,7 +17,7 @@
       "Completion": 100273900,
       "Eminence": 100273900,
       "Perfect": 100273900,
-      "Half-Step": 188221500
+      "Half-Step": 200547800
     },
     "daysToTier": {
       "Completion": 59.32,
@@ -35,6 +35,29 @@
     "mainTimeToNextMajor": 59.32,
     "secondaryTimeToNextMinor": 7.29,
     "secondaryTimeToNextMajor": 59.32,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 51756168.52,
+        "overflowXP": 66021780.04,
+        "daysToReach": 59.32,
+        "better": "Completion",
+        "percentage": "-65.67%"
+      },
+      "Perfect": {
+        "totalXP": 51756168.52,
+        "overflowXP": 73954658.31,
+        "daysToReach": 59.32,
+        "better": "Completion",
+        "percentage": "-65.67%"
+      },
+      "Half-Step": {
+        "totalXP": 152683374.32,
+        "overflowXP": 0,
+        "daysToReach": 111.84,
+        "better": "Half-Step",
+        "percentage": "+1.26%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 1690466.9,
       "mainDailyXPNoBonus": 1690466.9,
@@ -60,7 +83,7 @@
       "Completion": 76962332,
       "Eminence": 76962332,
       "Perfect": 76962332,
-      "Half-Step": 164909932
+      "Half-Step": 176003602
     },
     "daysToTier": {
       "Completion": 43.88,
@@ -78,6 +101,29 @@
     "mainTimeToNextMajor": 43.88,
     "secondaryTimeToNextMinor": 6.56,
     "secondaryTimeToNextMajor": 58.59,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 86693589.84,
+        "overflowXP": 109092708.43,
+        "daysToReach": 43.88,
+        "better": "Completion",
+        "percentage": "-43.51%"
+      },
+      "Perfect": {
+        "totalXP": 86693589.84,
+        "overflowXP": 118396981.38,
+        "daysToReach": 43.88,
+        "better": "Completion",
+        "percentage": "-43.51%"
+      },
+      "Half-Step": {
+        "totalXP": 154024352.72,
+        "overflowXP": 0,
+        "daysToReach": 96.13,
+        "better": "Half-Step",
+        "percentage": "+0.37%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 1753787.3,
       "mainDailyXPNoBonus": 1753787.3,
@@ -102,12 +148,12 @@
     "xpToTier": {
       "Completion": 0,
       "Eminence": 168288636,
-      "Perfect": 786386219,
-      "Half-Step": 1354788015
+      "Perfect": 618097583,
+      "Half-Step": 1373312948
     },
     "daysToTier": {
       "Completion": 0,
-      "Eminence": 74.91,
+      "Eminence": 37.52,
       "Perfect": 137.8,
       "Half-Step": 306.16
     },
@@ -121,6 +167,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 7.29,
     "secondaryTimeToNextMajor": 59.32,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 395452838.59,
+        "overflowXP": 543186033.97,
+        "daysToReach": 37.52,
+        "better": "Completion",
+        "percentage": "-26.53%"
+      },
+      "Perfect": {
+        "totalXP": 538264452,
+        "overflowXP": 0,
+        "daysToReach": 137.8,
+        "better": "Equal",
+        "percentage": "+0.00%"
+      },
+      "Half-Step": {
+        "totalXP": 538264452,
+        "overflowXP": 0,
+        "daysToReach": 306.16,
+        "better": "Equal",
+        "percentage": "+0.00%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 4485537.1,
       "mainDailyXPNoBonus": 4485537.1,
@@ -146,7 +215,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 449808947,
-      "Half-Step": 1018210743
+      "Half-Step": 1205024312
     },
     "daysToTier": {
       "Completion": 0,
@@ -164,6 +233,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 45.67,
     "secondaryTimeToNextMajor": 144.58,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 575330052,
+        "overflowXP": 749779668.56,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+6.89%"
+      },
+      "Perfect": {
+        "totalXP": 125521105,
+        "overflowXP": 178957121.26,
+        "daysToReach": 93.82,
+        "better": "Completion",
+        "percentage": "-76.68%"
+      },
+      "Half-Step": {
+        "totalXP": 575330052,
+        "overflowXP": 0,
+        "daysToReach": 251.34,
+        "better": "Half-Step",
+        "percentage": "+6.89%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
@@ -207,6 +299,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 40.26,
     "secondaryTimeToNextMajor": 162.76,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 575330052,
+        "overflowXP": 749779668.56,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+6.89%"
+      },
+      "Perfect": {
+        "totalXP": 575330052,
+        "overflowXP": 778624708.4,
+        "daysToReach": 0,
+        "better": "Perfect",
+        "percentage": "+6.89%"
+      },
+      "Half-Step": {
+        "totalXP": 575330052,
+        "overflowXP": 0,
+        "daysToReach": 157.52,
+        "better": "Half-Step",
+        "percentage": "+6.89%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
@@ -215,14 +330,14 @@
     }
   },
   "sameMajorMid": {
-    "tier": "Completion",
-    "absorptionBonus": 0,
-    "bonusEndsAt": "Eminence",
+    "tier": "Perfect",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Half-Step",
     "totalAbode": 130,
-    "cosmoapsis": 123.5,
-    "mainDailyXP": 4485537.1,
+    "cosmoapsis": 149.5,
+    "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
-    "secondaryDailyXP": 4408317.1,
+    "secondaryDailyXP": 4717197.1,
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -232,40 +347,63 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 0,
-      "Half-Step": 568401796
+      "Half-Step": 489216425.2
     },
     "daysToTier": {
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 0,
-      "Half-Step": 109.07
+      "Half-Step": 102.04
     },
     "maxNextRealm": {
       "Completion": "Cannot reach Completion",
-      "Eminence": "Cannot reach scenario",
-      "Perfect": "Cannot reach scenario",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
       "Half-Step": "Cannot reach Completion"
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 41.91,
-    "secondaryTimeToNextMajor": 110.98,
+    "secondaryTimeToNextMinor": 39.17,
+    "secondaryTimeToNextMajor": 103.71,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 575330052,
+        "overflowXP": 749779668.56,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+6.89%"
+      },
+      "Perfect": {
+        "totalXP": 575330052,
+        "overflowXP": 778624708.4,
+        "daysToReach": 0,
+        "better": "Perfect",
+        "percentage": "+6.89%"
+      },
+      "Half-Step": {
+        "totalXP": 91661491.43,
+        "overflowXP": 128321216.2,
+        "daysToReach": 102.04,
+        "better": "Completion",
+        "percentage": "-82.97%"
+      }
+    },
     "asAppComputesIt": {
-      "mainDailyXP": 4485537.1,
+      "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 4408317.1,
-      "bonusIsHonoured": false
+      "secondaryDailyXP": 4717197.1,
+      "bonusIsHonoured": true
     }
   },
   "sameMajorLatePartial": {
-    "tier": "Completion",
-    "absorptionBonus": 0,
-    "bonusEndsAt": "Eminence",
+    "tier": "Perfect",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Half-Step",
     "totalAbode": 130,
-    "cosmoapsis": 123.5,
-    "mainDailyXP": 4485537.1,
+    "cosmoapsis": 149.5,
+    "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
-    "secondaryDailyXP": 4485537.1,
+    "secondaryDailyXP": 4794417.1,
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -275,29 +413,52 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 0,
-      "Half-Step": 568401796
+      "Half-Step": 121780224
     },
     "daysToTier": {
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 0,
-      "Half-Step": 27.15
+      "Half-Step": 25.4
     },
     "maxNextRealm": {
       "Completion": "Cannot reach Completion",
-      "Eminence": "Cannot reach scenario",
-      "Perfect": "Cannot reach scenario",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
       "Half-Step": "Cannot reach Completion"
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 27.15,
-    "secondaryTimeToNextMajor": 27.15,
+    "secondaryTimeToNextMinor": 25.4,
+    "secondaryTimeToNextMajor": 25.4,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 575330052,
+        "overflowXP": 749779668.56,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+6.89%"
+      },
+      "Perfect": {
+        "totalXP": 575330052,
+        "overflowXP": 778624708.4,
+        "daysToReach": 0,
+        "better": "Perfect",
+        "percentage": "+6.89%"
+      },
+      "Half-Step": {
+        "totalXP": 482769745.24,
+        "overflowXP": 666464029.24,
+        "daysToReach": 25.4,
+        "better": "Completion",
+        "percentage": "-10.31%"
+      }
+    },
     "asAppComputesIt": {
-      "mainDailyXP": 4485537.1,
+      "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 4485537.1,
-      "bonusIsHonoured": false
+      "secondaryDailyXP": 4794417.1,
+      "bonusIsHonoured": true
     }
   },
   "halfStepWholeness": {
@@ -336,6 +497,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 0,
     "secondaryTimeToNextMajor": 0,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 575330052,
+        "overflowXP": 749779668.56,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+6.89%"
+      },
+      "Perfect": {
+        "totalXP": 575330052,
+        "overflowXP": 778624708.4,
+        "daysToReach": 0,
+        "better": "Perfect",
+        "percentage": "+6.89%"
+      },
+      "Half-Step": {
+        "totalXP": 612395652,
+        "overflowXP": 796089936,
+        "daysToReach": 0,
+        "better": "Half-Step",
+        "percentage": "+13.77%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 5103297.1,
       "mainDailyXPNoBonus": 4485537.1,
@@ -361,7 +545,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 129806936,
-      "Half-Step": 437521963
+      "Half-Step": 579615883
     },
     "daysToTier": {
       "Completion": 0,
@@ -379,6 +563,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 29.04,
     "secondaryTimeToNextMajor": 29.04,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 434573022,
+        "overflowXP": 541130755.69,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+10.18%"
+      },
+      "Perfect": {
+        "totalXP": 304766086,
+        "overflowXP": 423022107.86,
+        "daysToReach": 38.83,
+        "better": "Completion",
+        "percentage": "-22.73%"
+      },
+      "Half-Step": {
+        "totalXP": 434573022,
+        "overflowXP": 0,
+        "daysToReach": 173.39,
+        "better": "Half-Step",
+        "percentage": "+10.18%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
       "mainDailyXPNoBonus": 3033989.4,
@@ -422,6 +629,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 45.67,
     "secondaryTimeToNextMajor": 144.58,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 434573022,
+        "overflowXP": 541130755.69,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+10.18%"
+      },
+      "Perfect": {
+        "totalXP": 434573022,
+        "overflowXP": 566173011.71,
+        "daysToReach": 0,
+        "better": "Perfect",
+        "percentage": "+10.18%"
+      },
+      "Half-Step": {
+        "totalXP": 434573022,
+        "overflowXP": 0,
+        "daysToReach": 134.56,
+        "better": "Half-Step",
+        "percentage": "+10.18%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
       "mainDailyXPNoBonus": 3033989.4,
@@ -447,7 +677,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 34007368,
-      "Half-Step": 341722395
+      "Half-Step": 483816315
     },
     "daysToTier": {
       "Completion": 0,
@@ -465,6 +695,29 @@
     "mainTimeToNextMajor": 0,
     "secondaryTimeToNextMinor": 11.81,
     "secondaryTimeToNextMajor": 168.02,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 434573022,
+        "overflowXP": 541130755.69,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+10.18%"
+      },
+      "Perfect": {
+        "totalXP": 400565654,
+        "overflowXP": 531599682.09,
+        "daysToReach": 10.17,
+        "better": "Perfect",
+        "percentage": "+1.56%"
+      },
+      "Half-Step": {
+        "totalXP": 434573022,
+        "overflowXP": 0,
+        "daysToReach": 144.73,
+        "better": "Half-Step",
+        "percentage": "+10.18%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
       "mainDailyXPNoBonus": 3033989.4,
@@ -490,7 +743,7 @@
       "Completion": 2438745598.4,
       "Eminence": 2438745598.4,
       "Perfect": 2621837707.2,
-      "Half-Step": 5847294622.2
+      "Half-Step": 6966362467.2
     },
     "daysToTier": {
       "Completion": 59.16,
@@ -499,8 +752,8 @@
       "Half-Step": 167.83
     },
     "maxNextRealm": {
-      "Completion": "Completion",
-      "Eminence": "Completion",
+      "Completion": "Eminence",
+      "Eminence": "Eminence",
       "Perfect": "Eminence",
       "Half-Step": "Perfect"
     },
@@ -508,11 +761,100 @@
     "mainTimeToNextMajor": 59.16,
     "secondaryTimeToNextMinor": 7.31,
     "secondaryTimeToNextMajor": 7.31,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 6420641032.68,
+        "overflowXP": 12613187993.72,
+        "daysToReach": 59.16,
+        "better": "Completion",
+        "percentage": "-27.37%"
+      },
+      "Perfect": {
+        "totalXP": 6280381732.69,
+        "overflowXP": 12384456117.95,
+        "daysToReach": 62.43,
+        "better": "Completion",
+        "percentage": "-28.96%"
+      },
+      "Half-Step": {
+        "totalXP": 1808649822.37,
+        "overflowXP": 3553765996.62,
+        "daysToReach": 167.83,
+        "better": "Completion",
+        "percentage": "-79.54%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 41221499.07,
       "mainDailyXPNoBonus": 41221499.07,
       "secondaryDailyXP": 25057817.56,
       "bonusIsHonoured": false
+    }
+  },
+  "strongHalfStep": {
+    "tier": "Half-Step",
+    "absorptionBonus": 0.4,
+    "bonusEndsAt": "Next major's Late",
+    "totalAbode": 481,
+    "cosmoapsis": 649.35,
+    "mainDailyXP": 43869353.01,
+    "mainDailyXPNoBonus": 40313801.01,
+    "secondaryDailyXP": 43869353.01,
+    "respiraXP": 506047.5,
+    "pillXP": 31363317.51,
+    "pearlXP": 3023373.6,
+    "redPillsPerDay": 8.07,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 0
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 0
+    },
+    "maxNextRealm": {
+      "Completion": "Half-Step",
+      "Eminence": "Half-Step",
+      "Perfect": "Half-Step",
+      "Half-Step": "Half-Step"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 0,
+    "secondaryTimeToNextMajor": 0,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 6368760900.23,
+        "overflowXP": 6165542046.17,
+        "daysToReach": 0,
+        "better": "Eminence",
+        "percentage": "+0.23%"
+      },
+      "Perfect": {
+        "totalXP": 6388469211.5,
+        "overflowXP": 6300799886.16,
+        "daysToReach": 0,
+        "better": "Perfect",
+        "percentage": "+0.54%"
+      },
+      "Half-Step": {
+        "totalXP": 6532135363.61,
+        "overflowXP": 6432552088.26,
+        "daysToReach": 0,
+        "better": "Half-Step",
+        "percentage": "+2.80%"
+      }
+    },
+    "asAppComputesIt": {
+      "mainDailyXP": 43869353.01,
+      "mainDailyXPNoBonus": 40313801.01,
+      "secondaryDailyXP": 43869353.01,
+      "bonusIsHonoured": true
     }
   },
   "easyMode": {
@@ -533,7 +875,7 @@
       "Completion": 11410768414,
       "Eminence": 11410768414,
       "Perfect": 11590275684.3,
-      "Half-Step": 20662164730.3
+      "Half-Step": 23585763940.3
     },
     "daysToTier": {
       "Completion": 326.19,
@@ -551,6 +893,29 @@
     "mainTimeToNextMajor": 326.19,
     "secondaryTimeToNextMinor": 7.22,
     "secondaryTimeToNextMajor": 7.22,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 7451179269.9,
+        "overflowXP": 0,
+        "daysToReach": 326.19,
+        "better": "Equal",
+        "percentage": "+0.00%"
+      },
+      "Perfect": {
+        "totalXP": 7451179269.9,
+        "overflowXP": 0,
+        "daysToReach": 331.32,
+        "better": "Equal",
+        "percentage": "+0.00%"
+      },
+      "Half-Step": {
+        "totalXP": 7451179269.9,
+        "overflowXP": 0,
+        "daysToReach": 674.22,
+        "better": "Equal",
+        "percentage": "+0.00%"
+      }
+    },
     "asAppComputesIt": {
       "mainDailyXP": 34982062.3,
       "mainDailyXPNoBonus": 34982062.3,

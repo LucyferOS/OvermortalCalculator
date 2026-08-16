@@ -1,7 +1,9 @@
 import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
 import { XPCalculator } from './XPCalculator.js';
-import { XPData, timegateLength, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms } from '../utilities/gameData.js';
+import { XPData, timegateLength, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, REALM_ORDER_MINOR } from '../utilities/gameData.js';
+import { ViryaRules } from '../engine/ViryaRules.js';
+import { nextMajor as nextMajorOf } from '../domain/realms.js';
 
 class ViryaScenarioComparator {
     constructor(playerData, dailyXP, comparatorId = 'default', mainPathDailyXPBase = null, secondaryPathDailyXPBase = null) {
@@ -38,23 +40,21 @@ class ViryaScenarioComparator {
             this.secondaryPathDailyXPBase = secondaryXP;
         }
         
-        // Define scenario bonuses
-        this.scenarioBonus = {
-            [SCENARIO_NO_VIRYA]: 0.0,
-            [SCENARIO_COMPLETION]: 0.0,
-            [SCENARIO_EMINENCE]: 0.2,
-            [SCENARIO_PERFECT]: 0.2,
-            [SCENARIO_HALF_STEP]: 0.4
-        };
-        
-        // Define when each bonus ends
-        this.bonusEndConditions = {
-            [SCENARIO_COMPLETION]: { endsAt: 'Immediately' },
-            [SCENARIO_EMINENCE]: { endsAt: 'Next Major Early' },
-            [SCENARIO_PERFECT]: { endsAt: 'Next Major Mid' },
-            [SCENARIO_HALF_STEP]: { endsAt: 'Next Major Late' }
-        };
-        
+        // Bonuses and expiry both come from the rule table.
+        this.scenarioBonus = Object.fromEntries(
+            ViryaRules.tierOrder().map((tier) => [tier, ViryaRules.bonusFor(tier)])
+        );
+
+        // A carried bonus expires once the player reaches the first minor stage
+        // it no longer covers.
+        this.bonusEndConditions = Object.fromEntries(
+            ViryaRules.tierOrder().map((tier) => {
+                const carries = REALM_ORDER_MINOR.filter((minor) => ViryaRules.isCarriedBonusActive(tier, minor));
+                const expiresAt = REALM_ORDER_MINOR[carries.length];
+                return [tier, { endsAt: expiresAt ? `Next Major ${expiresAt}` : 'Immediately' }];
+            })
+        );
+
         // Scenario order for progression
         this.scenarioOrder = VIRYA_SCENARIO_ORDER;
     }
@@ -164,15 +164,13 @@ class ViryaScenarioComparator {
         // Get timegate information
         const currentTimegateDays = this.playerData.timegateDays || 0;
         const currentMajor = this.playerData.mainPathRealmMajor;
-        const realmOrder = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-        const currentMajorIndex = realmOrder.indexOf(currentMajor);
-        const nextMajor = currentMajorIndex < realmOrder.length - 1 ? realmOrder[currentMajorIndex + 1] : null;
-        
-        if (!nextMajor) {
+        const nextMajorRealm = nextMajorOf(currentMajor);
+
+        if (!nextMajorRealm) {
             return { overflowXP: 0, totalXP: 0, xpRequiredToReach: 0 };
         }
         
-        const nextTimegateLength = this.timegateLengths[nextMajor] || 0;
+        const nextTimegateLength = this.timegateLengths[nextMajorRealm] || 0;
         
         // ===== PHASE 1: Calculate XP required to reach scenario =====
         let xpRequiredToReach = 0;
@@ -324,7 +322,7 @@ class ViryaScenarioComparator {
                 const phase2FinalProgress = phase2Result.finalProgress || 0;
                 
                 // If Phase 2 ended in the next major realm (overflow was converted), use that state
-                if (phase2FinalRealm.startsWith(nextMajor)) {
+                if (phase2FinalRealm.startsWith(nextMajorRealm)) {
                     const [major, minor] = phase2FinalRealm.split(' ');
                     const phase2FinalRealmXP = Realms[phase2FinalRealm]?.xp || 0;
                     const phase2FinalExp = (phase2FinalRealmXP * phase2FinalProgress) / 100;
@@ -343,8 +341,8 @@ class ViryaScenarioComparator {
                     // Phase 2 didn't convert to next realm (no overflow or still in current realm)
                     breakthroughPlayerData = {
                         ...this.playerData,
-                        mainPathRealm: `${nextMajor} Early`,
-                        mainPathRealmMajor: nextMajor,
+                        mainPathRealm: `${nextMajorRealm} Early`,
+                        mainPathRealmMajor: nextMajorRealm,
                         mainPathRealmMinor: 'Early',
                         mainPathProgress: 0,
                         mainPathExp: 0,
@@ -355,8 +353,8 @@ class ViryaScenarioComparator {
                 // No Phase 2 XP, start at 0% Early
                 breakthroughPlayerData = {
                     ...this.playerData,
-                    mainPathRealm: `${nextMajor} Early`,
-                    mainPathRealmMajor: nextMajor,
+                    mainPathRealm: `${nextMajorRealm} Early`,
+                    mainPathRealmMajor: nextMajorRealm,
                     mainPathRealmMinor: 'Early',
                     mainPathProgress: 0,
                     mainPathExp: 0,
@@ -406,7 +404,7 @@ class ViryaScenarioComparator {
             // Completion: hadViryaBonus = 0 (no bonus)
             
             // Calculate max realm: next major Late (100%)
-            const maxRealm = `${nextMajor} Late`;
+            const maxRealm = `${nextMajorRealm} Late`;
             
             // Simulate overflow XP gain for the available days
             const phase3Result = overflowSimulator.simulateDays(daysAvailableForOverflow, hadViryaBonus, bonusEndCondition, maxRealm);
@@ -600,11 +598,7 @@ class ViryaScenarioComparator {
     }
     
     getNextMajorRealm(currentMajor) {
-        const realmOrder = ['Nascent', 'Incarnation', 'Voidbreak', 'Wholeness', 'Perfection', 'Nirvana', 'Celestial', 'Eternal', 'Supreme'];
-        const currentIndex = realmOrder.indexOf(currentMajor);
-        const nextMajor = currentIndex < realmOrder.length - 1 ? realmOrder[currentIndex + 1] : null;
-        
-        return nextMajor;
+        return nextMajorOf(currentMajor);
     }
     
     getMaximumReachableRealmForScenario(scenario, totalDays, absorptionBonus) {

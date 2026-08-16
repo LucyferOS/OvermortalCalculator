@@ -193,6 +193,25 @@ export const PLAYERS = {
         fruitsCount: 40
     }),
 
+    // Strong enough to actually clear a major realm inside its timegate, so the
+    // "highest tier reachable next realm" column has something to report. The
+    // weaker fixtures above correctly report that they cannot.
+    strongHalfStep: makePlayer({
+        mainPathRealm: 'Wholeness Late', mainPathProgress: 100,
+        secondaryPathRealm: 'Wholeness Late', secondaryPathProgress: 100,
+        vaseStars: '5 stars', vaseSkin: 'Yes',
+        mirrorStars: '5 stars', mirrorSkin: 'Yes',
+        tokenStars: '5 stars', tokenSkin: 'Yes',
+        pearlStars: '5 stars',
+        gemQuality: 'Mythic',
+        goldPill: 30, purplePill: 40, bluePill: 60, elixir: 5,
+        abodeBonusSectLevel: 120, abodeBonusCelestialSpring: 60,
+        abodeBonusCurio: 40, abodeBonusEnergyArray: 50,
+        respiraAttemptsCurio: 8, respiraBonusTechnique: 40,
+        pillBonusCurio: 25, pillBonusTechnique: 20,
+        timegateDays: 10
+    }),
+
     easyMode: makePlayer({
         mainPathRealm: 'Celestial Early', mainPathProgress: 20,
         secondaryPathRealm: 'Nirvana Late', secondaryPathProgress: 90,

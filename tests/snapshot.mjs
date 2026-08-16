@@ -18,7 +18,11 @@ import { XPCalculator } from '../js/dashboard/XPCalculator.js';
 import { RealmCalculator } from '../js/dashboard/RealmCalculator.js';
 import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
 import { FruitCalculator } from '../js/dashboard/FruitCalculator.js';
-import { VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA } from '../js/utilities/gameData.js';
+import { ViryaScenarioComparator } from '../js/dashboard/ViryaScenarioComparator.js';
+import {
+    VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION,
+    SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP
+} from '../js/utilities/gameData.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -67,6 +71,24 @@ function snapshotPlayer(player) {
 
     const progression = RealmCalculator.calculateProgression(player, mainDailyXP, secondaryDailyXP);
 
+    // Scenario comparison, as the dashboard's Virya table builds it.
+    const comparisons = {};
+    const comparator = new ViryaScenarioComparator(player, mainDailyXP, 'snapshot', mainDailyXP, secondaryDailyXP);
+    for (const tier of [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
+        try {
+            const c = comparator.compareScenarios(SCENARIO_COMPLETION, tier);
+            comparisons[tier] = {
+                totalXP: round(c.scenario2.totalXP),
+                overflowXP: round(c.scenario2.overflowXP),
+                daysToReach: round(c.scenario2.daysToReach),
+                better: c.comparison.betterScenario,
+                percentage: c.comparison.percentage
+            };
+        } catch (error) {
+            comparisons[tier] = `threw: ${error.message}`;
+        }
+    }
+
     // Mimic Calculator.calculateAll(): it writes cosmoapsisValue onto playerData
     // before computing anything else, and every later call reads that cached
     // value. These fields therefore capture what the running app actually
@@ -107,6 +129,8 @@ function snapshotPlayer(player) {
         mainTimeToNextMajor: round(progression.mainPath.timeToNextMajor),
         secondaryTimeToNextMinor: round(progression.secondaryPath.timeToNextMinor),
         secondaryTimeToNextMajor: round(progression.secondaryPath.timeToNextMajor),
+
+        comparisons,
 
         asAppComputesIt: {
             mainDailyXP: round(appMainDailyXP),
