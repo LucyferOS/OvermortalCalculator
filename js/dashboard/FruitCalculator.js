@@ -1,6 +1,49 @@
-import { GameConstants } from '../utilities/gameData.js';
+import { GameConstants, FRUIT_ACCRUAL_WEEKDAY, FRUITS_PER_TOKEN } from '../utilities/gameData.js';
 
 class FruitCalculator {
+  /**
+   * How many weekly payouts land within `days` from `now`.
+   *
+   * Income arrives on Wednesdays, so this counts Wednesdays in the window. A
+   * payout landing today is not counted: the player's "current fruits" is what
+   * they hold right now, which already includes anything paid out today.
+   *
+   * An infinite or negative horizon counts nothing, so a player who is never
+   * breaking through is projected at their current stock rather than infinity.
+   */
+  static weeklyAccruals(days, now = new Date()) {
+    if (!Number.isFinite(days) || days <= 0) return 0;
+
+    // Days until the next payout: always 1-7, never 0.
+    const daysUntilFirst = (((FRUIT_ACCRUAL_WEEKDAY - now.getDay()) % 7) + 7) % 7 || 7;
+    if (days < daysUntilFirst) return 0;
+
+    return 1 + Math.floor((days - daysUntilFirst) / 7);
+  }
+
+  /**
+   * How many tokens the player will hold `days` from now. Tokens are paid out
+   * on the same weekly schedule as fruits.
+   */
+  static projectedTokens(playerData, days, now = new Date()) {
+    const accruals = this.weeklyAccruals(days, now);
+    return (playerData.tokensCount || 0) + (accruals * (playerData.weeklyTokens || 0));
+  }
+
+  /**
+   * How many fruits the player will have to eat `days` from now: what they hold
+   * today, plus a weekly payout for every Wednesday between now and then, plus
+   * whatever their tokens convert into if they mean to spend them.
+   */
+  static projectedFruits(playerData, days, now = new Date()) {
+    const accruals = this.weeklyAccruals(days, now);
+    const fruits = (playerData.fruitsCount || 0) + (accruals * (playerData.weeklyFruits || 0));
+
+    if (!playerData.useTokens) return fruits;
+
+    return fruits + (this.projectedTokens(playerData, days, now) * FRUITS_PER_TOKEN);
+  }
+
   static fruitXP(playerData) {
     const extractorXPLevel = GameConstants.flatExtractorLevels.levels[playerData.extractorXPLevel].xpBonus;
     const extractorGushLevel = (GameConstants.flatExtractorLevels.levels[playerData.extractorGushLevel].gushChance + 10) / 100;

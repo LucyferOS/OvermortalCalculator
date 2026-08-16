@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 
 import { PLAYERS, makePlayer } from './fixtures.js';
 import { XPCalculator } from '../js/dashboard/XPCalculator.js';
+import { FruitCalculator } from '../js/dashboard/FruitCalculator.js';
 import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
 import { ViryaRules } from '../js/engine/ViryaRules.js';
 import {
@@ -378,4 +379,79 @@ describe('carried Virya bonus', () => {
             });
         }
     }
+});
+
+describe('fruit projection', () => {
+    // Wednesday 2026-08-19, so the weekday arithmetic is pinned rather than
+    // depending on the day the suite happens to run.
+    const WED = new Date('2026-08-19T12:00:00Z');
+    const THU = new Date('2026-08-20T12:00:00Z');
+    const TUE = new Date('2026-08-18T12:00:00Z');
+
+    describe('weekly accruals', () => {
+        test('today\'s payout is not counted again', () => {
+            // Standing on a Wednesday, the next payout is a full week away.
+            assert.equal(FruitCalculator.weeklyAccruals(6, WED), 0);
+            assert.equal(FruitCalculator.weeklyAccruals(7, WED), 1);
+        });
+
+        test('it counts every Wednesday in the window', () => {
+            assert.equal(FruitCalculator.weeklyAccruals(1, TUE), 1);
+            assert.equal(FruitCalculator.weeklyAccruals(7, TUE), 1);
+            assert.equal(FruitCalculator.weeklyAccruals(8, TUE), 2);
+            // From a Thursday the first Wednesday is six days out.
+            assert.equal(FruitCalculator.weeklyAccruals(5, THU), 0);
+            assert.equal(FruitCalculator.weeklyAccruals(6, THU), 1);
+            assert.equal(FruitCalculator.weeklyAccruals(13, THU), 2);
+        });
+
+        test('a horizon that never arrives accrues nothing', () => {
+            for (const days of [0, -5, Infinity, NaN]) {
+                assert.equal(FruitCalculator.weeklyAccruals(days, WED), 0, `days=${days}`);
+            }
+        });
+    });
+
+    describe('projected fruits', () => {
+        const player = (overrides) => makePlayer({
+            fruitsCount: 10, weeklyFruits: 4, tokensCount: 2, weeklyTokens: 1, ...overrides
+        });
+
+        test('weekly income is added to the current stock', () => {
+            // 3 Wednesdays in 21 days from a Tuesday: 10 + 3*4
+            assert.equal(FruitCalculator.projectedFruits(player(), 21, TUE), 22);
+        });
+
+        test('a same-day horizon is just the current stock', () => {
+            assert.equal(FruitCalculator.projectedFruits(player(), 0, TUE), 10);
+        });
+
+        test('tokens are ignored unless they are being spent', () => {
+            assert.equal(FruitCalculator.projectedFruits(player({ useTokens: false }), 21, TUE), 22);
+        });
+
+        test('each spent token is worth three fruits', () => {
+            // tokens: 2 + 3*1 = 5, worth 15 fruits on top of the 22
+            assert.equal(FruitCalculator.projectedFruits(player({ useTokens: true }), 21, TUE), 37);
+            assert.equal(FruitCalculator.projectedTokens(player(), 21, TUE), 5);
+        });
+
+        test('missing fields are treated as zero', () => {
+            const bare = makePlayer({ fruitsCount: 7 });
+            delete bare.weeklyFruits;
+            delete bare.tokensCount;
+            delete bare.weeklyTokens;
+            assert.equal(FruitCalculator.projectedFruits(bare, 21, TUE), 7);
+        });
+
+        test('more time means at least as many fruits', () => {
+            const p = player({ useTokens: true });
+            let previous = 0;
+            for (let days = 0; days <= 120; days++) {
+                const fruits = FruitCalculator.projectedFruits(p, days, TUE);
+                assert.ok(fruits >= previous, `fruits fell from ${previous} to ${fruits} at ${days} days`);
+                previous = fruits;
+            }
+        });
+    });
 });

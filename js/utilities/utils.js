@@ -68,6 +68,11 @@ class CalculatorUtils {
         return document.getElementById(elementId)?.value || '';
     }
 
+    /** The value of the checked radio in a group, or '' if none is checked. */
+    static getRadioValue(groupName) {
+        return document.querySelector(`input[name="${groupName}"]:checked`)?.value || '';
+    }
+
     static getIntegerValue(elementId, defaultValue = 0) {
         const element = document.getElementById(elementId);
         const value = parseInt(element?.value);

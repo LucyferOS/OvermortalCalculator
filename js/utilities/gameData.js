@@ -84,6 +84,11 @@ export const MAX_EXTRACTOR_LEVEL = 30;
 export const PERCENTAGE_COMPLETE = 100;
 export const BASE_RESPIRA_ATTEMPTS = 10;
 
+// Weekly fruit and token income lands on Wednesdays. 0 = Sunday, matching Date#getDay.
+export const FRUIT_ACCRUAL_WEEKDAY = 3;
+// Each token spent is worth this many fruits.
+export const FRUITS_PER_TOKEN = 3;
+
 export const GameConstants = {
     minPerTaoistYear: 	15,
     taoistYearsPerDay: 	96,
