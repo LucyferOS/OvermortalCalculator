@@ -541,21 +541,21 @@ describe('fruit timing', () => {
         }
     });
 
-    test('a fruit is priced against the realm of the path it is fed to', () => {
-        // geared has its two paths in different majors, so the two prices must
-        // differ. Reading the main path's realm for a secondary path fruit was
-        // the obvious way to get this wrong.
+    test('a fruit is priced off the main path realm, whichever path eats it', () => {
+        // XP generation is a property of the character, set by the main path's
+        // realm. geared has its two paths in different majors, so pricing a
+        // secondary path fruit against the secondary realm would show up here.
         const p = PLAYERS.geared;
+        assert.notEqual(p.mainPathRealmMajor, p.secondaryPathRealmMajor);
+
         const main = FruitTimingCalculator.fruitXPPerFruit(p, 'main', false);
         const secondary = FruitTimingCalculator.fruitXPPerFruit(p, 'secondary', false);
+        assert.ok(main > 0);
+        assert.equal(secondary, main, 'a fruit changed value depending on which path ate it');
 
-        assert.notEqual(p.mainPathRealmMajor, p.secondaryPathRealmMajor);
-        const expectedRatio = GameConstants.fruitRealmData[p.mainPathRealmMajor]
-            / GameConstants.fruitRealmData[p.secondaryPathRealmMajor];
-        assert.ok(
-            Math.abs(main / secondary - expectedRatio) < 1e-9,
-            `expected the fruit table ratio ${expectedRatio}, got ${main / secondary}`
-        );
+        // And it really is the main path's table being read.
+        const expected = FruitCalculator.fruitXP({ ...p, timegate: 0 });
+        assert.ok(Math.abs(main - expected) < 1e-9);
     });
 
     test('fruits never carry the main path out of its major realm', () => {
@@ -641,6 +641,39 @@ describe('fruit timing', () => {
                     );
                 }
             }
+        }
+    });
+
+    test('XP rates come from the main path realm, not the fed path', () => {
+        // The rate the secondary path fills at is the character's rate. Moving
+        // the secondary path to a different realm changes the size of the bar,
+        // never the speed it fills - so the daily rate must not move with it.
+        for (const [name, p] of entries) {
+            if (!p.secondaryPathRealm) continue;
+
+            const baseline = Progression.dailyXPForPath(p, 'secondary', 0);
+            if (baseline <= 0) continue;
+
+            for (const realm of ['Incarnation Early', 'Wholeness Mid', 'Celestial Late']) {
+                const moved = makePlayer({ ...p, secondaryPathRealm: realm, secondaryPathProgress: 0 });
+                assert.equal(
+                    Progression.dailyXPForPath(moved, 'secondary', 0), baseline,
+                    `${name}: secondary rate moved when the secondary path was put in ${realm}`
+                );
+            }
+        }
+    });
+
+    test('both paths generate XP at the same rate before path-specific pills', () => {
+        // Elixir (main) and benediction (secondary) are the only legitimate
+        // per-path difference; the shared engine underneath must be identical.
+        for (const [name, p] of entries) {
+            if (!p.secondaryPathRealm) continue;
+            assert.equal(
+                Progression.dailyXPForPath(p, 'secondary', 0),
+                Progression.dailyXPForPath(p, 'main', 0),
+                `${name}: the two paths disagreed on the character's base rate`
+            );
         }
     });
 

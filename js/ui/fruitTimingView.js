@@ -58,13 +58,19 @@ class FruitTimingView {
 
         Dom.updateElementText('fruit-timing-fruits', String(timing.fruitsAvailable ?? 0));
 
+        // One value, not one per path: a fruit is priced off the main path's
+        // realm whichever path eats it.
         Dom.updateElementText(
             'fruit-timing-main-value',
-            `${xp(timing.perFruit?.mainNow)} XP  (${days(timing.daysBought?.main)} days)`
+            `${xp(timing.perFruit?.now)} XP  (${days(timing.daysBought?.main)} days of cultivation)`
         );
+
+        const gain = (timing.perFruit?.ungated > 0)
+            ? timing.perFruit.gated / timing.perFruit.ungated
+            : 0;
         Dom.updateElementText(
             'fruit-timing-secondary-value',
-            `${xp(timing.perFruit?.secondaryNow)} XP  (${days(timing.daysBought?.secondary)} days)`
+            gain > 0 ? `${xp(timing.perFruit.gated)} XP inside a timegate, ${xp(timing.perFruit.ungated)} XP outside one` : '--'
         );
 
         const windowBadge = document.getElementById('fruit-timing-window');
@@ -76,25 +82,12 @@ class FruitTimingView {
             windowBadge.style.color = '#fff';
         }
 
-        // The exchange rate that decides the path: days of that path's own
-        // progress bought, not raw XP.
-        const preferred = document.getElementById('fruit-timing-preferred');
-        if (preferred) {
-            const mainDays = timing.daysBought?.main ?? 0;
-            const secondaryDays = timing.daysBought?.secondary ?? 0;
-            if (mainDays <= 0 && secondaryDays <= 0) {
-                preferred.textContent = '--';
-            } else {
-                // Phrased as how much better the winner is, so the multiplier
-                // always reads above 1.
-                const best = Math.max(mainDays, secondaryDays);
-                const worst = Math.min(mainDays, secondaryDays);
-                const ratio = worst > 0 ? best / worst : Infinity;
-                preferred.textContent = Number.isFinite(ratio)
-                    ? `${timing.preferredPath} - ${ratio.toFixed(2)}x the progress per fruit`
-                    : timing.preferredPath;
-            }
-        }
+        // There is no "better path" to report: the value is identical either way,
+        // so say so rather than inviting the reader to look for a difference.
+        Dom.updateElementText(
+            'fruit-timing-preferred',
+            'The same either way - only what the XP unlocks differs'
+        );
 
         Dom.updateElementText(
             'fruit-timing-summary-text',

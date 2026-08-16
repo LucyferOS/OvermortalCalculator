@@ -437,6 +437,10 @@ class OvermortalCalculator {
         let benedictionXPWithMultiplier = 0;
         let secondaryPathDailyXPBase = 0;
         
+        // Rates come from the main path's realm even when the XP lands on the
+        // secondary path, so this is the same state, differing only in the
+        // absorption bonus each path currently gets. The two paths' totals
+        // therefore differ by exactly one thing: elixir vs benediction.
         const secondaryPathPlayerData = Progression.asPathPlayerData(this.playerData, 'secondary');
         if (secondaryPathPlayerData) {
             // Calculate focus XP for secondary path (excluding benediction)

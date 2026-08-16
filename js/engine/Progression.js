@@ -40,25 +40,33 @@ export function dailyXPForPath(playerData, path, absorptionBonus) {
 }
 
 /**
- * Re-point a playerData object so that the XP calculators, which only know how
- * to read the `mainPath*` fields, see the requested path.
+ * The player state to cost a path's XP generation against.
  *
- * Returns null when the path cannot be costed, either because it is unset or
- * because its major realm has no XP table.
+ * **XP rates are a property of the character, set by the main path's realm, not
+ * of the path receiving the XP.** A player whose main path is Nirvana and whose
+ * secondary path is Perfection earns at *Nirvana* rates while pushing the
+ * secondary path: the abode aura, absorption, pills, respira, red pills,
+ * benediction and fruits are all priced off the main path's major realm. The
+ * secondary path is only a different bucket for that XP to land in; it sets the
+ * size of the bar being filled, never the rate it fills at.
+ *
+ * This function therefore deliberately does *not* re-point the realm fields. It
+ * used to, which systematically mispriced every secondary path estimate whenever
+ * the two paths sat in different majors - the normal case, since the secondary
+ * path lags. What it still does is guard: it returns null when the requested
+ * path cannot be costed at all.
+ *
+ * The one genuine per-path difference is which path-specific pill applies -
+ * elixir feeds the main path, benediction the secondary - and that is the
+ * caller's business, not this helper's.
  */
 export function asPathPlayerData(playerData, path) {
     if (path === 'main') return playerData;
 
     if (!playerData.secondaryPathRealm || !playerData.secondaryPathRealmMajor) return null;
-    if (!XPData[`${playerData.secondaryPathRealmMajor}XP`]) return null;
+    if (!XPData[`${playerData.mainPathRealmMajor}XP`]) return null;
 
-    return {
-        ...playerData,
-        mainPathRealm: playerData.secondaryPathRealm,
-        mainPathRealmMajor: playerData.secondaryPathRealmMajor,
-        mainPathRealmMinor: playerData.secondaryPathRealmMinor,
-        mainPathProgress: playerData.secondaryPathProgress
-    };
+    return playerData;
 }
 
 /** Player state positioned at 100% of the current major realm's Late stage. */

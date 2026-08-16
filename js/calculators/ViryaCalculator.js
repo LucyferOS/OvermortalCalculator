@@ -329,29 +329,11 @@ class ViryaCalculator {
             // Use mainPathDailyXP for Perfect and Half-Step scenarios
             averageDailyXP = mainPathDailyXP;
         } else {
-            // Calculate daily XP from secondary path realm progression
-            const [startMajor, startMinor] = startRealm.split(' ');
-            const startPlayerData = {
-                ...playerData,
-                mainPathRealm: startRealm,
-                mainPathRealmMajor: startMajor,
-                mainPathRealmMinor: startMinor,
-                mainPathProgress: startProgress
-            };
-            const startDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(startPlayerData, bonusActive);
-            
-            const [endMajor, endMinor] = endRealm.split(' ');
-            const endPlayerData = {
-                ...playerData,
-                mainPathRealm: endRealm,
-                mainPathRealmMajor: endMajor,
-                mainPathRealmMinor: endMinor,
-                mainPathProgress: endProgress
-            };
-            const endDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(endPlayerData, bonusActive);
-            
-            // Average accounts for daily XP increasing as realm progresses
-            averageDailyXP = (startDailyXP + endDailyXP) / 2;
+            // The stage being walked belongs to the secondary path, but the rate
+            // it is walked at is the character's, set by the main path's realm.
+            // Re-pointing to the stage's own realm here would price a secondary
+            // path stage at the secondary path's (lower) rates.
+            averageDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(playerData, bonusActive);
         }
         
         if (averageDailyXP <= 0) {

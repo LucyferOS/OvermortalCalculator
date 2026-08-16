@@ -73,7 +73,7 @@
     "cosmoapsis": 46.54,
     "mainDailyXP": 1753787.3,
     "mainDailyXPNoBonus": 1753787.3,
-    "secondaryDailyXP": 1690466.9,
+    "secondaryDailyXP": 1753787.3,
     "respiraXP": 101362.5,
     "pillXP": 1099529.6,
     "pearlXP": 0,
@@ -99,8 +99,8 @@
     },
     "mainTimeToNextMinor": 8.65,
     "mainTimeToNextMajor": 43.88,
-    "secondaryTimeToNextMinor": 6.56,
-    "secondaryTimeToNextMajor": 58.59,
+    "secondaryTimeToNextMinor": 6.33,
+    "secondaryTimeToNextMajor": 56.47,
     "comparisons": {
       "Eminence": {
         "totalXP": 86693589.84,
@@ -127,7 +127,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 1753787.3,
       "mainDailyXPNoBonus": 1753787.3,
-      "secondaryDailyXP": 1690466.9,
+      "secondaryDailyXP": 1753787.3,
       "bonusIsHonoured": false
     }
   },
@@ -139,7 +139,7 @@
     "cosmoapsis": 123.5,
     "mainDailyXP": 4485537.1,
     "mainDailyXPNoBonus": 4485537.1,
-    "secondaryDailyXP": 1690466.9,
+    "secondaryDailyXP": 4485537.1,
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -165,8 +165,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 7.29,
-    "secondaryTimeToNextMajor": 59.32,
+    "secondaryTimeToNextMinor": 2.75,
+    "secondaryTimeToNextMajor": 22.35,
     "comparisons": {
       "Eminence": {
         "totalXP": 395452838.59,
@@ -193,7 +193,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 4485537.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 1690466.9,
+      "secondaryDailyXP": 4485537.1,
       "bonusIsHonoured": false
     }
   },
@@ -205,7 +205,7 @@
     "cosmoapsis": 149.5,
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
-    "secondaryDailyXP": 3111209.4,
+    "secondaryDailyXP": 4794417.1,
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -231,8 +231,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 45.67,
-    "secondaryTimeToNextMajor": 144.58,
+    "secondaryTimeToNextMinor": 29.64,
+    "secondaryTimeToNextMajor": 93.82,
     "comparisons": {
       "Eminence": {
         "totalXP": 575330052,
@@ -259,7 +259,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 3111209.4,
+      "secondaryDailyXP": 4794417.1,
       "bonusIsHonoured": true
     }
   },
@@ -271,7 +271,7 @@
     "cosmoapsis": 149.5,
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
-    "secondaryDailyXP": 4639977.1,
+    "secondaryDailyXP": 4794417.1,
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -297,8 +297,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 40.26,
-    "secondaryTimeToNextMajor": 162.76,
+    "secondaryTimeToNextMinor": 38.96,
+    "secondaryTimeToNextMajor": 157.52,
     "comparisons": {
       "Eminence": {
         "totalXP": 575330052,
@@ -325,7 +325,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 4639977.1,
+      "secondaryDailyXP": 4794417.1,
       "bonusIsHonoured": true
     }
   },
@@ -337,7 +337,7 @@
     "cosmoapsis": 149.5,
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
-    "secondaryDailyXP": 4717197.1,
+    "secondaryDailyXP": 4794417.1,
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -363,8 +363,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 39.17,
-    "secondaryTimeToNextMajor": 103.71,
+    "secondaryTimeToNextMinor": 38.54,
+    "secondaryTimeToNextMajor": 102.04,
     "comparisons": {
       "Eminence": {
         "totalXP": 575330052,
@@ -391,7 +391,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 4717197.1,
+      "secondaryDailyXP": 4794417.1,
       "bonusIsHonoured": true
     }
   },
@@ -535,7 +535,7 @@
     "cosmoapsis": 130,
     "mainDailyXP": 3342869.4,
     "mainDailyXPNoBonus": 3033989.4,
-    "secondaryDailyXP": 2127532.1,
+    "secondaryDailyXP": 3342869.4,
     "respiraXP": 149175,
     "pillXP": 1649294.4,
     "pearlXP": 0,
@@ -561,8 +561,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 29.04,
-    "secondaryTimeToNextMajor": 29.04,
+    "secondaryTimeToNextMinor": 18.48,
+    "secondaryTimeToNextMajor": 18.48,
     "comparisons": {
       "Eminence": {
         "totalXP": 434573022,
@@ -589,7 +589,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
       "mainDailyXPNoBonus": 3033989.4,
-      "secondaryDailyXP": 2127532.1,
+      "secondaryDailyXP": 3342869.4,
       "bonusIsHonoured": true
     }
   },
@@ -601,7 +601,7 @@
     "cosmoapsis": 130,
     "mainDailyXP": 3342869.4,
     "mainDailyXPNoBonus": 3033989.4,
-    "secondaryDailyXP": 3111209.4,
+    "secondaryDailyXP": 3342869.4,
     "respiraXP": 149175,
     "pillXP": 1649294.4,
     "pearlXP": 0,
@@ -627,8 +627,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 45.67,
-    "secondaryTimeToNextMajor": 144.58,
+    "secondaryTimeToNextMinor": 42.51,
+    "secondaryTimeToNextMajor": 134.56,
     "comparisons": {
       "Eminence": {
         "totalXP": 434573022,
@@ -655,7 +655,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
       "mainDailyXPNoBonus": 3033989.4,
-      "secondaryDailyXP": 3111209.4,
+      "secondaryDailyXP": 3342869.4,
       "bonusIsHonoured": true
     }
   },
@@ -667,7 +667,7 @@
     "cosmoapsis": 130,
     "mainDailyXP": 3342869.4,
     "mainDailyXPNoBonus": 3033989.4,
-    "secondaryDailyXP": 2879549.4,
+    "secondaryDailyXP": 3342869.4,
     "respiraXP": 149175,
     "pillXP": 1649294.4,
     "pearlXP": 0,
@@ -693,8 +693,8 @@
     },
     "mainTimeToNextMinor": 0,
     "mainTimeToNextMajor": 0,
-    "secondaryTimeToNextMinor": 11.81,
-    "secondaryTimeToNextMajor": 168.02,
+    "secondaryTimeToNextMinor": 10.17,
+    "secondaryTimeToNextMajor": 144.73,
     "comparisons": {
       "Eminence": {
         "totalXP": 434573022,
@@ -721,7 +721,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
       "mainDailyXPNoBonus": 3033989.4,
-      "secondaryDailyXP": 2879549.4,
+      "secondaryDailyXP": 3342869.4,
       "bonusIsHonoured": true
     }
   },
@@ -733,7 +733,7 @@
     "cosmoapsis": 514.8,
     "mainDailyXP": 41221499.07,
     "mainDailyXPNoBonus": 41221499.07,
-    "secondaryDailyXP": 25057817.56,
+    "secondaryDailyXP": 41221499.07,
     "respiraXP": 803250,
     "pillXP": 31260574.83,
     "pearlXP": 2041079.04,
@@ -759,8 +759,8 @@
     },
     "mainTimeToNextMinor": 15.61,
     "mainTimeToNextMajor": 59.16,
-    "secondaryTimeToNextMinor": 7.31,
-    "secondaryTimeToNextMajor": 7.31,
+    "secondaryTimeToNextMinor": 4.44,
+    "secondaryTimeToNextMajor": 4.44,
     "comparisons": {
       "Eminence": {
         "totalXP": 6420641032.68,
@@ -787,7 +787,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 41221499.07,
       "mainDailyXPNoBonus": 41221499.07,
-      "secondaryDailyXP": 25057817.56,
+      "secondaryDailyXP": 41221499.07,
       "bonusIsHonoured": false
     }
   },
@@ -865,7 +865,7 @@
     "cosmoapsis": 1392,
     "mainDailyXP": 34982062.3,
     "mainDailyXPNoBonus": 34982062.3,
-    "secondaryDailyXP": 24849233.4,
+    "secondaryDailyXP": 34982062.3,
     "respiraXP": 717187.5,
     "pillXP": 17727914.8,
     "pearlXP": 0,
@@ -891,8 +891,8 @@
     },
     "mainTimeToNextMinor": 66.86,
     "mainTimeToNextMajor": 326.19,
-    "secondaryTimeToNextMinor": 7.22,
-    "secondaryTimeToNextMajor": 7.22,
+    "secondaryTimeToNextMinor": 5.13,
+    "secondaryTimeToNextMajor": 5.13,
     "comparisons": {
       "Eminence": {
         "totalXP": 7451179269.9,
@@ -919,7 +919,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 34982062.3,
       "mainDailyXPNoBonus": 34982062.3,
-      "secondaryDailyXP": 24849233.4,
+      "secondaryDailyXP": 34982062.3,
       "bonusIsHonoured": false
     }
   }

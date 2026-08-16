@@ -4,23 +4,22 @@
 // already answers that - but "given that daily XP goes to exactly one path, where
 // does a one-off lump of fruit XP buy the most".
 //
-// That framing matters. Path focus is all-or-nothing: XPCalculator computes one
-// full daily total for whichever path the mainPath* fields point at, and
-// ViryaScenarioComparator books zero main path XP for every day spent chasing a
-// tier on the secondary path. Fruits are the only XP source that sidesteps that,
-// because eating them costs no days of focus. So a fruit fed to the secondary
-// path is really buying back days of main path income, and the question is how
-// many.
+// That framing matters. Path focus is all-or-nothing: the whole daily total goes
+// to one path, and ViryaScenarioComparator books zero main path XP for every day
+// spent chasing a tier on the secondary path. Fruits are the only XP source that
+// sidesteps that, because eating them costs no days of focus.
 //
-// Two things move the value of a fruit:
+// What a fruit is *worth* does not depend on where it goes. XP generation is a
+// property of the character, set by the main path's major realm, so a fruit fed
+// to a lagging secondary path is worth exactly as much as one fed to the main
+// path. The only thing that moves its value is the timegate: a 1.5x multiplier
+// applies while one is running, and that window is the early part of each major
+// realm, so a player who is not currently gated cannot get it again until after
+// they break through.
 //
-//   Realm     FruitCalculator.fruitXP scales off the fed path's major realm
-//             (GameConstants.fruitRealmData). The secondary path usually lags,
-//             so a fruit is worth less there in raw XP - which is why the
-//             comparison has to be made in days bought, not XP.
-//   Timegate  A 1.5x multiplier applies while a timegate is running. The window
-//             is the early part of each major realm, so a player who is not
-//             currently gated cannot get it again until after they break through.
+// The decision is therefore never "which path pays more per fruit" - both pay the
+// same - but "does this XP do more good filling the main path's bar, or unlocking
+// a tier bonus that multiplies every future day".
 //
 // Everything here works by turning a lump of fruit XP into a move along the realm
 // ladder (domain/realms.js advanceBy) and handing the resulting playerData to the
@@ -51,9 +50,10 @@ class FruitTimingCalculator {
     /**
      * XP one fruit is worth when fed to a path.
      *
-     * FruitCalculator.fruitXP reads the mainPath* fields and the timegate flag,
-     * so both variables are set by re-pointing a copy rather than by teaching it
-     * about paths.
+     * A fruit is priced off the *main* path's major realm whichever path eats it,
+     * so the only thing that varies here is the timegate multiplier. The path
+     * argument is kept because callers reason in terms of paths, and because a
+     * secondary path that is not set cannot be fed at all.
      *
      * @param {'main'|'secondary'} path
      * @param {boolean} duringTimegate whether the 1.5x window is running
@@ -437,20 +437,19 @@ class FruitTimingCalculator {
 
         const fruitsNow = FruitCalculator.projectedFruits(playerData, 0);
 
+        // A fruit is priced off the main path's realm whichever path eats it, so
+        // there is one value here, not one per path. What the timegate does to it
+        // is the only thing that moves.
         const perFruit = {
-            mainNow: this.fruitXPPerFruit(playerData, 'main', duringTimegate),
-            secondaryNow: this.fruitXPPerFruit(playerData, 'secondary', duringTimegate),
-            mainGated: this.fruitXPPerFruit(playerData, 'main', true),
-            mainUngated: this.fruitXPPerFruit(playerData, 'main', false),
-            secondaryGated: this.fruitXPPerFruit(playerData, 'secondary', true),
-            secondaryUngated: this.fruitXPPerFruit(playerData, 'secondary', false)
+            now: this.fruitXPPerFruit(playerData, 'main', duringTimegate),
+            gated: this.fruitXPPerFruit(playerData, 'main', true),
+            ungated: this.fruitXPPerFruit(playerData, 'main', false)
         };
 
-        // The exchange rate that decides which path a fruit should go to: not XP,
-        // but days of that path's own progress bought.
+        // What that fruit is worth in time: days of cultivation it replaces.
         const daysBought = {
-            main: this.daysBought(perFruit.mainNow, mainDailyXP),
-            secondary: this.daysBought(perFruit.secondaryNow, secondaryDailyXP)
+            main: this.daysBought(perFruit.now, mainDailyXP),
+            secondary: this.daysBought(perFruit.now, secondaryDailyXP)
         };
 
         const context = { totalDays, timegateDays, duringTimegate, fruitsNow };
@@ -474,7 +473,6 @@ class FruitTimingCalculator {
             absorptionBonus: bonus,
             perFruit,
             daysBought,
-            preferredPath: daysBought.secondary > daysBought.main ? 'Secondary Path' : 'Main Path',
             tiers
         };
     }
