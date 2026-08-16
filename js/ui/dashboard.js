@@ -62,18 +62,6 @@ class Dashboard {
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
 
-        // A path that earns nothing per day has no time to report. Say so,
-        // rather than leaving a placeholder that reads like a stuck spinner.
-        if (pathData.earnsNoXP) {
-            for (const scope of ['minor', 'major']) {
-                Dom.updateElementText(`${prefix}-${scope}-time-display`, 'Not cultivating');
-                Dom.updateElementText(`${prefix}-${scope}-date-display`, '--');
-            }
-            Dom.updateProgressBar(`${prefix}-minor-progress-display`, pathData.progressPercentMinor);
-            Dom.updateProgressBar(`${prefix}-major-progress-display`, pathData.progressPercentMajor);
-            return;
-        }
-
         // Minor realm
         if (pathData.progressPercentMinor >= 100) {
             Dom.updateElementText(`${prefix}-minor-time-display`, 'At or beyond 100%');

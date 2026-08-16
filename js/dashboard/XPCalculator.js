@@ -1,30 +1,21 @@
 import { XPData, GameConstants, Realms } from '../utilities/gameData.js';
 
 class XPCalculator {
-    /**
-     * Daily XP for one path.
-     *
-     * Elixirs feed the main path and blessing pills feed the secondary path, so
-     * which of the two counts depends on the path being costed. Everything else
-     * — abode aura, gem, the other pills, respira, pearl — goes to whichever
-     * path is being cultivated.
-     *
-     * @param {Object} playerData
-     * @param {number} absorptionBonus
-     * @param {{consumable?: 'elixir'|'benediction'|'none'}} [options]
-     *   Which path-specific consumable to include. Defaults to elixir, the main
-     *   path's, because that is what every main-path caller wants.
-     */
-    static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus, options = {}) {
-        const { consumable = 'elixir' } = options;
-
+    static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {
+        
         const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
+        
         const gemBonusXP = abodeAuraXP * GameConstants.gemQuality[playerData.gemQuality];
-        const pillXP = this.calculatePillXP(playerData, { consumable });
+        
+        const pillXP = this.calculatePillXP(playerData);
+        
         const respiraXP = this.calculateRespiraXP(playerData);
+        
         const pearlXP = this.calculatePearlXP(playerData, absorptionBonus);
-
-        return abodeAuraXP + gemBonusXP + pillXP + respiraXP + pearlXP;
+        
+        const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP + pearlXP;
+		
+        return total;
     }
 
     static calculateTotalAbodeBonus(playerData) {
@@ -99,14 +90,9 @@ class XPCalculator {
 
     /**
      * Daily XP from each kind of pill, already multiplied through.
-     *
-     * Elixirs and blessing pills are path-specific, so exactly one of them is
-     * counted, chosen by the caller. Counting both would credit a path with XP
-     * it cannot receive; counting elixir on the secondary path was doing
-     * precisely that.
+     * Benediction is excluded: it applies to the secondary path only.
      */
-    static calculatePillXPBreakdown(playerData, options = {}) {
-        const { consumable = 'elixir' } = options;
+    static calculatePillXPBreakdown(playerData) {
         const empty = { goldPills: 0, purplePills: 0, bluePills: 0, elixir: 0, benediction: 0, redPills: 0, total: 0 };
 
         const realmXP = XPData[`${playerData.mainPathRealmMajor}XP`];
@@ -127,13 +113,9 @@ class XPCalculator {
                 * (1 + (playerData.pillBonusNirvanaGhostMansion / 100))
                 * playerData.bluePill * multiplier,
 
-            elixir: consumable === 'elixir'
-                ? this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0) * multiplier
-                : 0,
+            elixir: this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0) * multiplier,
 
-            benediction: consumable === 'benediction'
-                ? this.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0) * multiplier
-                : 0,
+            benediction: 0,
 
             redPills: this.redPillXPPerPill(playerData) * this.calculateRedPills(playerData)
         };
@@ -144,8 +126,8 @@ class XPCalculator {
         return breakdown;
     }
 
-    static calculatePillXP(playerData, options = {}) {
-        return this.calculatePillXPBreakdown(playerData, options).total;
+    static calculatePillXP(playerData) {
+        return this.calculatePillXPBreakdown(playerData).total;
     }
 
     static calculateRedPills(playerData) {

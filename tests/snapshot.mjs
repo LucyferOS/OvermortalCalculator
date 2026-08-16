@@ -19,7 +19,6 @@ import { RealmCalculator } from '../js/dashboard/RealmCalculator.js';
 import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
 import { FruitCalculator } from '../js/dashboard/FruitCalculator.js';
 import { ViryaScenarioComparator } from '../js/dashboard/ViryaScenarioComparator.js';
-import { Progression } from '../js/engine/Progression.js';
 import {
     VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION,
     SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP
@@ -42,7 +41,17 @@ function snapshotPlayer(player) {
     // Daily XP, computed the way the app computes it for each path.
     const mainDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, virya.absorptionBonus);
     const mainDailyXPNoBonus = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
-    const secondaryDailyXP = Progression.dailyXPForPath(player, 'secondary', virya.absorptionBonus);
+    const secondaryDailyXP = XPCalculator.calculateDailyXPForPath
+        ? XPCalculator.calculateDailyXPForPath(player, 'secondary', virya.absorptionBonus)
+        : XPCalculator.calculateDailyXPWithAbsorptionBonus(
+            {
+                ...player,
+                mainPathRealm: player.secondaryPathRealm,
+                mainPathRealmMajor: player.secondaryPathRealmMajor,
+                mainPathRealmMinor: player.secondaryPathRealmMinor
+            },
+            virya.absorptionBonus
+        );
 
     const xpToTier = {};
     const daysToTier = {};
@@ -89,7 +98,15 @@ function snapshotPlayer(player) {
     asApp.cosmoapsisValue = XPCalculator.calculateCosmoapsisValue(asApp, virya.absorptionBonus);
     const appMainDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(asApp, virya.absorptionBonus);
     const appMainDailyXPNoBonus = XPCalculator.calculateDailyXPWithAbsorptionBonus(asApp, 0);
-    const appSecondaryDailyXP = Progression.dailyXPForPath(asApp, 'secondary', virya.absorptionBonus);
+    const appSecondaryDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+        {
+            ...asApp,
+            mainPathRealm: asApp.secondaryPathRealm,
+            mainPathRealmMajor: asApp.secondaryPathRealmMajor,
+            mainPathRealmMinor: asApp.secondaryPathRealmMinor
+        },
+        virya.absorptionBonus
+    );
 
     return {
         tier: virya.scenario,

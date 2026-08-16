@@ -392,7 +392,7 @@
 
                         <div class="input-group">
                             <label for="timegate-days">Days remaining before timegate end</label>
-                            <input type="number" min="0" id="timegate-days" step="1" value="30">
+                            <input type="number" id="timegate-days" step="1" value="30">
                         </div>
                     </div>
 
@@ -400,44 +400,44 @@
                     <div class="grid">
                         <div class="input-group required">
                             <label for="gold-pill">Gold pill / day</label>
-                            <input type="number" min="0" id="gold-pill" step="1" value="0">
+                            <input type="number" id="gold-pill" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="purple-pill">Purple pill / day</label>
-                            <input type="number" min="0" id="purple-pill" step="1" value="0">
+                            <input type="number" id="purple-pill" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="blue-pill">Blue pill / day</label>
-                            <input type="number" min="0" id="blue-pill" step="1" value="0">
+                            <input type="number" id="blue-pill" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="elixir">Elixir / day</label>
-                            <input type="number" min="0" id="elixir" step="1" value="0">
+                            <input type="number" id="elixir" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="elixir">Elixir consumed</label>
-                            <input type="number" min="0" id="elixir-consumed" step="1" value="0">
+                            <input type="number" id="elixir-consumed" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="benediction">Blessing Pills / day</label>
-                            <input type="number" min="0" id="benediction" step="1" value="0">
+                            <input type="number" id="benediction" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="benediction">Blessing Pills consumed</label>
-                            <input type="number" min="0" id="benediction-consumed" step="1" value="0">
+                            <input type="number" id="benediction-consumed" step="1" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="current-red-pills">Current Red Pills
                                 <span class="tooltip-icon" title="The number of pills you have saved if you want to wait to use them until you can hit completion."><i class="fa-solid fa-circle-info"></i></span>
                             </label>
-                            <input type="number" min="0" id="current-red-pills" step="1" value="0">
+                            <input type="number" id="current-red-pills" step="1" value="0">
                         </div>
                     </div>
                 </div>
@@ -700,6 +700,13 @@
                     <h3>Techniques</h3>
                     <div class="grid">
                         <div class="input-group required">
+                            <label for="pill-attempts-technique">
+                                Pill Attempts
+                                <span class="tooltip-icon" title="Techniques (Max 6)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-attempts-technique" step="1" min="0" max="6" value="0.0">
+                        </div>
+                        <div class="input-group required">
                             <label for="pill-bonus-technique">
                                 Pill Bonus
                                 <span class="tooltip-icon" title="Techniques (Max 28%)"><i class="fa-solid fa-circle-info"></i></span>
@@ -772,6 +779,13 @@
                     <h3>Immortal Friends</h3>
                     <div class="grid">
                         <div class="input-group required">
+                            <label for="pill-attempts-immortal-friends">
+                                Pill Attempts
+                                <span class="tooltip-icon" title="Immortal Friends (Max 1)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-attempts-immortal-friends" step="1" min="0" max="1" value="0.0">
+                        </div>
+                        <div class="input-group required">
                             <label for="pill-bonus-immortal-friends">
                                 Pill Bonus
                                 <span class="tooltip-icon" title="Friends (Max 14%)"><i class="fa-solid fa-circle-info"></i></span>
@@ -800,12 +814,12 @@
                     <div class="grid">
                         <div class="input-group required">
                             <label for="fruits-count">Number of Myrimon fruits</label>
-                            <input type="number" min="0" id="fruits-count" value="0">
+                            <input type="number" id="fruits-count" value="0">
                         </div>
 
                         <div class="input-group required">
                             <label for="weekly-fruits">Weekly Fruits from runs</label>
-                            <input type="number" min="0" id="weekly-fruits" value="0">
+                            <input type="number" id="weekly-fruits" value="0">
                         </div>
                         <div class="input-group required">
                             <label for="fruits-usage">Fruits usage</label>
@@ -830,15 +844,15 @@
                         </div>
                         <div class="input-group required">
                             <label for="extractor-experience">Extractor Experience Level</label>
-                            <input type="number" max="30" min="0" id="extractor-experience" value="0">
+                            <input type="number" id="extractor-experience" value="0">
                         </div>
                         <div class="input-group required">
                             <label for="extractor-quality">Extractor Quality Level</label>
-                            <input type="number" max="30" min="0" id="extractor-quality" value="0">
+                            <input type="number" id="extractor-quality" value="0">
                         </div>
 						<div class="input-group required">
                             <label for="extractor-quality">Extractor Gush Level</label>
-                            <input type="number" max="30" min="0" id="extractor-gush" value="0">
+                            <input type="number" id="extractor-gush" value="0">
                         </div>
                     </div>
                 </div>

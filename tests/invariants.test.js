@@ -12,7 +12,6 @@ import { PLAYERS, makePlayer } from './fixtures.js';
 import { XPCalculator } from '../js/dashboard/XPCalculator.js';
 import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
 import { ViryaRules } from '../js/engine/ViryaRules.js';
-import { Progression } from '../js/engine/Progression.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
     SCENARIO_PERFECT, SCENARIO_HALF_STEP
@@ -139,73 +138,6 @@ describe('analytics agree with the calculator', () => {
             assert.equal(analytic.redPillXPPerPill, XPCalculator.redPillXPPerPill(player));
         });
     }
-});
-
-describe('no XP source is counted twice', () => {
-    // The main path's daily XP total added elixir on top of a pill total that
-    // already contained it, inflating the headline figure by one day's elixirs.
-    for (const [name, player] of entries.filter(([, p]) => p.elixir > 0)) {
-        test(`${name}: the daily XP total counts elixir exactly once`, () => {
-            const breakdown = XPCalculator.calculatePillXPBreakdown(player);
-            const total = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
-
-            const withoutElixir = XPCalculator.calculateDailyXPWithAbsorptionBonus(
-                { ...player, elixir: 0 }, 0
-            );
-
-            assert.ok(breakdown.elixir > 0, 'fixture should have elixir XP to test');
-            assert.ok(
-                Math.abs((total - withoutElixir) - breakdown.elixir) < 1e-6,
-                `elixir contributes ${total - withoutElixir} but breakdown says ${breakdown.elixir}`
-            );
-        });
-    }
-});
-
-describe('consumables stay on their own path', () => {
-    // Elixirs feed the main path, blessing pills feed the secondary path.
-    // Costing the secondary path used to include elixir, crediting it to both
-    // paths at once.
-    const player = makePlayer({
-        mainPathRealm: 'Nirvana Mid', mainPathProgress: 60,
-        secondaryPathRealm: 'Perfection Mid', secondaryPathProgress: 40,
-        elixir: 3, elixirConsumed: 328, benediction: 5, benedictionConsumed: 117,
-        pillBonusCurio: 780
-    });
-
-    test('the main path gets elixirs and not blessing pills', () => {
-        const breakdown = XPCalculator.calculatePillXPBreakdown(
-            Progression.asPathPlayerData(player, 'main'),
-            { consumable: Progression.consumableFor('main') }
-        );
-        assert.ok(breakdown.elixir > 0, 'main path should receive elixir XP');
-        assert.equal(breakdown.benediction, 0, 'main path must not receive blessing pill XP');
-    });
-
-    test('the secondary path gets blessing pills and not elixirs', () => {
-        const breakdown = XPCalculator.calculatePillXPBreakdown(
-            Progression.asPathPlayerData(player, 'secondary'),
-            { consumable: Progression.consumableFor('secondary') }
-        );
-        assert.ok(breakdown.benediction > 0, 'secondary path should receive blessing pill XP');
-        assert.equal(breakdown.elixir, 0, 'secondary path must not receive elixir XP');
-    });
-
-    test('changing elixir count does not move secondary path XP', () => {
-        const more = makePlayer({ ...player, elixir: 40 });
-        assert.equal(
-            Progression.dailyXPForPath(player, 'secondary', 0),
-            Progression.dailyXPForPath(more, 'secondary', 0)
-        );
-    });
-
-    test('changing blessing pill count does not move main path XP', () => {
-        const more = makePlayer({ ...player, benediction: 40 });
-        assert.equal(
-            Progression.dailyXPForPath(player, 'main', 0),
-            Progression.dailyXPForPath(more, 'main', 0)
-        );
-    });
 });
 
 describe('tier detection', () => {

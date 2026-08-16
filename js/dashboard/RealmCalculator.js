@@ -29,15 +29,11 @@ class RealmCalculator {
     }
     static calculatePathProgression(currentRealm, currentProgress, currentExp, dailyXP, majorRealm) {
         if (dailyXP <= 0) {
-            // This path earns nothing per day, so there is no time to report.
-            // Flagged rather than returned as 0, which the UI used to render as
-            // "Calculating..." and left looking like a stuck spinner.
             return {
                 timeToNextMinor: 0,
                 timeToNextMajor: 0,
                 progressPercentMinor: currentProgress,
-                progressPercentMajor: 0,
-                earnsNoXP: true
+                progressPercentMajor: 0
             };
         }
         
