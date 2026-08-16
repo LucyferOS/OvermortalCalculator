@@ -23,10 +23,7 @@ lucyfer_os
 * I am currently only focusing on Spiritual World as this is what my sect is at currently. Some Immortal World bonuses are now covered - Mini World and Five Asthenia Abode Aura, and the Glitted Lotus Seed and Throne pill bonuses - but that is not the full set, so if you are in Immortal World expect other bonuses of yours to still be unaccounted for.
 * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 * The MonsterScape Absorption Bonus is applied exactly as you enter it and does not grow over the course of a breakthrough - the calculator has no model for how quickly you gain it. Because of that, it is recommended to leave it at its minimum (0%) for a worst case, or set it to its maximum (70%) for a best case, rather than picking a value in between and treating the result as precise.
-* Abode Aura / Absorption easy mode only replaces Abode Aura and Absorption. The stage specific systems that boost pills and Respira (the Nirvana Chariot, Turtle Beak, Ghost and Dipper mansions, and the Immortal World Glitted Lotus Throne and Seed) are not part of either total, so they live on their own "Stage Specific Mechanics - Pill & Respira" card that stays visible in easy mode - fill it in either way. Only the sources that feed Abode Aura are hidden with the rest of the Stage Specific Mechanics card.
-* Fruit counts are projected forward rather than taken as they stand today. Weekly fruit and token income is added once per Wednesday between now and each breakthrough, and each breakthrough on the dashboard gets its own count - your next major realm is further off than your next minor one, so it is credited with more weeks of income. Today's payout is assumed to already be in the number you typed into "Number of Myrimon fruits".
-* The fruit projection does not model its own feedback. Eating the fruits brings the breakthrough forward, which in reality would leave you fewer weeks to collect them, so the projected counts are a slight over-estimate. The gap grows the longer your breakthrough is and the larger your weekly income.
-* "Use tokens" converts every token you would hold at the breakthrough into 3 fruits each. Set it to No and your tokens are ignored entirely rather than partly counted.
+* Abode Aura / Absorption easy mode only replaces Abode Aura and Absorption.There is not an easy way to replace other bonuses.
 * In Abode Aura / Absorption easy mode, the absorption you type in is used exactly as entered. That is right for your current state, but it means the Virya scenario table cannot model absorption changing as you gain a tier - so the scenario comparison is less meaningful in easy mode than in the detailed mode.
 * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browse related bug, feel free to report it, but it may be downprioritized.
 * The page loads Chart.js and the markdown renderer from public CDNs. If those are blocked or unreachable the calculator will not start at all.
@@ -34,6 +31,12 @@ lucyfer_os
 
 
 # Release Notes
+
+#### Version 0.4.1.1 (BETA)
+  * Solved Virya table miscalculation.
+  	* Overflow is still broken. Investigation will continue later. 
+  * Support for calculating how many fruits you will get by timegate.
+  * Added "Easy mode" for skipping abode and absorption modifiers. This does make the virya table less useful for planning.
 
 #### Version 0.3.6.2 (BETA)
   * Tool tip updates
