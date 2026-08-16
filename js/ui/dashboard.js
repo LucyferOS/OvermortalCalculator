@@ -26,8 +26,6 @@ class Dashboard {
         // Update path focus indicators
         this.updatePathFocusIndicators(playerData.pathFocus);
         
-        const fruitXPTotal = results.fruitXPTotal || 0;
-        
         // Update main path results
         if (results.realmProgression?.mainPath) {
             this.updatePathResults('main', results.realmProgression.mainPath, playerData.pathFocus === PATH_MAIN);
@@ -38,8 +36,8 @@ class Dashboard {
             this.updatePathResults('secondary', results.realmProgression.secondaryPath, playerData.pathFocus === PATH_SECONDARY);
         }
 
-        this.updateFruitDisplays(results, playerData);
-        this.updateMaxFruitDisplays(results, playerData);
+        this.updateFruitDisplays(results);
+        this.updateMaxFruitDisplays(results);
         this.updateFruitRecommendations(results);
         
         // Update Virya comparison cells
@@ -103,164 +101,61 @@ class Dashboard {
         }
     }
 
-    static updateFruitDisplays(results, playerData) {
-        
-        const format = CalculatorUtils.formatTimeDays;
-        const formatDate = CalculatorUtils.formatDateFromDays;
-        
-        const fruitXPTotal = results.fruitXPTotal || 0;
-        const dailyXP = results.dailyXP || 0;
-        
-        // Only calculate if we have fruit XP and daily XP
-        if (fruitXPTotal > 0 && dailyXP > 0) {
-            // Calculate days saved from fruits
-            const daysSaved = fruitXPTotal / dailyXP;
-            
-            // Update days saved display
-            Dom.updateElementText('fruits-days-saved-display', format(daysSaved));
-            
-            // Update main path fruit displays
-            if (results.realmProgression?.mainPath) {
-                const mainPath = results.realmProgression.mainPath;
-                
-                // Minor realm with fruits
-                const minorTimeWithFruits = Math.max(0, mainPath.timeToNextMinor - daysSaved);
-                if (minorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-minor-main-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-minor-main-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-minor-main-time-display', format(minorTimeWithFruits));
-                    Dom.updateElementText('fruits-minor-main-date-display', `Estimated: ${formatDate(minorTimeWithFruits)}`);
-                }
-                
-                // Major realm with fruits
-                const majorTimeWithFruits = Math.max(0, mainPath.timeToNextMajor - daysSaved);
-                if (majorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-major-main-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-major-main-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-major-main-time-display', format(majorTimeWithFruits));
-                    Dom.updateElementText('fruits-major-main-date-display', `Estimated: ${formatDate(majorTimeWithFruits)}`);
-                }
-            }
-            
-            // Update secondary path fruit displays
-            if (results.realmProgression?.secondaryPath) {
-                const secondaryPath = results.realmProgression.secondaryPath;
-                
-                // Minor realm with fruits
-                const minorTimeWithFruits = Math.max(0, secondaryPath.timeToNextMinor - daysSaved);
-                if (minorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-minor-secondary-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-minor-secondary-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-minor-secondary-time-display', format(minorTimeWithFruits));
-                    Dom.updateElementText('fruits-minor-secondary-date-display', `Estimated: ${formatDate(minorTimeWithFruits)}`);
-                }
-                
-                // Major realm with fruits
-                const majorTimeWithFruits = Math.max(0, secondaryPath.timeToNextMajor - daysSaved);
-                if (majorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-major-secondary-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-major-secondary-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-major-secondary-time-display', format(majorTimeWithFruits));
-                    Dom.updateElementText('fruits-major-secondary-date-display', `Estimated: ${formatDate(majorTimeWithFruits)}`);
-                }
-            }
-        } else {
-            // No fruits or no daily XP, show original times
-            Dom.updateElementText('fruits-days-saved-display', '0d');
-            if (results.realmProgression?.mainPath) {
-                const mainPath = results.realmProgression.mainPath;
-                Dom.updateElementText('fruits-minor-main-time-display', format(mainPath.timeToNextMinor));
-                Dom.updateElementText('fruits-major-main-time-display', format(mainPath.timeToNextMajor));
-            }
-            if (results.realmProgression?.secondaryPath) {
-                const secondaryPath = results.realmProgression.secondaryPath;
-                Dom.updateElementText('fruits-minor-secondary-time-display', format(secondaryPath.timeToNextMinor));
-                Dom.updateElementText('fruits-major-secondary-time-display', format(secondaryPath.timeToNextMajor));
-            }
-        }
+    /**
+     * The four breakthroughs the fruit cards show. Each one is reached on its
+     * own timeline, so each gets its own projected fruit count from the
+     * calculator - the further-off major breakthrough is credited with more
+     * weeks of fruit income than the next minor one.
+     */
+    static FRUIT_ROWS = [
+        { projection: 'mainMinor', path: 'mainPath', time: 'timeToNextMinor', suffix: 'minor-main' },
+        { projection: 'mainMajor', path: 'mainPath', time: 'timeToNextMajor', suffix: 'major-main' },
+        { projection: 'secondaryMinor', path: 'secondaryPath', time: 'timeToNextMinor', suffix: 'minor-secondary' },
+        { projection: 'secondaryMajor', path: 'secondaryPath', time: 'timeToNextMajor', suffix: 'major-secondary' }
+    ];
+
+    static updateFruitDisplays(results) {
+        this.renderFruitCard(results, { prefix: 'fruits', xpKey: 'fruitXPTotal' });
     }
 
-    static updateMaxFruitDisplays(results, playerData) {
-        
+    static updateMaxFruitDisplays(results) {
+        this.renderFruitCard(results, { prefix: 'fruits-max', xpKey: 'fruitXPTotalMax' });
+    }
+
+    /**
+     * Renders one of the two fruit cards. They differ only in which extractor
+     * the fruit XP was costed at and which element ids they write to.
+     */
+    static renderFruitCard(results, { prefix, xpKey }) {
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
-        
-        const fruitXPTotalMax = results.fruitXPTotalMax || 0;
+
         const dailyXP = results.dailyXP || 0;
-        
-        // Only calculate if we have fruit XP and daily XP
-        if (fruitXPTotalMax > 0 && dailyXP > 0) {
-            // Calculate days saved from fruits
-            const daysSaved = fruitXPTotalMax / dailyXP;
-            
-            // Update days saved display
-            Dom.updateElementText('fruits-max-days-saved-display', format(daysSaved));
-            
-            // Update main path fruit displays
-            if (results.realmProgression?.mainPath) {
-                const mainPath = results.realmProgression.mainPath;
-                
-                // Minor realm with fruits
-                const minorTimeWithFruits = Math.max(0, mainPath.timeToNextMinor - daysSaved);
-                if (minorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-max-minor-main-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-max-minor-main-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-max-minor-main-time-display', format(minorTimeWithFruits));
-                    Dom.updateElementText('fruits-max-minor-main-date-display', `Estimated: ${formatDate(minorTimeWithFruits)}`);
-                }
-                
-                // Major realm with fruits
-                const majorTimeWithFruits = Math.max(0, mainPath.timeToNextMajor - daysSaved);
-                if (majorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-max-major-main-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-max-major-main-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-max-major-main-time-display', format(majorTimeWithFruits));
-                    Dom.updateElementText('fruits-max-major-main-date-display', `Estimated: ${formatDate(majorTimeWithFruits)}`);
-                }
-            }
-            
-            // Update secondary path fruit displays
-            if (results.realmProgression?.secondaryPath) {
-                const secondaryPath = results.realmProgression.secondaryPath;
-                
-                // Minor realm with fruits
-                const minorTimeWithFruits = Math.max(0, secondaryPath.timeToNextMinor - daysSaved);
-                if (minorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-max-minor-secondary-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-max-minor-secondary-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-max-minor-secondary-time-display', format(minorTimeWithFruits));
-                    Dom.updateElementText('fruits-max-minor-secondary-date-display', `Estimated: ${formatDate(minorTimeWithFruits)}`);
-                }
-                
-                // Major realm with fruits
-                const majorTimeWithFruits = Math.max(0, secondaryPath.timeToNextMajor - daysSaved);
-                if (majorTimeWithFruits === 0) {
-                    Dom.updateElementText('fruits-max-major-secondary-time-display', "You can reach the next realm!");
-                    Dom.updateElementText('fruits-max-major-secondary-date-display', '');
-                } else {
-                    Dom.updateElementText('fruits-max-major-secondary-time-display', format(majorTimeWithFruits));
-                    Dom.updateElementText('fruits-max-major-secondary-date-display', `Estimated: ${formatDate(majorTimeWithFruits)}`);
-                }
-            }
-        } else {
-            // No fruits or no daily XP, show original times
-            Dom.updateElementText('fruits-max-days-saved-display', '0d');
-            if (results.realmProgression?.mainPath) {
-                const mainPath = results.realmProgression.mainPath;
-                Dom.updateElementText('fruits-max-minor-main-time-display', format(mainPath.timeToNextMinor));
-                Dom.updateElementText('fruits-max-major-main-time-display', format(mainPath.timeToNextMajor));
-            }
-            if (results.realmProgression?.secondaryPath) {
-                const secondaryPath = results.realmProgression.secondaryPath;
-                Dom.updateElementText('fruits-max-minor-secondary-time-display', format(secondaryPath.timeToNextMinor));
-                Dom.updateElementText('fruits-max-major-secondary-time-display', format(secondaryPath.timeToNextMajor));
+        const rows = results.fruitProjection?.rows;
+
+        const daysSavedFor = (projection) => {
+            const fruitXP = rows?.[projection]?.[xpKey] || 0;
+            return (fruitXP > 0 && dailyXP > 0) ? fruitXP / dailyXP : 0;
+        };
+
+        // The headline saving is the main path's next major breakthrough, the
+        // same horizon the projected fruit count is quoted against.
+        const headlineSaved = daysSavedFor('mainMajor');
+        Dom.updateElementText(`${prefix}-days-saved-display`, headlineSaved > 0 ? format(headlineSaved) : '0d');
+
+        for (const { projection, path, time, suffix } of Dashboard.FRUIT_ROWS) {
+            const pathData = results.realmProgression?.[path];
+            if (!pathData) continue;
+
+            const daysSaved = daysSavedFor(projection);
+            const timeWithFruits = Math.max(0, pathData[time] - daysSaved);
+
+            if (daysSaved > 0 && timeWithFruits === 0) {
+                Dom.updateElementText(`${prefix}-${suffix}-time-display`, 'You can reach the next realm!');
+                Dom.updateElementText(`${prefix}-${suffix}-date-display`, '');
+            } else {
+                Dom.updateElementText(`${prefix}-${suffix}-time-display`, format(timeWithFruits));
+                Dom.updateElementText(`${prefix}-${suffix}-date-display`, timeWithFruits > 0 ? `Estimated: ${formatDate(timeWithFruits)}` : '');
             }
         }
     }

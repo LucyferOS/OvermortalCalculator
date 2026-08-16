@@ -873,7 +873,9 @@
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Myrimon Fruits</h2>
+                    <h2 class="card-title">Myrimon Fruits
+                        <span class="tooltip-icon" title="Fruits are not eaten today - they are eaten at your breakthrough. Weekly income is added for every Wednesday between now and each breakthrough, so a further-off breakthrough is credited with more fruits."><i class="fa-solid fa-circle-info"></i></span>
+                    </h2>
                     <div class="grid">
                         <div class="input-group required">
                             <label for="fruits-count">Number of Myrimon fruits</label>
@@ -881,7 +883,10 @@
                         </div>
 
                         <div class="input-group required">
-                            <label for="weekly-fruits">Weekly Fruits from runs</label>
+                            <label for="weekly-fruits">
+                                Weekly Fruits from runs
+                                <span class="tooltip-icon" title="Added once per Wednesday between now and each breakthrough. Today's payout is assumed to be in your current fruit count already."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
                             <input type="number" id="weekly-fruits" value="0">
                         </div>
                         <div class="input-group required">
@@ -890,6 +895,35 @@
                                 <option value="current">Virya - Current Extractor</option>
                                 <option value="max">Virya - Max Extractor</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <h3>Tokens</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="tokens-count">Current tokens</label>
+                            <input type="number" id="tokens-count" min="0" value="0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="weekly-tokens">
+                                Tokens gained per week
+                                <span class="tooltip-icon" title="Tokens are paid out on the same weekly Wednesday schedule as fruits."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="weekly-tokens" min="0" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label id="use-tokens-label">
+                                Use tokens
+                                <span class="tooltip-icon" title="Spend every token you will hold at the breakthrough, each one worth 3 extra fruits. Leave on No to keep them and have them ignored."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <div class="radio-group" role="radiogroup" aria-labelledby="use-tokens-label">
+                                <label class="radio-option" for="use-tokens-no">
+                                    <input type="radio" id="use-tokens-no" name="use-tokens" value="No" checked> No
+                                </label>
+                                <label class="radio-option" for="use-tokens-yes">
+                                    <input type="radio" id="use-tokens-yes" name="use-tokens" value="Yes"> Yes
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -1022,9 +1056,16 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h2 class="card-title">Extractor Comparison</h2>
+                    <h2 class="card-title">Extractor Comparison
+                        <span class="tooltip-icon" title="The first chart is the XP a single fruit is worth. The second is what your whole stock is worth: every fruit you will have accumulated by your next major breakthrough, including weekly income and any tokens you are spending."><i class="fa-solid fa-circle-info"></i></span>
+                    </h2>
                     <div class="chart-container">
                         <canvas id="extractor-comparison-chart"></canvas>
+                    </div>
+                    <h3 id="fruit-total-chart-title">XP from all fruits at breakthrough</h3>
+                    <p class="card-note" id="fruit-total-chart-note">--</p>
+                    <div class="chart-container">
+                        <canvas id="fruit-total-chart"></canvas>
                     </div>
                 </div>
                 <div class="card">

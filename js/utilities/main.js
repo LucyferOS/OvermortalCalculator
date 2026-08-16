@@ -166,6 +166,8 @@ class OvermortalApp {
             'fruits-count': p.fruitsCount,
             'weekly-fruits': p.weeklyFruits,
             'fruits-usage': p.fruitsUsage,
+            'tokens-count': p.tokensCount || 0,
+            'weekly-tokens': p.weeklyTokens || 0,
             'extractor-rank': p.extractorRank || 'common',
             'extractor-experience': p.extractorXPLevel || 0,
             'extractor-quality': p.extractorQualityLevel || 0,
@@ -183,7 +185,14 @@ class OvermortalApp {
                 }
             }
         });
-        
+
+        // Radios are addressed by group name rather than element id, so they
+        // do not go through the loop above.
+        const useTokensRadio = document.getElementById(p.useTokens ? 'use-tokens-yes' : 'use-tokens-no');
+        if (useTokensRadio) {
+            useTokensRadio.checked = true;
+        }
+
         // Update path focus indicators after syncing
         UIManager.updatePathFocusIndicators(p.pathFocus);
     }

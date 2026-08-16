@@ -356,11 +356,62 @@ class Analytics {
     }
 
     /**
+     * What the player's whole fruit stock is worth at each extractor, using the
+     * count they will have accumulated by the breakthrough rather than the
+     * count they hold today.
+     * @param {Object} results - Calculation results carrying the fruit projection
+     * @returns {Object} Totals, the fruit count behind them, and its horizon
+     */
+    static calculateFruitTotals(results) {
+        const projection = results?.fruitProjection;
+
+        return {
+            current: projection?.fruitXPTotal || 0,
+            max: projection?.fruitXPTotalMax || 0,
+            fruits: projection?.projectedFruits || 0,
+            tokens: projection?.projectedTokens || 0,
+            horizonDays: projection?.horizonDays || 0
+        };
+    }
+
+    /**
+     * Render the total-fruit-XP horizontal bar chart: what every fruit the
+     * player will hold at breakthrough is worth, at their current extractor
+     * versus a maxed one.
+     * @param {string} canvasId - ID of the canvas element
+     * @param {Object} totals - Totals from calculateFruitTotals
+     */
+    static renderFruitTotalChart(canvasId, totals) {
+        this.renderExtractorBarChart(canvasId, {
+            current: totals.current,
+            max: totals.max,
+            axisLabel: `Total XP from ${CalculatorUtils.formatLargeNumber(totals.fruits)} fruits`,
+            tooltipLabel: 'Total fruit XP'
+        });
+    }
+
+    /**
      * Render extractor comparison horizontal bar chart
      * @param {string} canvasId - ID of the canvas element
      * @param {Object} comparison - Comparison object from calculateExtractorComparison
      */
     static renderExtractorChart(canvasId, comparison) {
+        this.renderExtractorBarChart(canvasId, {
+            current: comparison.current,
+            max: comparison.max,
+            axisLabel: 'Fruit XP per Fruit',
+            tooltipLabel: 'Fruit XP'
+        });
+    }
+
+    /**
+     * The shared current-versus-max extractor bar chart. Both the per-fruit and
+     * the whole-stock charts are the same picture with different numbers, so
+     * they share one renderer and cannot drift apart in styling.
+     * @param {string} canvasId - ID of the canvas element
+     * @param {Object} spec - current, max, axisLabel and tooltipLabel
+     */
+    static renderExtractorBarChart(canvasId, { current, max, axisLabel, tooltipLabel }) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
             console.error(`Canvas element with id "${canvasId}" not found`);
@@ -380,8 +431,8 @@ class Analytics {
             data: {
                 labels: ['Current Extractor', 'Max Extractor (Level 30)'],
                 datasets: [{
-                    label: 'Fruit XP per Fruit',
-                    data: [comparison.current, comparison.max],
+                    label: axisLabel,
+                    data: [current, max],
                     backgroundColor: [
                         getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim() || '#5A7684',
                         getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#4A8B6E'
@@ -405,7 +456,7 @@ class Analytics {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return `Fruit XP: ${CalculatorUtils.formatLargeNumber(context.parsed.x)}`;
+                                return `${tooltipLabel}: ${CalculatorUtils.formatLargeNumber(context.parsed.x)}`;
                             }
                         }
                     }
@@ -420,7 +471,7 @@ class Analytics {
                         },
                         title: {
                             display: true,
-                            text: 'Fruit XP per Fruit',
+                            text: axisLabel,
                             font: {
                                 size: 14,
                                 weight: 'bold'

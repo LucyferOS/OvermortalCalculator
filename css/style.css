@@ -240,6 +240,47 @@ h1 {
     background-color: var(--light);
 }
 
+/* Radio groups sit inside .input-group, so they have to opt out of the
+   full-width sizing the text and select inputs get. */
+.radio-group {
+    display: flex;
+    gap: 10px;
+}
+
+.radio-group .radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    margin-bottom: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--light);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.radio-group .radio-option:hover {
+    border-color: var(--secondary);
+}
+
+.radio-group .radio-option:has(input:checked) {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(90, 118, 132, 0.15);
+    background-color: white;
+}
+
+.input-group .radio-group input[type="radio"] {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    accent-color: var(--secondary);
+    cursor: pointer;
+}
+
 .input-group input:focus,
 .input-group select:focus {
     outline: none;

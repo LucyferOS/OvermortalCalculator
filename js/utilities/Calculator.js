@@ -56,6 +56,9 @@ class OvermortalCalculator {
             fruitsCount: 0,
             weeklyFruits: 0,
             fruitsUsage: 'current',
+            tokensCount: 0,
+            weeklyTokens: 0,
+            useTokens: false,
             baseAbodeAura: 130.0,
             gemBonus: 'Common',
             gemQuality: 'Common',
@@ -282,6 +285,9 @@ class OvermortalCalculator {
             fruitsCount: getIntegerValue('fruits-count'),
             weeklyFruits: getIntegerValue('weekly-fruits'),
             fruitsUsage: getStringValue('fruits-usage'),
+            tokensCount: getIntegerValue('tokens-count'),
+            weeklyTokens: getIntegerValue('weekly-tokens'),
+            useTokens: CalculatorUtils.getRadioValue('use-tokens') === 'Yes',
             extractorQualityLevel: getIntegerValue('extractor-quality'),
             extractorXPLevel: getIntegerValue('extractor-experience'),
             extractorGushLevel: getIntegerValue('extractor-gush'),
@@ -300,8 +306,7 @@ class OvermortalCalculator {
         const { mainPathAbsorptionBonus, secondaryPathAbsorptionBonus } = this.calculatePathAbsorptionBonuses(viryaInfo);
         // Calculate and store cosmoapsisValue using the correct main path absorption bonus (includes "had Virya last realm" bonus)
         this.playerData.cosmoapsisValue = XPCalculator.calculateCosmoapsisValue(this.playerData, mainPathAbsorptionBonus);
-        const fruitData = this.calculateFruitData();
-        const { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP } = 
+        const { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP } =
             this.calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus);
         // Update dailyXP to use the correct main path absorption bonus (includes "had Virya last realm" bonus)
         this.playerData.dailyXP = mainPathDailyXPBase;
@@ -309,6 +314,8 @@ class OvermortalCalculator {
             this.calculateScenarioAnalysis(viryaInfo, mainPathDailyXPBase, this.playerData.dailyXP);
         // Player Time to Cultivate uses focus-dependent values (mainPathDailyXP, secondaryPathDailyXP)
         const realmProgression = RealmCalculator.calculateProgression(this.playerData, mainPathDailyXP, secondaryPathDailyXP);
+        // Needs the progression: every fruit projection is measured against one of its breakthrough times.
+        const fruitData = this.calculateFruitData(realmProgression);
         const scenarioComparisons = this.calculateScenarioComparisons(mainPathDailyXPBase, secondaryPathDailyXPBase);
         
         this.calculationResults = this.assembleResults(
@@ -355,13 +362,55 @@ class OvermortalCalculator {
         };
     }
 
-    calculateFruitData() {
+    /**
+     * Fruit XP, projected forward to each breakthrough the dashboard shows.
+     *
+     * A player does not eat the fruits they hold today - they eat everything
+     * they will have accumulated by the time they break through. Each row gets
+     * its own horizon, so the further-off major breakthrough is credited with
+     * more weeks of income than the next minor one.
+     *
+     * The horizons are the times before fruits are spent. Eating the fruits
+     * brings the breakthrough forward, which would in turn leave fewer weeks to
+     * accumulate them; that feedback is deliberately not modelled, so these
+     * counts are a slight over-estimate.
+     */
+    calculateFruitData(realmProgression) {
         const fruitXPSingle = FruitCalculator.fruitXP(this.playerData);
-        const fruitXPTotal = fruitXPSingle * this.playerData['fruitsCount'];
-        const maxExtractorResult = Recommendations.calculateMaxLevelXP(this.playerData, MAX_EXTRACTOR_LEVEL);
-        const fruitXPTotalMax = maxExtractorResult.fruitXPTotal;
-        
-        return { fruitXPSingle, fruitXPTotal, fruitXPTotalMax };
+        const fruitXPSingleMax = Recommendations.calculateMaxLevelXP(this.playerData, MAX_EXTRACTOR_LEVEL).fruitXPSingle;
+
+        const project = (days) => {
+            const horizonDays = days || 0;
+            const fruits = FruitCalculator.projectedFruits(this.playerData, horizonDays);
+            return {
+                horizonDays,
+                fruits,
+                tokens: this.playerData.useTokens ? FruitCalculator.projectedTokens(this.playerData, horizonDays) : 0,
+                fruitXPTotal: fruitXPSingle * fruits,
+                fruitXPTotalMax: fruitXPSingleMax * fruits
+            };
+        };
+
+        const mainPath = realmProgression?.mainPath;
+        const secondaryPath = realmProgression?.secondaryPath;
+        const rows = {
+            mainMinor: project(mainPath?.timeToNextMinor),
+            mainMajor: project(mainPath?.timeToNextMajor),
+            secondaryMinor: project(secondaryPath?.timeToNextMinor),
+            secondaryMajor: project(secondaryPath?.timeToNextMajor)
+        };
+
+        // The headline figures are the main path's next major breakthrough.
+        return {
+            fruitXPSingle,
+            fruitXPSingleMax,
+            fruitXPTotal: rows.mainMajor.fruitXPTotal,
+            fruitXPTotalMax: rows.mainMajor.fruitXPTotalMax,
+            projectedFruits: rows.mainMajor.fruits,
+            projectedTokens: rows.mainMajor.tokens,
+            horizonDays: rows.mainMajor.horizonDays,
+            rows
+        };
     }
 
     calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus) {
@@ -426,9 +475,14 @@ class OvermortalCalculator {
             const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, this.playerData, dailyXPForScenario, dailyXPForScenario);
             scenarioXPNeeded[scenario] = scenarioInfo.xpNeeded;
             
-            if (this.playerData.fruitsCount > 0 && scenarioInfo.xpNeeded > 0 && isFinite(scenarioInfo.xpNeeded)) {
-                const fruitResult = Recommendations.findMinLevelsFruitFromCurrent(this.playerData, scenarioInfo.xpNeeded, MAX_EXTRACTOR_LEVEL);
-                scenarioFruitResults[scenario] = fruitResult;
+            // Each scenario is reached on its own timeline, so it gets its own
+            // count of accumulated fruits rather than today's stock.
+            const projectedFruits = FruitCalculator.projectedFruits(this.playerData, scenarioInfo.daysNeeded);
+
+            if (projectedFruits > 0 && scenarioInfo.xpNeeded > 0 && isFinite(scenarioInfo.xpNeeded)) {
+                const projectedPlayerData = { ...this.playerData, fruitsCount: projectedFruits };
+                const fruitResult = Recommendations.findMinLevelsFruitFromCurrent(projectedPlayerData, scenarioInfo.xpNeeded, MAX_EXTRACTOR_LEVEL);
+                scenarioFruitResults[scenario] = { ...fruitResult, projectedFruits, horizonDays: scenarioInfo.daysNeeded };
             }
         }
         
@@ -461,8 +515,10 @@ class OvermortalCalculator {
             mainPathAbsorptionBonus,
             realmProgression,
             fruitXPSingle: fruitData.fruitXPSingle,
+            fruitXPSingleMax: fruitData.fruitXPSingleMax,
             fruitXPTotal: fruitData.fruitXPTotal,
             fruitXPTotalMax: fruitData.fruitXPTotalMax,
+            fruitProjection: fruitData,
             virya: viryaInfo,
             scenarioXPNeeded,
             nextScenario,

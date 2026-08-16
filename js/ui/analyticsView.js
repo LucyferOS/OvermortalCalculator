@@ -26,7 +26,12 @@ class AnalyticsView {
             
             // Render extractor comparison bar chart
             Analytics.renderExtractorChart('extractor-comparison-chart', extractorComparison);
-            
+
+            // Render the same comparison for the whole projected fruit stock
+            const fruitTotals = Analytics.calculateFruitTotals(results);
+            Analytics.renderFruitTotalChart('fruit-total-chart', fruitTotals);
+            Dom.updateElementText('fruit-total-chart-note', this.describeFruitTotals(fruitTotals));
+
             // Update red pills calculator
             this.updateRedPillsCalculator(playerData, results, absorptionBonus);
             
@@ -36,8 +41,22 @@ class AnalyticsView {
         
     }
 
+    /**
+     * Spells out where the projected fruit count came from, so the bar heights
+     * are not a number the player cannot account for.
+     */
+    static describeFruitTotals(totals) {
+        if (totals.fruits <= 0) return 'No fruits projected by your next major breakthrough.';
+
+        const horizon = CalculatorUtils.formatTimeDays(totals.horizonDays);
+        const when = totals.horizonDays > 0 ? `in ${horizon} (${CalculatorUtils.formatDateFromDays(totals.horizonDays)})` : 'right now';
+        const tokens = totals.tokens > 0 ? `, including ${totals.tokens} token${totals.tokens === 1 ? '' : 's'} spent` : '';
+
+        return `${totals.fruits} fruits${tokens}, by your next major breakthrough ${when}.`;
+    }
+
     static updateRedPillsCalculator(playerData, results, absorptionBonus) {
-        
+
         try {
             // Store latest values
             ViewState.latestResults = results;
