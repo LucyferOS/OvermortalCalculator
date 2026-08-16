@@ -32,6 +32,14 @@ lucyfer_os
 
 # Release Notes
 
+#### Version 0.4.2.0 (BETA)
+  * New **Fruit Timing** card on the dashboard, for deciding whether a Virya tier is worth chasing and when to eat your fruits for it.
+    * Shows what one fruit is worth on each path, in XP *and* in days of that path's progress. Days is the number that matters: daily XP only ever feeds one path, so a fruit fed to the secondary path is really buying back days of main path income.
+    * Tells you exactly how many fruits it takes to cross each tier's secondary path requirement.
+    * Compares the plans side by side for every tier — eat nothing, just enough to unlock the tier, all to one path, or hold everything until after the breakthrough — scored on main path XP banked over this timegate plus the next realm's.
+    * Flags whether the timegate's 1.5x fruit window is currently open, and whether a plan lands the tier before the timegate expires.
+  * Fixed a realm ladder bug where a path sitting exactly at 100% of a Late stage could be read as 0% of the next major realm instead, which silently stripped the player of Completion.
+
 #### Version 0.4.1.1 (BETA)
   * Solved Virya table miscalculation.
   	* Overflow is still broken. Investigation will continue later. 

@@ -4,6 +4,7 @@
 //
 //   ui/dom.js            element text, progress bars, notifications, buttons
 //   ui/dashboard.js      path progress, fruits, timegate, focus indicators
+//   ui/fruitTimingView.js  where and when to spend fruits
 //   ui/viryaTable.js     the Virya scenario table and its recommendation
 //   ui/analyticsView.js  charts and the red-pill breakthrough calculator
 //   ui/debugView.js      the debug tab
@@ -14,6 +15,7 @@
 
 import { Dom } from '../ui/dom.js';
 import { Dashboard } from '../ui/dashboard.js';
+import { FruitTimingView } from '../ui/fruitTimingView.js';
 import { ViryaTable } from '../ui/viryaTable.js';
 import { AnalyticsView } from '../ui/analyticsView.js';
 import { DebugView } from '../ui/debugView.js';
@@ -29,6 +31,9 @@ class UIManager {
     static updateTimegateInfo(...args) { return Dashboard.updateTimegateInfo(...args); }
     static updatePathFocusIndicators(...args) { return Dashboard.updatePathFocusIndicators(...args); }
     static updateAbodeEasyModeVisibility(...args) { return Dashboard.updateAbodeEasyModeVisibility(...args); }
+
+    // Fruit timing
+    static updateFruitTiming(...args) { return FruitTimingView.updateFruitTiming(...args); }
 
     // Virya table
     static updateViryaDisplay(...args) { return ViryaTable.updateViryaDisplay(...args); }
