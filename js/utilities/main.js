@@ -2,6 +2,7 @@ import { MarkdownLoader } from './markdownLoader.js';
 import { OvermortalCalculator } from './Calculator.js';
 import { EventManager } from './EventManager.js';
 import { UIManager } from './UIManager.js';
+import { InputLimits } from '../ui/inputLimits.js';
 
 class OvermortalApp {
     constructor() {
@@ -19,7 +20,15 @@ class OvermortalApp {
     onDOMContentLoaded() {
         this.originalCalculateBtnText = document.getElementById('calculate-btn').innerHTML;
         this.eventManager.setupEventListeners();
+
+        // Keep every number field inside the limits its markup declares.
+        InputLimits.watchAll();
+
         this.loadSavedData();
+
+        // Restored data bypasses typing entirely, so it is checked here. A save
+        // exported before the limits were enforced can hold anything.
+        InputLimits.enforceAll();
 
         // Hide debug menu item initially (debug starts as disabled)
         UIManager.updateDebugMenuVisibility(this.calculator.debugEnabled);
@@ -128,7 +137,6 @@ class OvermortalApp {
             'abode-nirvana-neck-mansion': p.abodeBonusNirvanaNeckMansion,
             
             // Techniques
-            'pill-attempts-technique': p.pillAttemptsTechnique || 0,
             'pill-bonus-technique': p.pillBonusTechnique,
             'respira-attempt-technique': p.respiraAttemptsTechnique,
             'respira-bonus-technique': p.respiraBonusTechnique,
@@ -142,7 +150,6 @@ class OvermortalApp {
             'abode-temper-aura-curio': p.abodeTemperAuraCurio || 0,
             
             // Immortal Friends
-            'pill-attempts-immortal-friends': p.pillAttemptsImmortalFriends || 0,
             'pill-bonus-immortal-friends': p.pillBonusImmortalFriends,
             'respira-attempt-immortal-friends': p.respiraAttemptsImmortalFriend,
             'respira-bonus-immortal-friends': p.respiraBonusImmortalFriend,

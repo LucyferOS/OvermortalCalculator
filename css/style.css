@@ -1286,3 +1286,19 @@ tr:hover {
     font-size: 1.3rem;
     color: var(--accent);
 }
+/* A number field corrected because it was outside its declared range.
+   Held briefly so the change is noticed rather than happening silently. */
+.input-out-of-range {
+    border-color: #C0392B !important;
+    background-color: rgba(192, 57, 43, 0.08);
+    animation: input-range-flash 0.4s ease-out;
+}
+
+@keyframes input-range-flash {
+    from { background-color: rgba(192, 57, 43, 0.35); }
+    to   { background-color: rgba(192, 57, 43, 0.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .input-out-of-range { animation: none; }
+}
