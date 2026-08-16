@@ -426,16 +426,16 @@ class OvermortalCalculator {
     calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus) {
         // Calculate focus XP (full daily XP excluding elixir/benediction)
         const mainPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, mainPathAbsorptionBonus);
-        
-        // Calculate path-specific XP sources
-        const pillBonus = this.playerData.pillBonus || 1;
-        const multiplier = pillBonus * 1000;
-        const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(this.playerData, this.playerData.elixir || 0);
-        const elixirXPWithMultiplier = elixirXP * multiplier;
-        
+
+        // Path-specific XP sources. Both come from the shared engine helpers,
+        // which is also where the Virya table's tier walk gets them - the two
+        // used to book them separately and disagreed about which path collects
+        // which pill.
+        const elixirXPWithMultiplier = Progression.elixirXP(this.playerData);
+
         // Calculate base values (for analytics/Virya table) - full XP including path-specific sources
         const mainPathDailyXPBase = mainPathFocusXP + elixirXPWithMultiplier;
-        
+
         // Calculate secondary path focus XP, benediction and Wisdom Confluence
         let secondaryPathFocusXP = 0;
         let benedictionXPWithMultiplier = 0;
@@ -451,8 +451,7 @@ class OvermortalCalculator {
             // Calculate focus XP for secondary path (excluding benediction)
             secondaryPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
             // Calculate benediction XP (path-specific for secondary)
-            const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
-            benedictionXPWithMultiplier = benedictionXP * multiplier;
+            benedictionXPWithMultiplier = Progression.benedictionXP(secondaryPathPlayerData);
             // Wisdom Confluence pays a share of the day's abode XP into the
             // secondary path. Like benediction it is path-specific, so it is
             // added here rather than inside the daily total - and unlike the
@@ -461,7 +460,7 @@ class OvermortalCalculator {
             // Calculate base value (for analytics/Virya table) - full XP including benediction
             secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier + wisdomConfluenceXP;
         }
-        
+
         // Calculate focus-dependent values (for Player Time to Cultivate)
         let mainPathDailyXP = 0;
         let secondaryPathDailyXP = 0;

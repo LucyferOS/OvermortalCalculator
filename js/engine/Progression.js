@@ -40,6 +40,52 @@ export function dailyXPForPath(playerData, path, absorptionBonus) {
 }
 
 /**
+ * Daily elixir XP, already multiplied through. Main path only.
+ */
+export function elixirXP(playerData) {
+    return XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0)
+        * XPCalculator.pillMultiplier(playerData);
+}
+
+/**
+ * Daily benediction XP, already multiplied through. Secondary path only.
+ */
+export function benedictionXP(playerData) {
+    return XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0)
+        * XPCalculator.pillMultiplier(playerData);
+}
+
+/**
+ * Everything a path banks in a day at a given absorption bonus: the character's
+ * rate plus that path's own sources.
+ *
+ * `dailyXPForPath` above is the character's rate alone - the same for both
+ * paths, since it is priced off the main path's realm. These two add what only
+ * one path collects: elixir for the main path, benediction and the Wisdom
+ * Confluence for the secondary.
+ *
+ * They live here, and not in each caller, because two callers need the same
+ * figure at *different* absorption bonuses. `Calculator` wants it at the bonus
+ * in effect today, for the dashboard; `ViryaCalculator` walks the secondary
+ * path one tier requirement at a time and wants it at the bonus each leg is
+ * actually run at. When those two disagreed, the Virya table's tier timings
+ * priced the secondary path with the main path's elixir and never applied the
+ * bonus a tier reached en route grants.
+ */
+export function mainPathDailyXPBase(playerData, absorptionBonus) {
+    return dailyXPForPath(playerData, 'main', absorptionBonus) + elixirXP(playerData);
+}
+
+export function secondaryPathDailyXPBase(playerData, absorptionBonus) {
+    const state = asPathPlayerData(playerData, 'secondary');
+    if (!state) return 0;
+
+    return dailyXPForPath(state, 'secondary', absorptionBonus)
+        + benedictionXP(state)
+        + XPCalculator.calculateWisdomConfluenceXP(state, absorptionBonus);
+}
+
+/**
  * The player state to cost a path's XP generation against.
  *
  * **XP rates are a property of the character, set by the main path's realm, not
@@ -189,4 +235,12 @@ export function simulateToBreakthrough({ playerData, targetTier, mainDailyXP, se
     };
 }
 
-export const Progression = { dailyXPForPath, asPathPlayerData, simulateToBreakthrough };
+export const Progression = {
+    dailyXPForPath,
+    elixirXP,
+    benedictionXP,
+    mainPathDailyXPBase,
+    secondaryPathDailyXPBase,
+    asPathPlayerData,
+    simulateToBreakthrough
+};

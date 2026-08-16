@@ -33,6 +33,14 @@ lucyfer_os
 # Release Notes
 
 
+#### Version 0.4.5.0 (BETA)
+  * **The Virya table's "Time to Cultivate" now agrees with the dashboard.** A taoist noticed that adding the dashboard's two figures together — the days to finish your main path realm on Main focus, then the days for your secondary path to reach the same realm's Late on Secondary focus — came to 63 days, while the Half-Step row read 65. Reaching Half-Step means passing Eminence and Perfect on the way, and each of those grants absorption, so the table should have come out slightly *under* the hand-added figure, not over. Four things were putting it over:
+    * **A tier you reach on the way now speeds up the rest of the walk.** The table intended to cost each leg at the absorption bonus actually in effect for it, but the bonus only ever reached the Wisdom Confluence part of the rate. Crossing Eminence and Perfect was granting you nothing.
+    * **The secondary path is walked with your benediction, not your elixir.** The walk was being priced at the main path's daily rate, which carries elixir. Your secondary path never receives elixir; it receives benediction. If you run benediction and little or no elixir, your tier timings were too long — up to 5 days on the states tested.
+    * **Elixir was being counted twice on the main path, and once on the secondary path that never gets it.** It sat inside the shared character rate *and* was added again where the main path books it. Main path times will now read slightly longer if you use elixir; they were previously too optimistic.
+    * **The main path leg of the walk is now exactly the Completion row.** It used to be worked out by a separate routine that left out elixir, ignored the bonus carried over from your last realm, and priced the back half of the run at a tier you only earn once that leg finishes.
+  * Net effect: most tier timings drop by roughly half a day to two days, and Completion / main path timings rise slightly for anyone using elixir.
+
 #### Version 0.4.4.1 (BETA)
   * **New curio input: Wisdom Confluence.** Enter the percentage your curio gives you. It pays that share of the Abode Aura XP you earn in a day into your **secondary path**, on top of everything else.
     * You get it whichever path you are focusing.

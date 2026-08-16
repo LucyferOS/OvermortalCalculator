@@ -171,7 +171,17 @@ class XPCalculator {
 
     /**
      * Daily XP from each kind of pill, already multiplied through.
-     * Benediction is excluded: it applies to the secondary path only.
+     *
+     * `total` is the part of the *character's* rate that comes from pills, so
+     * the two path-specific pills are left out of it: elixir feeds the main
+     * path, benediction the secondary, and `Calculator.calculatePathDailyXP()`
+     * books each onto the path that collects it. Both are still reported as
+     * their own fields for the analytics breakdown to draw.
+     *
+     * Elixir used to be inside `total`, which meant the main path was credited
+     * with it twice - once here and once where Calculator books it - and the
+     * secondary path, whose rate comes from the same helper, was credited with
+     * the main path's elixir it never receives.
      */
     static calculatePillXPBreakdown(playerData) {
         const empty = { goldPills: 0, purplePills: 0, bluePills: 0, elixir: 0, benediction: 0, redPills: 0, total: 0 };
@@ -202,7 +212,7 @@ class XPCalculator {
         };
 
         breakdown.total = breakdown.goldPills + breakdown.purplePills + breakdown.bluePills
-            + breakdown.elixir + breakdown.benediction + breakdown.redPills;
+            + breakdown.redPills;
 
         return breakdown;
     }
