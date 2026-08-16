@@ -33,6 +33,9 @@ lucyfer_os
 # Release Notes
 
 
+#### Version 0.4.6.1 (BETA)
+  * **New Virya table column: "Completion Date with Fruits".** The date implied by the "Time with Fruits" column beside it — when each tier lands if you eat your projected max-fruit stock. A tier the fruits already cover reads "Est: Today"; a tier that is active, already passed, or out of reach shows a dash, same as its Time with Fruits cell.
+
 #### Version 0.4.6.0 (BETA)
   * **New Virya table column: "Time with Fruits".** Each tier's Time to Cultivate less the "Total Days Saved" figure from the **With Max Fruits & Aura Extractor** card — how long the tier takes if you eat the fruit stock you are projected to hold when the timegate lifts, valued at a maxed extractor. It is the same subtraction you can do by hand from the two figures already on the dashboard.
     * A tier the fruits already cover reads "Reachable now!".

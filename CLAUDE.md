@@ -231,7 +231,9 @@ the canonical list. Key shape:
   the dashboard and can subtract by hand. Both figures come from
   `Dashboard.fruitDaysSaved(results, 'fruitXPTotalMax')`; recomputing the saving
   in `ui/viryaTable.js` is how the two stop agreeing. No calculator knows about
-  this column.
+  this column. "Completion Date with Fruits" beside it is that same figure run
+  through `formatDateFromDays`, so the two fruit cells describe one moment and
+  are written and cleared together (`writeFruitTime` / `clearFruitCells`).
 - **The aura gem's share is its own term, and Auraseep multiplies it.**
   `XPCalculator.calculateAuraGemXP()` is the gem's cut of the Abode Aura XP times
   `1 + abodeTemperAuraCurio/100` — Auraseep at 50% makes the gem worth 1.5x, and
@@ -273,7 +275,7 @@ the canonical list. Key shape:
   overflow handling and `maxRealm` stopping rules. Change it with the snapshot
   in hand, not by reading alone.
 - View element ids follow patterns: Virya table cells are
-  `virya-{completion|eminence|perfect|halfstep}-{time|date|fruits-time|focus|next-realm|xp}`;
+  `virya-{completion|eminence|perfect|halfstep}-{time|date|fruits-time|fruits-date|focus|next-realm|xp}`;
   fruit rows are `fruits[-max]-{minor|major}-{main|secondary}-{time|date}-display`.
   The scenario key is `scenario.toLowerCase().replace('-','')`.
 - `ui/viryaTable.js` and `ui/analyticsView.js` call calculators directly rather

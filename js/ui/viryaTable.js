@@ -65,6 +65,7 @@ class ViryaTable {
             Dom.updateElementText(`virya-${scenarioKey}-time`, 'Error: No Virya Info');
             Dom.updateElementText(`virya-${scenarioKey}-date`, '--');
             Dom.updateElementText(`virya-${scenarioKey}-fruits-time`, '--');
+            Dom.updateElementText(`virya-${scenarioKey}-fruits-date`, '--');
             return;
         }
 
@@ -74,20 +75,34 @@ class ViryaTable {
         const timeId = `virya-${scenarioKey}-time`;
         const dateId = `virya-${scenarioKey}-date`;
         const fruitsTimeId = `virya-${scenarioKey}-fruits-time`;
+        const fruitsDateId = `virya-${scenarioKey}-fruits-date`;
         const focusId = `virya-${scenarioKey}-focus`;
         const nextRealmId = `virya-${scenarioKey}-next-realm`;
 
         // "Time with Fruits" is the time to cultivate less the max-fruit card's
         // "Total Days Saved" headline - the same number the player reads there,
-        // so the subtraction is one they can check by hand. It only means
-        // anything for a tier that is still ahead of them: a tier that is
-        // active, already passed or unreachable gets a dash.
+        // so the subtraction is one they can check by hand. "Completion Date
+        // with Fruits" is that same figure as a date, so the two fruit cells
+        // always describe one moment. Both only mean anything for a tier that is
+        // still ahead of them: a tier that is active, already passed or
+        // unreachable gets a dash in both.
+        const clearFruitCells = () => {
+            Dom.updateElementText(fruitsTimeId, '--');
+            Dom.updateElementText(fruitsDateId, '--');
+        };
+
         const writeFruitTime = (daysToReach) => {
             const withFruits = daysToReach - maxFruitDaysSaved;
             if (withFruits <= 0) {
-                Dom.updateElementText(fruitsTimeId, maxFruitDaysSaved > 0 ? 'Reachable now!' : '--');
+                if (maxFruitDaysSaved > 0) {
+                    Dom.updateElementText(fruitsTimeId, 'Reachable now!');
+                    Dom.updateElementText(fruitsDateId, 'Est: Today');
+                } else {
+                    clearFruitCells();
+                }
             } else {
                 Dom.updateElementText(fruitsTimeId, format(withFruits));
+                Dom.updateElementText(fruitsDateId, `Est: ${formatDate(withFruits)}`);
             }
         };
 
@@ -95,7 +110,7 @@ class ViryaTable {
         if (scenario === viryaInfo.scenario) {
             Dom.updateElementText(timeId, ' Active Now');
             Dom.updateElementText(dateId, '--');
-            Dom.updateElementText(fruitsTimeId, '--');
+            clearFruitCells();
             // Determine required path focus for current scenario
             let requiredPathFocus = PATH_MAIN;
             if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
@@ -134,7 +149,7 @@ class ViryaTable {
         if (currentIndex > targetIndex) {
             Dom.updateElementText(timeId, ' Already Passed');
             Dom.updateElementText(dateId, '--');
-            Dom.updateElementText(fruitsTimeId, '--');
+            clearFruitCells();
             // Determine required path focus for this scenario
             let requiredPathFocus = PATH_MAIN;
             if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
@@ -184,7 +199,7 @@ class ViryaTable {
         if (daysToReach === 0) {
             Dom.updateElementText(timeId, ' Already Met');
             Dom.updateElementText(dateId, '--');
-            Dom.updateElementText(fruitsTimeId, '--');
+            clearFruitCells();
         } else if (daysToReach === Infinity || isNaN(daysToReach) || daysToReach > 36500) {
             
             // Check why it's not reachable
@@ -199,11 +214,11 @@ class ViryaTable {
             
             Dom.updateElementText(timeId, reason);
             Dom.updateElementText(dateId, '--');
-            Dom.updateElementText(fruitsTimeId, '--');
+            clearFruitCells();
         } else if (daysToReach < 0) {
             Dom.updateElementText(timeId, 'Error');
             Dom.updateElementText(dateId, '--');
-            Dom.updateElementText(fruitsTimeId, '--');
+            clearFruitCells();
         } else {
             Dom.updateElementText(timeId, format(daysToReach));
             Dom.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
