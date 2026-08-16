@@ -7,6 +7,7 @@ import { DataManager } 		from './DataManager.js';
 import { FruitCalculator } 	from '../dashboard/FruitCalculator.js'; 
 import { Recommendations } 	from '../dashboard/Recommendations.js';
 import { ViryaScenarioComparator } from '../dashboard/ViryaScenarioComparator.js';
+import { Progression } from '../engine/Progression.js';
 
 
 class OvermortalCalculator {
@@ -407,23 +408,15 @@ class OvermortalCalculator {
         let benedictionXPWithMultiplier = 0;
         let secondaryPathDailyXPBase = 0;
         
-        if (this.playerData.secondaryPathRealm && this.playerData.secondaryPathRealmMajor) {
-            const realmXPKey = this.playerData.secondaryPathRealmMajor + "XP";
-            if (XPData[realmXPKey]) {
-                const secondaryPathPlayerData = {
-                    ...this.playerData,
-                    mainPathRealm: this.playerData.secondaryPathRealm,
-                    mainPathRealmMajor: this.playerData.secondaryPathRealmMajor,
-                    mainPathRealmMinor: this.playerData.secondaryPathRealmMinor
-                };
-                // Calculate focus XP for secondary path (excluding benediction)
-                secondaryPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
-                // Calculate benediction XP (path-specific for secondary)
-                const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
-                benedictionXPWithMultiplier = benedictionXP * multiplier;
-                // Calculate base value (for analytics/Virya table) - full XP including benediction
-                secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
-            }
+        const secondaryPathPlayerData = Progression.asPathPlayerData(this.playerData, 'secondary');
+        if (secondaryPathPlayerData) {
+            // Calculate focus XP for secondary path (excluding benediction)
+            secondaryPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
+            // Calculate benediction XP (path-specific for secondary)
+            const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
+            benedictionXPWithMultiplier = benedictionXP * multiplier;
+            // Calculate base value (for analytics/Virya table) - full XP including benediction
+            secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
         }
         
         // Calculate focus-dependent values (for Player Time to Cultivate)

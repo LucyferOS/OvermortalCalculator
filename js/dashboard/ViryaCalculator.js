@@ -1,5 +1,6 @@
 import { GameConstants, Realms, RealmMajorTotalXP, timegateLength, REALM_ORDER_MAJOR, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, PERCENTAGE_COMPLETE, PATH_MAIN, PATH_SECONDARY, XPData } from '../utilities/gameData.js';
 import { ViryaRules } from '../engine/ViryaRules.js';
+import { Progression } from '../engine/Progression.js';
 import { xpBetween } from '../domain/realms.js';
 import { RealmCalculator } from './RealmCalculator.js';
 import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
@@ -212,259 +213,54 @@ class ViryaCalculator {
         return xpBetween(currentRealm, currentProgress, targetRealm, targetProgress);
     }
 
+    /**
+     * The highest tier the player could hold in the *next* major realm, if they
+     * pursue `targetScenario` in this one.
+     *
+     * The walk to the breakthrough is shared with the scenario comparator; all
+     * that differs here is the question asked afterwards, which is how far up
+     * the tier ladder the next realm's timegate allows.
+     *
+     * @returns {string} A tier name, or a message explaining why none is reachable.
+     */
     static calculateMaxNextRealmScenario(targetScenario, playerData, mainPathDailyXPBase, secondaryPathDailyXPBase) {
-        const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
-        
-        // Safety check: Validate current major is in the realm order
-        if (currentMajorIndex === -1) {
-            return 'Invalid current realm';
-        }
-        
-        // Safety check: Ensure we only calculate for the immediate next realm (exactly one step ahead)
-        const nextMajorIndex = currentMajorIndex + 1;
-        if (nextMajorIndex >= REALM_ORDER_MAJOR.length) {
-            return 'Next realm not implemented yet';
-        }
-        
-        const nextMajor = REALM_ORDER_MAJOR[nextMajorIndex];
-        
-        // Safety check: Verify nextMajor is exactly one step ahead
-        if (nextMajorIndex !== currentMajorIndex + 1) {
-            return 'Realm progression error';
-        }
-        
-        // ===== Use overflow calculation logic to determine breakthrough timing =====
-        // Recalculate daily XP values based on current player state
-        const currentViryaInfo = this.detectScenario(playerData);
-        const currentMainPathDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(playerData, currentViryaInfo.absorptionBonus);
-        
-        // Calculate secondary path daily XP based on current player state
-        let currentSecondaryPathDailyXP = 0;
-        if (playerData.secondaryPathRealm && playerData.secondaryPathRealmMajor) {
-            const realmXPKey = playerData.secondaryPathRealmMajor + "XP";
-            if (XPData[realmXPKey]) {
-                const secondaryPathPlayerData = {
-                    ...playerData,
-                    mainPathRealm: playerData.secondaryPathRealm,
-                    mainPathRealmMajor: playerData.secondaryPathRealmMajor,
-                    mainPathRealmMinor: playerData.secondaryPathRealmMinor
-                };
-                currentSecondaryPathDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, currentViryaInfo.absorptionBonus);
-            }
-        }
-        
-        const currentScenario = currentViryaInfo.scenario;
-        const currentIndex = VIRYA_SCENARIO_ORDER.indexOf(currentScenario);
-        const targetIndex = VIRYA_SCENARIO_ORDER.indexOf(targetScenario);
-        
-        // Get timegate information
-        const currentTimegateDays = playerData.timegateDays || 0;
-        const nextTimegateLength = timegateLength[nextMajor] || 0;
-        
-        if (nextTimegateLength <= 0) {
-            return '--';
-        }
-        
-        // Calculate days to reach scenario (Phase 1 from overflow calculation)
-        let daysToReach = 0;
-        if (targetIndex > currentIndex) {
-            const daysToReachInfo = this.calculateDaysToScenario(targetScenario, playerData, currentMainPathDailyXP, currentSecondaryPathDailyXP);
-            daysToReach = daysToReachInfo?.daysNeeded || Infinity;
-            
-            if (daysToReach === Infinity) {
-                return 'Cannot reach scenario';
-            }
-        } else {
-            // Already at or past scenario
-            daysToReach = 0;
-        }
-        
-        // Breakthrough happens when BOTH conditions are met: scenario reached AND timegate ended
-        // Breakthrough time = max(daysToReach, currentTimegateDays)
-        const breakthroughTime = Math.max(daysToReach, currentTimegateDays);
-        const daysAvailableInNextRealm = nextTimegateLength;
-        
-        // ===== Simulate Phase 2: XP after reaching scenario until breakthrough =====
-        // This is needed to get the overflow conversion state (Phase 2 overflow XP converts to next realm progress)
-        let phase2Result = null;
-        let phase2OverflowConverted = false;
-        
-        // Calculate days available after reaching scenario until breakthrough
-        const daysAfterScenarioUntilBreakthrough = targetIndex > currentIndex 
-            ? Math.max(0, breakthroughTime - daysToReach)
-            : Math.max(0, breakthroughTime);
-        
-        if (daysAfterScenarioUntilBreakthrough > 0) {
-            // Determine Phase 2 starting state (at 100% Late in current major)
-            const currentLateRealm = `${playerData.mainPathRealmMajor} Late`;
-            const currentLateRealmXP = Realms[currentLateRealm]?.xp || 0;
-            
-            const phase2PlayerData = {
-                ...playerData,
-                mainPathRealm: currentLateRealm,
-                mainPathRealmMajor: playerData.mainPathRealmMajor,
-                mainPathRealmMinor: 'Late',
-                mainPathProgress: 100,
-                mainPathExp: currentLateRealmXP,
-                cosmoapsisValue: undefined
-            };
-            
-            const targetScenarioBonus = ViryaRules.bonusFor(targetScenario);
-            const phase2DailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(phase2PlayerData, targetScenarioBonus);
-            
-            // Simulate Phase 2 (overflow XP in current realm)
-            const phase2Simulator = new RealmProgressionSimulator(phase2PlayerData, phase2DailyXP, 'max-next-realm-phase2');
-            phase2Result = phase2Simulator.simulateDays(
-                daysAfterScenarioUntilBreakthrough,
-                targetScenarioBonus,
-                null, // No bonus end condition during overflow
-                currentLateRealm // Max realm is current Late (just overflow)
-            );
-            
-            // Check if Phase 2 overflow was converted to next realm
-            if (phase2Result.finalRealm && phase2Result.finalRealm.startsWith(nextMajor)) {
-                phase2OverflowConverted = true;
-            }
-        }
-        
-        // Where the secondary path sits once the target tier is reached: at the
-        // tier's requirement, or wherever it already is if that is further on.
-        const secondaryPathAtScenario = ViryaRules.secondaryPositionAtTier(
-            targetScenario,
-            playerData.mainPathRealmMajor,
-            {
-                realm: playerData.secondaryPathRealm,
-                major: playerData.secondaryPathRealmMajor,
-                minor: playerData.secondaryPathRealmMinor,
-                progress: playerData.secondaryPathProgress
-            }
-        );
+        const currentBonus = this.detectScenario(playerData).absorptionBonus;
 
-        // Simulate player state at breakthrough after reaching target scenario
-        // IMPORTANT: If Phase 2 had overflow XP, the simulator converts it to next realm progress
-        // We should use the converted state from Phase 2, not start at 0% Early
-        let breakthroughPlayerData;
-        
-        if (phase2OverflowConverted && phase2Result) {
-            // Phase 2 overflow was converted to next realm - use that state
-            const phase2FinalRealm = phase2Result.finalRealm;
-            const phase2FinalProgress = phase2Result.finalProgress;
-            const [major, minor] = phase2FinalRealm.split(' ');
-            const phase2FinalRealmXP = Realms[phase2FinalRealm]?.xp || 0;
-            const phase2FinalExp = (phase2FinalRealmXP * phase2FinalProgress) / 100;
-            
-            breakthroughPlayerData = {
-                ...playerData,
-                mainPathRealm: phase2FinalRealm,
-                mainPathRealmMajor: major,
-                mainPathRealmMinor: minor,
-                mainPathProgress: phase2FinalProgress,
-                mainPathExp: phase2FinalExp,
-                secondaryPathRealm: secondaryPathAtScenario.realm,
-                secondaryPathRealmMajor: secondaryPathAtScenario.major,
-                secondaryPathRealmMinor: secondaryPathAtScenario.minor,
-                secondaryPathProgress: secondaryPathAtScenario.progress,
-                cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
-            };
-        } else {
-            // No Phase 2 overflow conversion - start at 0% Early
-            breakthroughPlayerData = {
-                ...playerData,
-                mainPathRealm: `${nextMajor} Early`,
-                mainPathRealmMajor: nextMajor,
-                mainPathRealmMinor: 'Early',
-                mainPathProgress: 0,
-                mainPathExp: 0,
-                secondaryPathRealm: secondaryPathAtScenario.realm,
-                secondaryPathRealmMajor: secondaryPathAtScenario.major,
-                secondaryPathRealmMinor: secondaryPathAtScenario.minor,
-                secondaryPathProgress: secondaryPathAtScenario.progress,
-                cosmoapsisValue: undefined // Clear stored value so it's recalculated with new bonus
-            };
-        }
-        
-        // Safety check: Verify breakthrough state is set to the immediate next realm only
-        const breakthroughMajorIndex = REALM_ORDER_MAJOR.indexOf(breakthroughPlayerData.mainPathRealmMajor);
-        if (breakthroughMajorIndex !== nextMajorIndex) {
-            return 'Breakthrough state validation error';
-        }
-        
-        // Safety check: Verify breakthrough realm is in next major (can be Early, Mid, or Late if overflow converted)
-        if (!breakthroughPlayerData.mainPathRealm.startsWith(nextMajor)) {
-            return 'Breakthrough realm validation error';
-        }
-        
-        // Daily XP just after breaking through, at the next major's Early stage.
-        // Whether the tier just earned still helps here comes from the rule
-        // table: Eminence does not carry forward at all, Perfect carries
-        // through Early, Half-Step through Early and Mid.
-        const earlyBonus = ViryaRules.carriedBonusAt(targetScenario, 'Early');
+        const walk = Progression.simulateToBreakthrough({
+            playerData,
+            targetTier: targetScenario,
+            mainDailyXP: Progression.dailyXPForPath(playerData, 'main', currentBonus),
+            secondaryDailyXP: Progression.dailyXPForPath(playerData, 'secondary', currentBonus)
+        });
 
-        const breakthroughMainPathDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+        if (!walk.ok) {
+            return walk.reason;
+        }
+
+        const { breakthroughPlayerData, nextMajor, nextTimegateLength } = walk;
+
+        // A tier earned last realm may still be helping at the next realm's
+        // Early stage, which is where the tier hunt restarts.
+        const carriedBonus = ViryaRules.carriedBonusAt(targetScenario, 'Early');
+        const mainDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
             { ...breakthroughPlayerData, mainPathRealm: `${nextMajor} Early`, mainPathRealmMinor: 'Early' },
-            earlyBonus
+            carriedBonus
         );
-        
-        // Calculate secondary path daily XP at breakthrough state
-        const secondaryPathPlayerData = {
-            ...breakthroughPlayerData,
-            mainPathRealm: breakthroughPlayerData.secondaryPathRealm,
-            mainPathRealmMajor: breakthroughPlayerData.secondaryPathRealmMajor,
-            mainPathRealmMinor: breakthroughPlayerData.secondaryPathRealmMinor,
-            mainPathProgress: breakthroughPlayerData.secondaryPathProgress
-        };
-        const breakthroughSecondaryPathDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, 0);
-        
-        // Check scenarios in ascending order
-        const scenariosToCheck = [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP];
+        const secondaryDailyXP = Progression.dailyXPForPath(breakthroughPlayerData, 'secondary', 0);
+
+        // Climb the ladder and stop at the first rung the timegate puts out of reach.
         let highestReachable = null;
-        
-        for (const scenario of scenariosToCheck) {
-            
-            // Safety check: Verify breakthrough player data is still at the correct realm before each calculation
-            if (breakthroughPlayerData.mainPathRealmMajor !== nextMajor) {
-                return 'Realm validation error during scenario check';
-            }
-            
-            // Calculate time needed to reach this scenario from breakthrough state
-            // Note: We pass a copy to prevent calculateDaysToScenario from modifying the original
-            const daysNeededInfo = this.calculateDaysToScenario(
-                scenario,
-                { ...breakthroughPlayerData }, // Pass a copy to prevent mutation
-                breakthroughMainPathDailyXP,
-                breakthroughSecondaryPathDailyXP
+        for (const tier of VIRYA_SCENARIO_ORDER.filter((t) => t !== SCENARIO_NO_VIRYA)) {
+            const { daysNeeded } = this.calculateDaysToScenario(
+                tier, breakthroughPlayerData, mainDailyXP, secondaryDailyXP
             );
-            
-            const daysNeeded = daysNeededInfo?.daysNeeded || Infinity;
-            
-            
-            // Safety check: Verify the calculation didn't modify the breakthrough state
-            if (breakthroughPlayerData.mainPathRealmMajor !== nextMajor) {
-                return 'Realm modified during calculation';
-            }
-            
-            if (daysNeeded !== Infinity && daysNeeded <= daysAvailableInNextRealm) {
-                // Scenario is reachable
-                highestReachable = scenario;
-            } else {
-                // Cannot reach this scenario within timegate - stop checking
-                break;
-            }
+            if (!Number.isFinite(daysNeeded) || daysNeeded > nextTimegateLength) break;
+            highestReachable = tier;
         }
-        
-        if (highestReachable === null) {
-            // Cannot reach even Completion
-            return 'Cannot reach Completion';
-        }
-        
-        // Final safety check: Verify we're still at the correct realm after all calculations
-        if (breakthroughPlayerData.mainPathRealmMajor !== nextMajor) {
-            return 'Realm validation error';
-        }
-        
-        return highestReachable;
+
+        return highestReachable ?? 'Cannot reach Completion';
     }
-    
+
     /**
      * Days to reach a tier, walked one tier at a time so that each leg is
      * costed at the absorption bonus actually in effect during it.
