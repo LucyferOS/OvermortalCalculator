@@ -6,7 +6,7 @@ To get information about your taoist, check in game. You should check under the 
 
 If you want to double check that you have done things correctly, or if you are interested in some of the values that are used for calculations, you can click the "turn on debug" option, and look at the new tab that opens up on the left. Anything with an arrow here can be expanded and opened for more info.
 
-For the dashboard, know that the virya scenario table is open to interpretation - i do not tell you what is best, you must decide for yourself what you care about. This table is only meant to help you understand what your options are and what will happen in the worst case scenario if you pursue them. It does not account for fruits eaten (simply subtract days from the fruits table).
+For the dashboard, know that the virya scenario table is open to interpretation - i do not tell you what is best, you must decide for yourself what you care about. This table is only meant to help you understand what your options are and what will happen in the worst case scenario if you pursue them.
 
 
 
@@ -20,8 +20,10 @@ lucyfer_os
 # Limitations / Known issues
 
 * NOTE - THIS IS STILL BEING TESTED FOR ACCCURACY!!!		
-* I am currently only focusing on Spiritual World as this is what my sect is at currently. Some Immortal World bonuses are now covered - Mini World and Five Asthenia Abode Aura, and the Glitted Lotus Seed and Throne pill bonuses - but that is not the full set, so if you are in Immortal World expect other bonuses of yours to still be unaccounted for.
+* I am currently only focusing on Spiritual World as this is what my sect is at currently. Some Immortal World bonuses are now covered - Mini World and Five Asthenia Abode Aura, and the Glitted Lotus Seed and Throne pill bonuses. If I have missed any, please let me know.
+
 * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
+
 * The MonsterScape Absorption Bonus is applied exactly as you enter it and does not grow over the course of a breakthrough - the calculator has no model for how quickly you gain it. Because of that, it is recommended to leave it at its minimum (0%) for a worst case, or set it to its maximum (70%) for a best case, rather than picking a value in between and treating the result as precise.
 * Abode Aura / Absorption easy mode only replaces Abode Aura and Absorption.There is not an easy way to replace other bonuses.
 * In Abode Aura / Absorption easy mode, the absorption you type in is used exactly as entered. That is right for your current state, but it means the Virya scenario table cannot model absorption changing as you gain a tier - so the scenario comparison is less meaningful in easy mode than in the detailed mode.
@@ -163,11 +165,9 @@ lucyfer_os
 
 # Acknowledgments
 
-* Thank you for trying out my take on the old google sheets calculator! Inspiration came from the calculator mentioned in the footer, which is currently maintained by Yutsu.
-
-* I also wish to thank Endless for the great effort they have put into educating this lowley taoist in the ways of the dao, as well as 'R' for encouraging me along the way while i developed this version of the calculator. 
-
-* Shoutout to Djoki, Faisal, and Jin for being the first to test out this calc for me!
+Thank you for trying out my take on the old google sheets calculator! Inspiration came from the calculator mentioned in the footer, which is currently maintained by Yutsu.
+  
+Thank you to the countless taoists who have guided me on my path, both in overmortal and in life.
   
   Best Regards,
   ***lucyfer_os***
