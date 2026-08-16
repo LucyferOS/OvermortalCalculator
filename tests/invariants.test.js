@@ -14,7 +14,7 @@ import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
 import { ViryaRules } from '../js/engine/ViryaRules.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
-    SCENARIO_PERFECT, SCENARIO_HALF_STEP
+    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms
 } from '../js/utilities/gameData.js';
 
 const entries = Object.entries(PLAYERS);
@@ -48,6 +48,163 @@ describe('absorption bonus', () => {
         const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(p, 0);
         const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(p, 0.4);
         assert.equal(some, none, 'easy mode absorption is entered directly and must be used as-is');
+    });
+});
+
+describe('Immortal World mechanics', () => {
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+        goldPill: 10, purplePill: 10, bluePill: 10, ...overrides
+    });
+
+    // Mini World and Five Asthenia are Abode Aura percentages, so Easy Mode's
+    // typed-in Abode Aura total subsumes them exactly like the other sources.
+    for (const field of ['abodeBonusMiniWorld', 'abodeBonusFiveAsthenia']) {
+        test(`${field} adds to the Abode Aura bonus total`, () => {
+            const base = XPCalculator.calculateTotalAbodeBonus(at({}));
+            assert.equal(XPCalculator.calculateTotalAbodeBonus(at({ [field]: 12 })), base + 12);
+        });
+
+        test(`${field} raises daily XP in detailed mode`, () => {
+            const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({}), 0);
+            const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ [field]: 12 }), 0);
+            assert.ok(some > none, `${field} was ignored: ${some} === ${none}`);
+        });
+
+        test(`${field} is ignored in Easy Mode`, () => {
+            const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+            const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at(easy), 0);
+            const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, [field]: 12 }), 0);
+            assert.equal(some, none, 'the typed-in Abode Aura total must subsume it');
+        });
+    }
+
+    // Answered by the maintainer: two bonuses to the same pill are percentages
+    // of the same stat, so they sum into one multiplier rather than compounding.
+    const stacking = [
+        ['goldPills', 'pillBonusNirvanaChariotMansion', 'pillBonusGlittedLotusThrone', 14.5, 28],
+        ['purplePills', 'pillBonusNirvanaTurtleBeakMansion', 'pillBonusGlittedLotusSeed', 12.2, 40]
+    ];
+
+    for (const [pill, mansionField, lotusField, mansionMax, lotusMax] of stacking) {
+        test(`${pill}: ${lotusField} adds to ${mansionField} rather than compounding`, () => {
+            const plain = XPCalculator.calculatePillXPBreakdown(at({}))[pill];
+            const both = XPCalculator.calculatePillXPBreakdown(
+                at({ [mansionField]: mansionMax, [lotusField]: lotusMax })
+            )[pill];
+
+            const added = plain * (1 + ((mansionMax + lotusMax) / 100));
+            const compounded = plain * (1 + (mansionMax / 100)) * (1 + (lotusMax / 100));
+
+            assert.ok(Math.abs(both - added) < 1e-6, `expected ${added}, got ${both}`);
+            assert.ok(compounded > added, 'the two stacking rules must actually differ');
+        });
+
+        test(`${pill}: the Glitted Lotus bonus still applies in Easy Mode`, () => {
+            const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+            const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at(easy), 0);
+            const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, [lotusField]: lotusMax }), 0);
+            assert.ok(some > none, `${lotusField} was ignored in Easy Mode: ${some} === ${none}`);
+        });
+    }
+});
+
+describe('MonsterScape absorption bonus', () => {
+    // Answered by the maintainer: MonsterScape multiplies the whole Absorption
+    // stat, so it scales the realm base and the Virya bonus together.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 50, ...overrides
+    });
+
+    test('it scales the realm base and the Virya bonus together', () => {
+        const p = at({ absorptionBonusMonsterScape: 70 });
+        const base = Realms['Nirvana Mid'].absorption;
+        assert.ok(
+            Math.abs(XPCalculator.calculateAbsorption(p, 0.4) - (base + 0.4) * 1.7) < 1e-12,
+            'expected (realm base + Virya bonus) * 1.7'
+        );
+    });
+
+    test('zero leaves absorption exactly as it was', () => {
+        const p = at({ absorptionBonusMonsterScape: 0 });
+        assert.equal(XPCalculator.calculateAbsorption(p, 0.4), Realms['Nirvana Mid'].absorption + 0.4);
+    });
+
+    test('a missing value is treated as zero', () => {
+        const p = at({});
+        delete p.absorptionBonusMonsterScape;
+        assert.equal(XPCalculator.calculateAbsorption(p, 0.4), Realms['Nirvana Mid'].absorption + 0.4);
+    });
+
+    test('it raises daily XP in detailed mode', () => {
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ absorptionBonusMonsterScape: 0 }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ absorptionBonusMonsterScape: 70 }), 0);
+        assert.ok(some > none, `MonsterScape was ignored: ${some} === ${none}`);
+    });
+
+    test('easy mode ignores it, since the typed-in absorption already includes it', () => {
+        const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, absorptionBonusMonsterScape: 0 }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, absorptionBonusMonsterScape: 70 }), 0);
+        assert.equal(some, none, 'easy mode absorption is entered directly and must be used as-is');
+    });
+});
+
+describe('non-Abode Nirvana mechanics', () => {
+    // The Nirvana mansion bonuses split across two systems: Path of Ascension /
+    // Horn / Neck feed Abode Aura, while Chariot / Turtle Beak / Ghost / Dipper
+    // feed pill and Respira XP. Easy mode replaces only the Abode Aura and
+    // Absorption totals, so the pill/Respira mansions must still apply.
+    const withPills = { goldPill: 10, purplePill: 10, bluePill: 10 };
+
+    const mansions = [
+        ['pillBonusNirvanaChariotMansion', 'Gold pill Chariot Mansion'],
+        ['pillBonusNirvanaTurtleBeakMansion', 'Purple pill Turtle Beak Mansion'],
+        ['pillBonusNirvanaGhostMansion', 'Blue pill Ghost Mansion'],
+        ['respiraNirvanaDipperMansion', 'Respira Dipper Mansion']
+    ];
+
+    for (const easyMode of [false, true]) {
+        const label = easyMode ? 'easy mode' : 'detailed mode';
+
+        for (const [field, name] of mansions) {
+            test(`${label}: ${name} raises daily XP`, () => {
+                const base = makePlayer({
+                    mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+                    abodeEasyMode: easyMode, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9,
+                    ...withPills
+                });
+                const boosted = makePlayer({
+                    mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+                    abodeEasyMode: easyMode, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9,
+                    ...withPills, [field]: 10
+                });
+
+                const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(base, 0);
+                const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(boosted, 0);
+                assert.ok(some > none, `${field} was ignored: ${some} === ${none}`);
+            });
+        }
+    }
+
+    test('easy mode still ignores the Abode Aura mansions', () => {
+        const shared = {
+            mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+            abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9
+        };
+        const base = makePlayer(shared);
+        const boosted = makePlayer({
+            ...shared,
+            abodeBonusNirvanaPathofAscension: 16,
+            abodeBonusNirvanaHornMansion: 21.1,
+            abodeBonusNirvanaNeckMansion: 21.1
+        });
+
+        assert.equal(
+            XPCalculator.calculateDailyXPWithAbsorptionBonus(boosted, 0),
+            XPCalculator.calculateDailyXPWithAbsorptionBonus(base, 0),
+            'the typed-in Abode Aura total must subsume the Abode Aura mansions'
+        );
     });
 });
 

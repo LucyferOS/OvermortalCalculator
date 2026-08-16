@@ -550,7 +550,7 @@
                         <div class="input-group">
                             <label for="abode-easy-mode">
                                 Use Easy Mode
-                                <span class="tooltip-icon" title="When set to Yes, the detailed Abode Aura breakdown (Stage Specific Mechanics card, plus the Technique/Curio Abode Aura fields) is ignored, and the Abode Aura / Absorption values entered here are used instead."><i class="fa-solid fa-circle-info"></i></span>
+                                <span class="tooltip-icon" title="When set to Yes, the detailed Abode Aura breakdown (Stage Specific Mechanics card, plus the Technique/Curio Abode Aura fields) is ignored, and the Abode Aura / Absorption values entered here are used instead. The Nirvana Mansions - Pill &amp; Respira card is not part of Abode Aura, so it stays visible and still applies."><i class="fa-solid fa-circle-info"></i></span>
                             </label>
                             <select id="abode-easy-mode">
                                 <option value="No">No</option>
@@ -577,7 +577,11 @@
                 </div>
 
                 <div class="card" id="stage-specific-mechanics-card">
-                    <h2 class="card-title">Stage Specific Mechanics</h2>
+                    <h2 class="card-title">
+                        Stage Specific Mechanics - Abode Aura &amp; Absorption
+                        <span class="tooltip-icon" title="Every field here feeds either your Abode Aura or your Absorption. Easy Mode replaces this whole card with the two totals typed in above."><i class="fa-solid fa-circle-info"></i></span>
+                    </h2>
+                    <p class="card-note">Abode Aura and Absorption sources - hidden while Easy Mode is on.</p>
                     <div class="grid">
                         <div class="input-group required">
                             <label for="abode-sect-level">
@@ -651,13 +655,6 @@
                             <input type="number" id="abode-nirvana-path-of-ascension" step="0.1" min="0" max="16" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-nirvana-ghost-mansion">
-                                Nirvana Blue pill Ghost Mansion
-                                <span class="tooltip-icon" title="Maximum unknown"><i class="fa-solid fa-circle-info"></i></span>
-                            </label>
-                            <input type="number" id="pill-nirvana-ghost-mansion" step="0.1" min="0" value="0.0">
-                        </div>
-                        <div class="input-group required">
                             <label for="abode-nirvana-horn-mansion">
                                 Nirvana Abode Horn Mansion
                                 <span class="tooltip-icon" title="Star Mark - Horn Mansion (Max 21.1%)"><i class="fa-solid fa-circle-info"></i></span>
@@ -665,32 +662,98 @@
                             <input type="number" id="abode-nirvana-horn-mansion" step="0.1" min="0" max="21.1" value="0.0">
                         </div>
                         <div class="input-group required">
-                            <label for="pill-nirvana-turtle-beak-mansion">
-                                Nirvana Purple pill Turtle Beak Mansion
-                                <span class="tooltip-icon" title="Purple pill - Turtle Beak Mansion (Max 12.2%)"><i class="fa-solid fa-circle-info"></i></span>
-                            </label>
-                            <input type="number" id="pill-nirvana-turtle-beak-mansion" step="0.1" min="0" max="12.2" value="0.0">
-                        </div>
-                        <div class="input-group required">
-                            <label for="respira-nirvana-dipper-mansion">
-                                Nirvana Respira Dipper Mansion
-                                <span class="tooltip-icon" title="Maximum unknown"><i class="fa-solid fa-circle-info"></i></span>
-                            </label>
-                            <input type="number" id="respira-nirvana-dipper-mansion" step="0.1" min="0" value="0.0">
-                        </div>
-                        <div class="input-group required">
-                            <label for="pill-nirvana-chariot-mansion">
-                                Nirvana Gold pill Chariot Mansion
-                                <span class="tooltip-icon" title="Gold pill - Chariot Mansion (Max 14.5%)"><i class="fa-solid fa-circle-info"></i></span>
-                            </label>
-                            <input type="number" id="pill-nirvana-chariot-mansion" step="0.1" min="0" max="14.5" value="0.0">
-                        </div>
-                        <div class="input-group required">
                             <label for="abode-nirvana-neck-mansion">
                                 Nirvana Abode Neck Mansion
                                 <span class="tooltip-icon" title="Star Mark - Neck Mansion (Max 21.1%)"><i class="fa-solid fa-circle-info"></i></span>
                             </label>
                             <input type="number" id="abode-nirvana-neck-mansion" step="0.1" min="0" max="21.1" value="0.0">
+                        </div>
+                    </div>
+
+                    <h3>Immortal World</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="abode-mini-world">
+                                Mini World - Abode Aura
+                                <span class="tooltip-icon" title="Mini World Abode Aura bonus (Max 69%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-mini-world" step="0.1" min="0" max="69" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="abode-five-asthenia">
+                                Five Asthenia - Abode Aura
+                                <span class="tooltip-icon" title="Five Asthenia Abode Aura bonus (Maximum unknown)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-five-asthenia" step="0.1" min="0" value="0.0">
+                        </div>
+                    </div>
+
+                    <h3>Absorption</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="absorption-monsterscape">
+                                MonsterScape Absorption Bonus
+                                <span class="tooltip-icon" title="Raises your Absorption by this percentage (Max 70%). NOTE: the growth of this stat is not calculated automatically, so it is recommended to leave it at its minimum (0%) or set it to its maximum (70%) rather than a value in between."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="absorption-monsterscape" step="0.1" min="0" max="70" value="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="pill-respira-mechanics-card">
+                    <h2 class="card-title">
+                        Stage Specific Mechanics - Pill &amp; Respira
+                        <span class="tooltip-icon" title="Stage specific systems that boost pill and Respira XP rather than Abode Aura. These are NOT part of your Abode Aura or Absorption totals, so they still apply when Easy Mode is on - fill them in either way."><i class="fa-solid fa-circle-info"></i></span>
+                    </h2>
+                    <p class="card-note">Separate from Abode Aura and Absorption - these still apply in Easy Mode.</p>
+
+                    <h3>Nirvana - Star Mark Mansions</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="pill-nirvana-chariot-mansion">
+                                Chariot Mansion - Gold Pill
+                                <span class="tooltip-icon" title="Gold pill - Chariot Mansion (Max 14.5%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-nirvana-chariot-mansion" step="0.1" min="0" max="14.5" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-nirvana-turtle-beak-mansion">
+                                Turtle Beak Mansion - Purple Pill
+                                <span class="tooltip-icon" title="Purple pill - Turtle Beak Mansion (Max 12.2%)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-nirvana-turtle-beak-mansion" step="0.1" min="0" max="12.2" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-nirvana-ghost-mansion">
+                                Ghost Mansion - Blue Pill
+                                <span class="tooltip-icon" title="Blue pill - Ghost Mansion (Maximum unknown)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-nirvana-ghost-mansion" step="0.1" min="0" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="respira-nirvana-dipper-mansion">
+                                Dipper Mansion - Respira
+                                <span class="tooltip-icon" title="Respira - Dipper Mansion (Maximum unknown)"><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="respira-nirvana-dipper-mansion" step="0.1" min="0" value="0.0">
+                        </div>
+                    </div>
+
+                    <h3>Immortal World - Glitted Lotus</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="pill-glitted-lotus-throne">
+                                Throne - Gold Pill
+                                <span class="tooltip-icon" title="Gold pill - Glitted Lotus Throne (Max 28%). Adds to the Chariot Mansion bonus."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-glitted-lotus-throne" step="0.1" min="0" max="28" value="0.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="pill-glitted-lotus-seed">
+                                Seed - Purple Pill
+                                <span class="tooltip-icon" title="Purple pill - Glitted Lotus Seed (Max 40%). Adds to the Turtle Beak Mansion bonus."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="pill-glitted-lotus-seed" step="0.1" min="0" max="40" value="0.0">
                         </div>
                     </div>
                 </div>

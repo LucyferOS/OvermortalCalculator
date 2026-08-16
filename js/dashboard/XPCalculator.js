@@ -1,5 +1,15 @@
 import { XPData, GameConstants, Realms } from '../utilities/gameData.js';
 
+/**
+ * Every stage specific bonus that boosts one kind of pill, grouped by pill.
+ * Bonuses to the same pill are percentages of the same stat, so they sum
+ * before being applied as a single multiplier - adding a new system means
+ * adding its field here, not another nested multiplication.
+ */
+const GOLD_PILL_BONUSES = ['pillBonusNirvanaChariotMansion', 'pillBonusGlittedLotusThrone'];
+const PURPLE_PILL_BONUSES = ['pillBonusNirvanaTurtleBeakMansion', 'pillBonusGlittedLotusSeed'];
+const BLUE_PILL_BONUSES = ['pillBonusNirvanaGhostMansion'];
+
 class XPCalculator {
     static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {
         
@@ -24,10 +34,11 @@ class XPCalculator {
             playerData.abodeBonusSectBarrier, playerData.abodeBonusCelestialSpring, playerData.abodeBonusEnergyArray,
             playerData.abodeBonusSwordArray, playerData.abodeBonusHeavenGate, playerData.abodeBonusWholenessCitta,
             playerData.abodeBonusPerfectionWorldRift, playerData.abodeBonusNirvanaPathofAscension,
-            playerData.abodeBonusNirvanaHornMansion, playerData.abodeBonusNirvanaNeckMansion
+            playerData.abodeBonusNirvanaHornMansion, playerData.abodeBonusNirvanaNeckMansion,
+            playerData.abodeBonusMiniWorld, playerData.abodeBonusFiveAsthenia
         ];
-        
-        return abodeBonuses.reduce((sum, bonus) => sum + bonus, 0);
+
+        return abodeBonuses.reduce((sum, bonus) => sum + (bonus || 0), 0);
     }
 
     static calculateTotalAbode(playerData) {
@@ -43,13 +54,26 @@ class XPCalculator {
         return playerData.baseAbodeAura + bonusAmount;
     }
 
+    /**
+     * The detailed-mode Absorption: the realm's base rate plus the Virya bonus,
+     * scaled by the MonsterScape percentage. MonsterScape multiplies the whole
+     * stat, so it scales the Virya bonus along with the realm base.
+     *
+     * Easy mode does not call this — there the player types their effective
+     * Absorption in directly, MonsterScape already included.
+     */
+    static calculateAbsorption(playerData, absorptionBonus) {
+        const base = (Realms[playerData.mainPathRealm]?.absorption || 0) + absorptionBonus;
+        return base * (1 + ((playerData.absorptionBonusMonsterScape || 0) / 100));
+    }
+
     static calculateCosmoapsisValue(playerData, absorptionBonus) {
         const totalAbode = this.calculateTotalAbode(playerData);
 
         // Easy mode: skip the realm base + Virya bonus breakdown and use the total entered directly
         const effectiveAbsorption = playerData.abodeEasyMode
             ? (playerData.absorptionEasyValue || 0)
-            : (Realms[playerData.mainPathRealm]?.absorption || 0) + absorptionBonus;
+            : this.calculateAbsorption(playerData, absorptionBonus);
 
         // Multiply total abode by effectiveAbsorption to get cosmoapsisValue
         const cosmoapsisValue = totalAbode * effectiveAbsorption;
@@ -89,6 +113,15 @@ class XPCalculator {
     }
 
     /**
+     * The multiplier one kind of pill's XP passes through, from the stage
+     * specific systems that boost it. The percentages sum, then apply once.
+     */
+    static pillTypeBonus(playerData, fields) {
+        const total = fields.reduce((sum, field) => sum + (playerData[field] || 0), 0);
+        return 1 + (total / 100);
+    }
+
+    /**
      * Daily XP from each kind of pill, already multiplied through.
      * Benediction is excluded: it applies to the secondary path only.
      */
@@ -102,15 +135,15 @@ class XPCalculator {
 
         const breakdown = {
             goldPills: realmXP.gold
-                * (1 + (playerData.pillBonusNirvanaChariotMansion / 100))
+                * this.pillTypeBonus(playerData, GOLD_PILL_BONUSES)
                 * playerData.goldPill * multiplier,
 
             purplePills: realmXP.purple
-                * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100))
+                * this.pillTypeBonus(playerData, PURPLE_PILL_BONUSES)
                 * playerData.purplePill * multiplier,
 
             bluePills: realmXP.blue
-                * (1 + (playerData.pillBonusNirvanaGhostMansion / 100))
+                * this.pillTypeBonus(playerData, BLUE_PILL_BONUSES)
                 * playerData.bluePill * multiplier,
 
             elixir: this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0) * multiplier,
@@ -186,8 +219,12 @@ class XPCalculator {
         
         const respiraAttemptsGush = playerData.respiraAttemptsTotal * expectedGushValue;
         
-        const realmRespiraXP = XPData[playerData.mainPathRealmMajor + "XP"].respira;
-        
+        // Nirvana Dipper Mansion boosts the Respira XP per attempt, the same way the
+        // Chariot/Turtle Beak/Ghost mansions boost their pills. It is a Respira bonus,
+        // not an Abode Aura one, so easy mode does not replace it.
+        const realmRespiraXP = XPData[playerData.mainPathRealmMajor + "XP"].respira
+            * (1 + ((playerData.respiraNirvanaDipperMansion || 0) / 100));
+
         const baseRespiraXP = respiraAttemptsGush * realmRespiraXP * 1000;
         const respiraExp = baseRespiraXP * playerData.respiraBonusTotal;
         

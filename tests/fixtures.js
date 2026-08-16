@@ -42,6 +42,8 @@ const BASE = {
     abodeAuraEasyValue: 130.0,
     absorptionEasyValue: 0.317,
 
+    absorptionBonusMonsterScape: 0,
+
     abodeBonusCurio: 0,
     abodeBonusTechnique: 0,
     abodeBonusSectLevel: 0,
@@ -55,6 +57,8 @@ const BASE = {
     abodeBonusNirvanaPathofAscension: 0,
     abodeBonusNirvanaHornMansion: 0,
     abodeBonusNirvanaNeckMansion: 0,
+    abodeBonusMiniWorld: 0,
+    abodeBonusFiveAsthenia: 0,
     abodeTemperAuraCurio: 0,
 
     respiraAttemptsImmortalFriend: 0,
@@ -68,6 +72,8 @@ const BASE = {
     pillBonusNirvanaChariotMansion: 0,
     pillBonusNirvanaGhostMansion: 0,
     pillBonusNirvanaTurtleBeakMansion: 0,
+    pillBonusGlittedLotusThrone: 0,
+    pillBonusGlittedLotusSeed: 0,
     pillBonusCurio: 0,
     pillBonusImmortalFriends: 0,
     pillBonusTechnique: 0,

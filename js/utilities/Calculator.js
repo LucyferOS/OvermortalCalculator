@@ -67,6 +67,10 @@ class OvermortalCalculator {
             abodeAuraEasyValue: 130.0,
             absorptionEasyValue: 0.317,
 
+            // Absorption bonuses (percentage, applied on top of the realm base
+            // plus any Virya bonus)
+            absorptionBonusMonsterScape: 0,
+
             // Abode bonuses
             abodeBonusCurio: 0,
             abodeBonusTechnique: 0,
@@ -81,6 +85,8 @@ class OvermortalCalculator {
             abodeBonusNirvanaPathofAscension: 0,
             abodeBonusNirvanaHornMansion: 0,
             abodeBonusNirvanaNeckMansion: 0,
+            abodeBonusMiniWorld: 0,
+            abodeBonusFiveAsthenia: 0,
             abodeTemperAuraCurio: 0,
             
             // Respira bonuses
@@ -97,6 +103,8 @@ class OvermortalCalculator {
             pillBonusNirvanaChariotMansion: 0,
             pillBonusNirvanaGhostMansion: 0,
             pillBonusNirvanaTurtleBeakMansion: 0,
+            pillBonusGlittedLotusThrone: 0,
+            pillBonusGlittedLotusSeed: 0,
             pillBonusCurio: 0,
             pillBonusImmortalFriends: 0,
             pillBonusTechnique: 0,
@@ -177,6 +185,8 @@ class OvermortalCalculator {
             pillBonusNirvanaChariotMansion: getNumberValue('pill-nirvana-chariot-mansion'),
             pillBonusNirvanaGhostMansion: getNumberValue('pill-nirvana-ghost-mansion'),
             pillBonusNirvanaTurtleBeakMansion: getNumberValue('pill-nirvana-turtle-beak-mansion'),
+            pillBonusGlittedLotusThrone: getNumberValue('pill-glitted-lotus-throne'),
+            pillBonusGlittedLotusSeed: getNumberValue('pill-glitted-lotus-seed'),
             pillBonusCurio,
             pillBonusImmortalFriends,
             pillBonusTechnique,
@@ -200,6 +210,7 @@ class OvermortalCalculator {
             abodeEasyMode: getStringValue('abode-easy-mode') === 'Yes',
             abodeAuraEasyValue: getNumberValue('abode-aura-easy'),
             absorptionEasyValue: getNumberValue('absorption-easy'),
+            absorptionBonusMonsterScape: getNumberValue('absorption-monsterscape'),
             abodeBonusCurio: getNumberValue('abode-aura-curio'),
             abodeBonusTechnique: getNumberValue('abode-aura-technique'),
             abodeBonusSectLevel: getNumberValue('abode-sect-level'),
@@ -213,6 +224,8 @@ class OvermortalCalculator {
             abodeBonusNirvanaPathofAscension: getNumberValue('abode-nirvana-path-of-ascension'),
             abodeBonusNirvanaHornMansion: getNumberValue('abode-nirvana-horn-mansion'),
             abodeBonusNirvanaNeckMansion: getNumberValue('abode-nirvana-neck-mansion'),
+            abodeBonusMiniWorld: getNumberValue('abode-mini-world'),
+            abodeBonusFiveAsthenia: getNumberValue('abode-five-asthenia'),
             baseAbodeAura: GameConstants.abodeBase
         };
     }
@@ -239,7 +252,10 @@ class OvermortalCalculator {
             respiraBonusImmortalFriend,
             respiraBonusTechnique,
             respiraBonusCurio,
-            respiraBonusTotal
+            respiraBonusTotal,
+            // Nirvana Dipper Mansion is a Respira bonus, not an Abode Aura one, so it
+            // is read here (and applied) regardless of the Abode Aura easy mode.
+            respiraNirvanaDipperMansion: getNumberValue('respira-nirvana-dipper-mansion')
         };
     }
 
