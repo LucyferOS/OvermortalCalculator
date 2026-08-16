@@ -1,0 +1,561 @@
+{
+  "fresh": {
+    "tier": "No Virya",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "N/A",
+    "totalAbode": 130,
+    "cosmoapsis": 41.21,
+    "mainDailyXP": 1690466.9,
+    "mainDailyXPNoBonus": 1690466.9,
+    "secondaryDailyXP": 1690466.9,
+    "respiraXP": 101362.5,
+    "pillXP": 1099529.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 107904.24,
+    "xpToTier": {
+      "Completion": 100273900,
+      "Eminence": 100273900,
+      "Perfect": 0,
+      "Half-Step": 100273900
+    },
+    "daysToTier": {
+      "Completion": 59.32,
+      "Eminence": 59.32,
+      "Perfect": 0,
+      "Half-Step": 111.84
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach scenario",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 7.29,
+    "mainTimeToNextMajor": 59.32,
+    "secondaryTimeToNextMinor": 7.29,
+    "secondaryTimeToNextMajor": 59.32,
+    "asAppComputesIt": {
+      "mainDailyXP": 1690466.9,
+      "mainDailyXPNoBonus": 1690466.9,
+      "secondaryDailyXP": 1690466.9,
+      "bonusIsHonoured": false
+    }
+  },
+  "midIncarnation": {
+    "tier": "No Virya",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "N/A",
+    "totalAbode": 130,
+    "cosmoapsis": 46.54,
+    "mainDailyXP": 1753787.3,
+    "mainDailyXPNoBonus": 1753787.3,
+    "secondaryDailyXP": 1690466.9,
+    "respiraXP": 101362.5,
+    "pillXP": 1099529.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 107904.24,
+    "xpToTier": {
+      "Completion": 76962332,
+      "Eminence": 76962332,
+      "Perfect": 0,
+      "Half-Step": 99041270
+    },
+    "daysToTier": {
+      "Completion": 43.88,
+      "Eminence": 43.88,
+      "Perfect": 0,
+      "Half-Step": 96.13
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach scenario",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 8.65,
+    "mainTimeToNextMajor": 43.88,
+    "secondaryTimeToNextMinor": 6.56,
+    "secondaryTimeToNextMajor": 58.59,
+    "asAppComputesIt": {
+      "mainDailyXP": 1753787.3,
+      "mainDailyXPNoBonus": 1753787.3,
+      "secondaryDailyXP": 1753787.3,
+      "bonusIsHonoured": false
+    }
+  },
+  "completionWholeness": {
+    "tier": "Completion",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "Eminence",
+    "totalAbode": 130,
+    "cosmoapsis": 123.5,
+    "mainDailyXP": 4485537.1,
+    "mainDailyXPNoBonus": 4485537.1,
+    "secondaryDailyXP": 1690466.9,
+    "respiraXP": 200812.5,
+    "pillXP": 2817544.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 168288636,
+      "Perfect": 618097583,
+      "Half-Step": 1373312948
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 74.91,
+      "Perfect": 137.8,
+      "Half-Step": 306.16
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 7.29,
+    "secondaryTimeToNextMajor": 59.32,
+    "asAppComputesIt": {
+      "mainDailyXP": 4485537.1,
+      "mainDailyXPNoBonus": 4485537.1,
+      "secondaryDailyXP": 2668072.1,
+      "bonusIsHonoured": false
+    }
+  },
+  "eminenceWholeness": {
+    "tier": "Eminence",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Perfect",
+    "totalAbode": 130,
+    "cosmoapsis": 149.5,
+    "mainDailyXP": 4794417.1,
+    "mainDailyXPNoBonus": 4485537.1,
+    "secondaryDailyXP": 3111209.4,
+    "respiraXP": 200812.5,
+    "pillXP": 2817544.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 449808947,
+      "Half-Step": 1205024312
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 93.82,
+      "Half-Step": 251.34
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 45.67,
+    "secondaryTimeToNextMajor": 144.58,
+    "asAppComputesIt": {
+      "mainDailyXP": 4794417.1,
+      "mainDailyXPNoBonus": 4794417.1,
+      "secondaryDailyXP": 3574529.4,
+      "bonusIsHonoured": false
+    }
+  },
+  "perfectWholeness": {
+    "tier": "Perfect",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Half-Step",
+    "totalAbode": 130,
+    "cosmoapsis": 149.5,
+    "mainDailyXP": 4794417.1,
+    "mainDailyXPNoBonus": 4485537.1,
+    "secondaryDailyXP": 4639977.1,
+    "respiraXP": 200812.5,
+    "pillXP": 2817544.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 755215365
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 157.52
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 40.26,
+    "secondaryTimeToNextMajor": 162.76,
+    "asAppComputesIt": {
+      "mainDailyXP": 4794417.1,
+      "mainDailyXPNoBonus": 4794417.1,
+      "secondaryDailyXP": 4794417.1,
+      "bonusIsHonoured": false
+    }
+  },
+  "sameMajorMid": {
+    "tier": "Completion",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "Eminence",
+    "totalAbode": 130,
+    "cosmoapsis": 123.5,
+    "mainDailyXP": 4485537.1,
+    "mainDailyXPNoBonus": 4485537.1,
+    "secondaryDailyXP": 4408317.1,
+    "respiraXP": 200812.5,
+    "pillXP": 2817544.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 489216425.2
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 109.07
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach scenario",
+      "Perfect": "Cannot reach scenario",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 41.91,
+    "secondaryTimeToNextMajor": 110.98,
+    "asAppComputesIt": {
+      "mainDailyXP": 4485537.1,
+      "mainDailyXPNoBonus": 4485537.1,
+      "secondaryDailyXP": 4485537.1,
+      "bonusIsHonoured": false
+    }
+  },
+  "sameMajorLatePartial": {
+    "tier": "Completion",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "Eminence",
+    "totalAbode": 130,
+    "cosmoapsis": 123.5,
+    "mainDailyXP": 4485537.1,
+    "mainDailyXPNoBonus": 4485537.1,
+    "secondaryDailyXP": 4485537.1,
+    "respiraXP": 200812.5,
+    "pillXP": 2817544.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 121780224
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 27.15
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach scenario",
+      "Perfect": "Cannot reach scenario",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 27.15,
+    "secondaryTimeToNextMajor": 27.15,
+    "asAppComputesIt": {
+      "mainDailyXP": 4485537.1,
+      "mainDailyXPNoBonus": 4485537.1,
+      "secondaryDailyXP": 4485537.1,
+      "bonusIsHonoured": false
+    }
+  },
+  "halfStepWholeness": {
+    "tier": "Half-Step",
+    "absorptionBonus": 0.4,
+    "bonusEndsAt": "Next major's Late",
+    "totalAbode": 130,
+    "cosmoapsis": 175.5,
+    "mainDailyXP": 5103297.1,
+    "mainDailyXPNoBonus": 4485537.1,
+    "secondaryDailyXP": 5103297.1,
+    "respiraXP": 200812.5,
+    "pillXP": 2817544.6,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 215808.48,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 0
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 0
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 0,
+    "secondaryTimeToNextMajor": 0,
+    "asAppComputesIt": {
+      "mainDailyXP": 5103297.1,
+      "mainDailyXPNoBonus": 5103297.1,
+      "secondaryDailyXP": 5103297.1,
+      "bonusIsHonoured": false
+    }
+  },
+  "voidbreakEminence": {
+    "tier": "Eminence",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Perfect",
+    "totalAbode": 130,
+    "cosmoapsis": 130,
+    "mainDailyXP": 3342869.4,
+    "mainDailyXPNoBonus": 3033989.4,
+    "secondaryDailyXP": 2127532.1,
+    "respiraXP": 149175,
+    "pillXP": 1649294.4,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 159366.26,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 129806936,
+      "Half-Step": 579615883
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 38.83,
+      "Half-Step": 173.39
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 29.04,
+    "secondaryTimeToNextMajor": 29.04,
+    "asAppComputesIt": {
+      "mainDailyXP": 3342869.4,
+      "mainDailyXPNoBonus": 3342869.4,
+      "secondaryDailyXP": 2745292.1,
+      "bonusIsHonoured": false
+    }
+  },
+  "voidbreakPerfect": {
+    "tier": "Perfect",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Half-Step",
+    "totalAbode": 130,
+    "cosmoapsis": 130,
+    "mainDailyXP": 3342869.4,
+    "mainDailyXPNoBonus": 3033989.4,
+    "secondaryDailyXP": 3111209.4,
+    "respiraXP": 149175,
+    "pillXP": 1649294.4,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 159366.26,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 449808947
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 0,
+      "Half-Step": 134.56
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 45.67,
+    "secondaryTimeToNextMajor": 144.58,
+    "asAppComputesIt": {
+      "mainDailyXP": 3342869.4,
+      "mainDailyXPNoBonus": 3342869.4,
+      "secondaryDailyXP": 3342869.4,
+      "bonusIsHonoured": false
+    }
+  },
+  "voidbreakEarlySecondary": {
+    "tier": "Eminence",
+    "absorptionBonus": 0.2,
+    "bonusEndsAt": "Perfect",
+    "totalAbode": 130,
+    "cosmoapsis": 130,
+    "mainDailyXP": 3342869.4,
+    "mainDailyXPNoBonus": 3033989.4,
+    "secondaryDailyXP": 2879549.4,
+    "respiraXP": 149175,
+    "pillXP": 1649294.4,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 159366.26,
+    "xpToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 34007368,
+      "Half-Step": 483816315
+    },
+    "daysToTier": {
+      "Completion": 0,
+      "Eminence": 0,
+      "Perfect": 10.17,
+      "Half-Step": 144.73
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 0,
+    "mainTimeToNextMajor": 0,
+    "secondaryTimeToNextMinor": 11.81,
+    "secondaryTimeToNextMajor": 168.02,
+    "asAppComputesIt": {
+      "mainDailyXP": 3342869.4,
+      "mainDailyXPNoBonus": 3342869.4,
+      "secondaryDailyXP": 3342869.4,
+      "bonusIsHonoured": false
+    }
+  },
+  "geared": {
+    "tier": "No Virya",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "N/A",
+    "totalAbode": 234,
+    "cosmoapsis": 514.8,
+    "mainDailyXP": 41221499.07,
+    "mainDailyXPNoBonus": 41221499.07,
+    "secondaryDailyXP": 25057817.56,
+    "respiraXP": 803250,
+    "pillXP": 31260574.83,
+    "pearlXP": 2041079.04,
+    "redPillsPerDay": 7.97,
+    "fruitXP": 2630796.08,
+    "xpToTier": {
+      "Completion": 2438745598.4,
+      "Eminence": 2438745598.4,
+      "Perfect": 183092108.8,
+      "Half-Step": 4527616868.8
+    },
+    "daysToTier": {
+      "Completion": 59.16,
+      "Eminence": 59.16,
+      "Perfect": 62.43,
+      "Half-Step": 167.83
+    },
+    "maxNextRealm": {
+      "Completion": "Completion",
+      "Eminence": "Completion",
+      "Perfect": "Eminence",
+      "Half-Step": "Eminence"
+    },
+    "mainTimeToNextMinor": 15.61,
+    "mainTimeToNextMajor": 59.16,
+    "secondaryTimeToNextMinor": 7.31,
+    "secondaryTimeToNextMajor": 7.31,
+    "asAppComputesIt": {
+      "mainDailyXP": 41221499.07,
+      "mainDailyXPNoBonus": 41221499.07,
+      "secondaryDailyXP": 26722849.24,
+      "bonusIsHonoured": false
+    }
+  },
+  "easyMode": {
+    "tier": "No Virya",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "N/A",
+    "totalAbode": 480,
+    "cosmoapsis": 1392,
+    "mainDailyXP": 34982062.3,
+    "mainDailyXPNoBonus": 34982062.3,
+    "secondaryDailyXP": 24849233.4,
+    "respiraXP": 717187.5,
+    "pillXP": 17727914.8,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 1328052.18,
+    "xpToTier": {
+      "Completion": 11410768414,
+      "Eminence": 11410768414,
+      "Perfect": 179507270.3,
+      "Half-Step": 12174995526.3
+    },
+    "daysToTier": {
+      "Completion": 326.19,
+      "Eminence": 326.19,
+      "Perfect": 331.32,
+      "Half-Step": 674.22
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 66.86,
+    "mainTimeToNextMajor": 326.19,
+    "secondaryTimeToNextMinor": 7.22,
+    "secondaryTimeToNextMajor": 7.22,
+    "asAppComputesIt": {
+      "mainDailyXP": 34982062.3,
+      "mainDailyXPNoBonus": 34982062.3,
+      "secondaryDailyXP": 24849233.4,
+      "bonusIsHonoured": false
+    }
+  }
+}
