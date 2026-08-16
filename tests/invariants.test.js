@@ -20,7 +20,8 @@ import { ViryaRules } from '../js/engine/ViryaRules.js';
 import { Progression } from '../js/engine/Progression.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
-    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, PATH_MAIN, PATH_SECONDARY
+    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, PATH_MAIN, PATH_SECONDARY,
+    PERCENTAGE_COMPLETE
 } from '../js/utilities/gameData.js';
 
 const entries = Object.entries(PLAYERS);
@@ -689,6 +690,120 @@ describe('Wisdom Confluence', () => {
         const missing = at({});
         delete missing.wisdomConfluenceCurio;
         assert.equal(rates(missing).wisdomConfluenceXP, 0);
+    });
+});
+
+describe('Wisdom Confluence in the Virya table', () => {
+    // The tier timings walk the secondary path, and the Confluence fills it, so
+    // they have to credit it. They did not at first, which made every tier look
+    // further off than it was for anyone holding the curio.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 20,
+        secondaryPathRealm: 'Perfection Early', secondaryPathProgress: 30,
+        gemQuality: 'Epic', goldPill: 5, purplePill: 10, bluePill: 30,
+        abodeBonusSectLevel: 40,
+        ...overrides
+    });
+
+    const rateFor = (player) => XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
+    const daysTo = (player, tier) => {
+        const rate = rateFor(player);
+        return ViryaCalculator.calculateDaysToScenario(tier, player, rate, rate).daysNeeded;
+    };
+
+    test('the walking rate is the character rate plus the Confluence', () => {
+        const player = at({ wisdomConfluenceCurio: 30 });
+
+        assert.equal(
+            ViryaCalculator.secondaryPathRate(player, 0, rateFor(player)),
+            rateFor(player) + XPCalculator.calculateWisdomConfluenceXP(player, 0)
+        );
+    });
+
+    test('every tier that needs the secondary path arrives sooner', () => {
+        const without = at({ wisdomConfluenceCurio: 0 });
+        const with_ = at({ wisdomConfluenceCurio: 30 });
+
+        for (const tier of [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
+            const slow = daysTo(without, tier);
+            const fast = daysTo(with_, tier);
+            assert.ok(Number.isFinite(slow) && slow > 0, `${tier}: fixture must have something to walk`);
+            assert.ok(fast < slow, `${tier}: the Confluence did not speed the tier up (${fast} vs ${slow})`);
+        }
+    });
+
+    test('Completion is untouched - the Confluence does not feed the main path', () => {
+        assert.equal(
+            daysTo(at({ wisdomConfluenceCurio: 30 }), SCENARIO_COMPLETION),
+            daysTo(at({ wisdomConfluenceCurio: 0 }), SCENARIO_COMPLETION)
+        );
+    });
+
+    test('the Confluence banked while finishing the main path counts toward the tier', () => {
+        // Secondary short of the Eminence requirement (Perfection Mid for a
+        // Nirvana main path) by less than the Confluence banks while the main
+        // path finishes its realm. The requirement is therefore already covered
+        // by the time the focus switches, and the tier costs nothing beyond
+        // reaching Completion.
+        const player = at({ secondaryPathProgress: 70, wisdomConfluenceCurio: 30 });
+
+        const mainLegDays = ViryaCalculator.calculateDaysForMainPathStage(
+            player.mainPathRealm, player.mainPathProgress,
+            `${player.mainPathRealmMajor} Late`, PERCENTAGE_COMPLETE, player
+        );
+        const banked = mainLegDays * XPCalculator.calculateWisdomConfluenceXP(player, 0);
+        const legXP = ViryaCalculator.calculateXPToReach(
+            player.secondaryPathRealm, player.secondaryPathProgress, 'Perfection Mid', 0
+        );
+        assert.ok(banked > legXP, 'the fixture must bank more than the leg costs for this to be the case');
+
+        assert.equal(
+            daysTo(player, SCENARIO_EMINENCE),
+            daysTo(player, SCENARIO_COMPLETION),
+            'the days banked during the main path leg were not credited'
+        );
+
+        // Without the Confluence the same tier costs strictly more.
+        const bare = at({ secondaryPathProgress: 70 });
+        assert.ok(daysTo(bare, SCENARIO_EMINENCE) > daysTo(bare, SCENARIO_COMPLETION));
+    });
+
+    test('no tier ever lands before the Completion it requires', () => {
+        // The Completion row is quoted at today's flat rate, the tier walk
+        // averages the rate across the main path stage, and a big enough credit
+        // exposes the gap between them.
+        for (const [name, player] of entries) {
+            for (const curio of [0, 30, 90]) {
+                const p = makePlayer({ ...player, wisdomConfluenceCurio: curio });
+                const completion = daysTo(p, SCENARIO_COMPLETION);
+                if (!Number.isFinite(completion)) continue;
+
+                for (const tier of [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
+                    const days = daysTo(p, tier);
+                    if (!Number.isFinite(days)) continue;
+                    assert.ok(
+                        days >= completion - 1e-9,
+                        `${name} at ${curio}%: ${tier} (${days}d) landed before Completion (${completion}d)`
+                    );
+                }
+            }
+        }
+    });
+
+    test('a player without the curio sees no change at all', () => {
+        // The credit and the added rate must both vanish at zero, or this
+        // becomes a silent rebalance for everyone else.
+        for (const [name, player] of entries) {
+            if (player.wisdomConfluenceCurio) continue;
+            const rate = rateFor(player);
+
+            for (const tier of [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
+                const info = ViryaCalculator.calculateDaysToScenario(tier, player, rate, rate);
+                const viaRate = ViryaCalculator.secondaryPathRate(player, 0, rate);
+                assert.equal(viaRate, rate, `${name}: the rate moved without the curio`);
+                assert.ok(!Number.isNaN(info.daysNeeded), `${name}/${tier}: days went NaN`);
+            }
+        }
     });
 });
 
