@@ -85,6 +85,8 @@ class OvermortalCalculator {
             abodeBonusNirvanaPathofAscension: 0,
             abodeBonusNirvanaHornMansion: 0,
             abodeBonusNirvanaNeckMansion: 0,
+            abodeBonusMiniWorld: 0,
+            abodeBonusFiveAsthenia: 0,
             abodeTemperAuraCurio: 0,
             
             // Respira bonuses
@@ -101,6 +103,8 @@ class OvermortalCalculator {
             pillBonusNirvanaChariotMansion: 0,
             pillBonusNirvanaGhostMansion: 0,
             pillBonusNirvanaTurtleBeakMansion: 0,
+            pillBonusGlittedLotusThrone: 0,
+            pillBonusGlittedLotusSeed: 0,
             pillBonusCurio: 0,
             pillBonusImmortalFriends: 0,
             pillBonusTechnique: 0,
@@ -181,6 +185,8 @@ class OvermortalCalculator {
             pillBonusNirvanaChariotMansion: getNumberValue('pill-nirvana-chariot-mansion'),
             pillBonusNirvanaGhostMansion: getNumberValue('pill-nirvana-ghost-mansion'),
             pillBonusNirvanaTurtleBeakMansion: getNumberValue('pill-nirvana-turtle-beak-mansion'),
+            pillBonusGlittedLotusThrone: getNumberValue('pill-glitted-lotus-throne'),
+            pillBonusGlittedLotusSeed: getNumberValue('pill-glitted-lotus-seed'),
             pillBonusCurio,
             pillBonusImmortalFriends,
             pillBonusTechnique,
@@ -218,6 +224,8 @@ class OvermortalCalculator {
             abodeBonusNirvanaPathofAscension: getNumberValue('abode-nirvana-path-of-ascension'),
             abodeBonusNirvanaHornMansion: getNumberValue('abode-nirvana-horn-mansion'),
             abodeBonusNirvanaNeckMansion: getNumberValue('abode-nirvana-neck-mansion'),
+            abodeBonusMiniWorld: getNumberValue('abode-mini-world'),
+            abodeBonusFiveAsthenia: getNumberValue('abode-five-asthenia'),
             baseAbodeAura: GameConstants.abodeBase
         };
     }

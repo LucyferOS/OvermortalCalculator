@@ -51,6 +51,64 @@ describe('absorption bonus', () => {
     });
 });
 
+describe('Immortal World mechanics', () => {
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+        goldPill: 10, purplePill: 10, bluePill: 10, ...overrides
+    });
+
+    // Mini World and Five Asthenia are Abode Aura percentages, so Easy Mode's
+    // typed-in Abode Aura total subsumes them exactly like the other sources.
+    for (const field of ['abodeBonusMiniWorld', 'abodeBonusFiveAsthenia']) {
+        test(`${field} adds to the Abode Aura bonus total`, () => {
+            const base = XPCalculator.calculateTotalAbodeBonus(at({}));
+            assert.equal(XPCalculator.calculateTotalAbodeBonus(at({ [field]: 12 })), base + 12);
+        });
+
+        test(`${field} raises daily XP in detailed mode`, () => {
+            const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({}), 0);
+            const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ [field]: 12 }), 0);
+            assert.ok(some > none, `${field} was ignored: ${some} === ${none}`);
+        });
+
+        test(`${field} is ignored in Easy Mode`, () => {
+            const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+            const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at(easy), 0);
+            const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, [field]: 12 }), 0);
+            assert.equal(some, none, 'the typed-in Abode Aura total must subsume it');
+        });
+    }
+
+    // Answered by the maintainer: two bonuses to the same pill are percentages
+    // of the same stat, so they sum into one multiplier rather than compounding.
+    const stacking = [
+        ['goldPills', 'pillBonusNirvanaChariotMansion', 'pillBonusGlittedLotusThrone', 14.5, 28],
+        ['purplePills', 'pillBonusNirvanaTurtleBeakMansion', 'pillBonusGlittedLotusSeed', 12.2, 40]
+    ];
+
+    for (const [pill, mansionField, lotusField, mansionMax, lotusMax] of stacking) {
+        test(`${pill}: ${lotusField} adds to ${mansionField} rather than compounding`, () => {
+            const plain = XPCalculator.calculatePillXPBreakdown(at({}))[pill];
+            const both = XPCalculator.calculatePillXPBreakdown(
+                at({ [mansionField]: mansionMax, [lotusField]: lotusMax })
+            )[pill];
+
+            const added = plain * (1 + ((mansionMax + lotusMax) / 100));
+            const compounded = plain * (1 + (mansionMax / 100)) * (1 + (lotusMax / 100));
+
+            assert.ok(Math.abs(both - added) < 1e-6, `expected ${added}, got ${both}`);
+            assert.ok(compounded > added, 'the two stacking rules must actually differ');
+        });
+
+        test(`${pill}: the Glitted Lotus bonus still applies in Easy Mode`, () => {
+            const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+            const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at(easy), 0);
+            const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, [lotusField]: lotusMax }), 0);
+            assert.ok(some > none, `${lotusField} was ignored in Easy Mode: ${some} === ${none}`);
+        });
+    }
+});
+
 describe('MonsterScape absorption bonus', () => {
     // Answered by the maintainer: MonsterScape multiplies the whole Absorption
     // stat, so it scales the realm base and the Virya bonus together.

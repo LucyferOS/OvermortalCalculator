@@ -20,7 +20,7 @@ lucyfer_os
 # Limitations / Known issues
 
 * NOTE - THIS IS STILL BEING TESTED FOR ACCCURACY!!!		
-* I am currently only focusing on Spiritual World as this is what my sect is at currently. If you are in Immortal World, I do not account for your extra bonuses yet.
+* I am currently only focusing on Spiritual World as this is what my sect is at currently. Some Immortal World bonuses are now covered - Mini World and Five Asthenia Abode Aura, and the Glitted Lotus Seed and Throne pill bonuses - but that is not the full set, so if you are in Immortal World expect other bonuses of yours to still be unaccounted for.
 * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 * The MonsterScape Absorption Bonus is applied exactly as you enter it and does not grow over the course of a breakthrough - the calculator has no model for how quickly you gain it. Because of that, it is recommended to leave it at its minimum (0%) for a worst case, or set it to its maximum (70%) for a best case, rather than picking a value in between and treating the result as precise.
 * Abode Aura / Absorption easy mode only replaces Abode Aura and Absorption. The Nirvana mansions that boost pills and Respira (Chariot, Turtle Beak, Ghost, Dipper) are not part of either total, so they live on their own "Nirvana Mansions - Pill & Respira" card that stays visible in easy mode - fill it in either way. Only the Nirvana mansions that feed Abode Aura (Path of Ascension, Horn, Neck) are hidden with the rest of the Stage Specific Mechanics card.

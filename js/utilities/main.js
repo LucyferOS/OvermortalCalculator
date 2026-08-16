@@ -129,6 +129,8 @@ class OvermortalApp {
             'abode-nirvana-path-of-ascension': p.abodeBonusNirvanaPathofAscension,
             'abode-nirvana-horn-mansion': p.abodeBonusNirvanaHornMansion,
             'abode-nirvana-neck-mansion': p.abodeBonusNirvanaNeckMansion,
+            'abode-mini-world': p.abodeBonusMiniWorld || 0,
+            'abode-five-asthenia': p.abodeBonusFiveAsthenia || 0,
             
             // Techniques
             'pill-attempts-technique': p.pillAttemptsTechnique || 0,
@@ -155,6 +157,10 @@ class OvermortalApp {
             'pill-nirvana-ghost-mansion': p.pillBonusNirvanaGhostMansion,
             'pill-nirvana-turtle-beak-mansion': p.pillBonusNirvanaTurtleBeakMansion,
             'respira-nirvana-dipper-mansion': p.respiraNirvanaDipperMansion || 0,
+
+            // Immortal World Glitted Lotus bonuses
+            'pill-glitted-lotus-throne': p.pillBonusGlittedLotusThrone || 0,
+            'pill-glitted-lotus-seed': p.pillBonusGlittedLotusSeed || 0,
             
             // Fruits
             'fruits-count': p.fruitsCount,

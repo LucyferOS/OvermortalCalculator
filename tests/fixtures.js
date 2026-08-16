@@ -57,6 +57,8 @@ const BASE = {
     abodeBonusNirvanaPathofAscension: 0,
     abodeBonusNirvanaHornMansion: 0,
     abodeBonusNirvanaNeckMansion: 0,
+    abodeBonusMiniWorld: 0,
+    abodeBonusFiveAsthenia: 0,
     abodeTemperAuraCurio: 0,
 
     respiraAttemptsImmortalFriend: 0,
@@ -70,6 +72,8 @@ const BASE = {
     pillBonusNirvanaChariotMansion: 0,
     pillBonusNirvanaGhostMansion: 0,
     pillBonusNirvanaTurtleBeakMansion: 0,
+    pillBonusGlittedLotusThrone: 0,
+    pillBonusGlittedLotusSeed: 0,
     pillBonusCurio: 0,
     pillBonusImmortalFriends: 0,
     pillBonusTechnique: 0,
