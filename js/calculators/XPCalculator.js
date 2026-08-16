@@ -12,20 +12,68 @@ const BLUE_PILL_BONUSES = ['pillBonusNirvanaGhostMansion'];
 
 class XPCalculator {
     static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {
-        
-        const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
-        
-        const gemBonusXP = abodeAuraXP * GameConstants.gemQuality[playerData.gemQuality];
-        
+
+        const abodeXP = this.calculateAbodeXPTotal(playerData, absorptionBonus);
+
         const pillXP = this.calculatePillXP(playerData);
         
         const respiraXP = this.calculateRespiraXP(playerData);
         
         const pearlXP = this.calculatePearlXP(playerData, absorptionBonus);
-        
-        const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP + pearlXP;
-		
+
+        const total = abodeXP + pillXP + respiraXP + pearlXP;
+
         return total;
+    }
+
+    /**
+     * The aura gem's share of the day's Abode Aura XP.
+     *
+     * Auraseep (`abodeTemperAuraCurio`, element id `abode-temper-aura-curio`)
+     * multiplies exactly this and nothing else: 50% makes the gem worth 1.5x.
+     * It is a gem bonus rather than an Abode Aura one, so easy mode - which
+     * replaces the Abode Aura and Absorption totals - does not swallow it.
+     *
+     * Shared so the daily total, the analytics breakdown and the red pill
+     * analytic cannot disagree about what the gem is worth.
+     */
+    static calculateAuraGemXP(playerData, absorptionBonus) {
+        const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
+        const gemShare = abodeAuraXP * (GameConstants.gemQuality[playerData.gemQuality] || 0);
+
+        return gemShare * (1 + ((playerData.abodeTemperAuraCurio || 0) / 100));
+    }
+
+    /**
+     * The XP the abode yields in a day: the Abode Aura XP plus the aura gem's
+     * share of it, Auraseep included.
+     *
+     * The Pearl is deliberately not part of it: that is an artifact being spent,
+     * not the abode ticking over.
+     */
+    static calculateAbodeXPTotal(playerData, absorptionBonus) {
+        return this.calculateAbodeAuraXP(playerData, absorptionBonus)
+            + this.calculateAuraGemXP(playerData, absorptionBonus);
+    }
+
+    /**
+     * Wisdom Confluence: a percentage of the day's Abode Aura XP, paid into the
+     * **secondary path** on top of everything else.
+     *
+     * The aura gem is excluded - the Confluence draws on the aura itself, so
+     * neither the gem's quality nor Auraseep moves it.
+     *
+     * It is a second bucket being filled, not a faster fill rate, so it must not
+     * be folded into the daily total above - both paths generate XP at the same
+     * base rate, and only the path-specific sources (elixir for the main path,
+     * benediction and this for the secondary) may differ. The caller adds it
+     * where it books benediction.
+     */
+    static calculateWisdomConfluenceXP(playerData, absorptionBonus) {
+        const percent = playerData.wisdomConfluenceCurio || 0;
+        if (percent <= 0) return 0;
+
+        return this.calculateAbodeAuraXP(playerData, absorptionBonus) * (percent / 100);
     }
 
     static calculateTotalAbodeBonus(playerData) {

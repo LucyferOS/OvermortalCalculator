@@ -145,6 +145,7 @@ class OvermortalApp {
             'respira-attempt-curio': p.respiraAttemptsCurio,
             'respira-bonus-curio': p.respiraBonusCurio,
             'abode-temper-aura-curio': p.abodeTemperAuraCurio || 0,
+            'wisdom-confluence-curio': p.wisdomConfluenceCurio || 0,
             
             // Immortal Friends
             'pill-attempts-immortal-friends': p.pillAttemptsImmortalFriends || 0,

@@ -91,7 +91,11 @@ class OvermortalCalculator {
             abodeBonusMiniWorld: 0,
             abodeBonusFiveAsthenia: 0,
             abodeTemperAuraCurio: 0,
-            
+
+            // Wisdom Confluence: a share of the day's abode XP, paid into the
+            // secondary path
+            wisdomConfluenceCurio: 0,
+
             // Respira bonuses
             respiraAttemptsImmortalFriend: 0,
             respiraAttemptsTechnique: 0,
@@ -229,6 +233,13 @@ class OvermortalCalculator {
             abodeBonusNirvanaNeckMansion: getNumberValue('abode-nirvana-neck-mansion'),
             abodeBonusMiniWorld: getNumberValue('abode-mini-world'),
             abodeBonusFiveAsthenia: getNumberValue('abode-five-asthenia'),
+            // Neither of these is an Abode Aura bonus, so easy mode's typed-in
+            // Abode Aura total does not subsume them. Auraseep multiplies the
+            // aura gem's share; Wisdom Confluence takes a cut of the Abode Aura
+            // XP for the secondary path. The element id still says "temper aura"
+            // because saved data is keyed by it.
+            abodeTemperAuraCurio: getNumberValue('abode-temper-aura-curio'),
+            wisdomConfluenceCurio: getNumberValue('wisdom-confluence-curio'),
             baseAbodeAura: GameConstants.abodeBase
         };
     }
@@ -306,7 +317,7 @@ class OvermortalCalculator {
         const { mainPathAbsorptionBonus, secondaryPathAbsorptionBonus } = this.calculatePathAbsorptionBonuses(viryaInfo);
         // Calculate and store cosmoapsisValue using the correct main path absorption bonus (includes "had Virya last realm" bonus)
         this.playerData.cosmoapsisValue = XPCalculator.calculateCosmoapsisValue(this.playerData, mainPathAbsorptionBonus);
-        const { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP } =
+        const { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP, wisdomConfluenceXP } =
             this.calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus);
         // Update dailyXP to use the correct main path absorption bonus (includes "had Virya last realm" bonus)
         this.playerData.dailyXP = mainPathDailyXPBase;
@@ -321,7 +332,8 @@ class OvermortalCalculator {
 
         this.calculationResults = this.assembleResults(
             viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase,
-            realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus
+            realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons,
+            mainPathAbsorptionBonus, wisdomConfluenceXP
         );
         
         
@@ -424,11 +436,12 @@ class OvermortalCalculator {
         // Calculate base values (for analytics/Virya table) - full XP including path-specific sources
         const mainPathDailyXPBase = mainPathFocusXP + elixirXPWithMultiplier;
         
-        // Calculate secondary path focus XP and benediction
+        // Calculate secondary path focus XP, benediction and Wisdom Confluence
         let secondaryPathFocusXP = 0;
         let benedictionXPWithMultiplier = 0;
+        let wisdomConfluenceXP = 0;
         let secondaryPathDailyXPBase = 0;
-        
+
         // Rates come from the main path's realm even when the XP lands on the
         // secondary path, so this is the same state, differing only in the
         // absorption bonus each path currently gets. The two paths' totals
@@ -440,8 +453,13 @@ class OvermortalCalculator {
             // Calculate benediction XP (path-specific for secondary)
             const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
             benedictionXPWithMultiplier = benedictionXP * multiplier;
+            // Wisdom Confluence pays a share of the day's abode XP into the
+            // secondary path. Like benediction it is path-specific, so it is
+            // added here rather than inside the daily total - and unlike the
+            // focus XP it is earned whichever path the player is focusing.
+            wisdomConfluenceXP = XPCalculator.calculateWisdomConfluenceXP(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
             // Calculate base value (for analytics/Virya table) - full XP including benediction
-            secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
+            secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier + wisdomConfluenceXP;
         }
         
         // Calculate focus-dependent values (for Player Time to Cultivate)
@@ -452,16 +470,18 @@ class OvermortalCalculator {
         if (this.playerData.pathFocus === PATH_MAIN) {
             // Main path focused: gets focus XP + path-specific (elixir)
             mainPathDailyXP = mainPathFocusXP + elixirXPWithMultiplier;
-            // Secondary path not focused: only gets path-specific (benediction)
-            secondaryPathDailyXP = benedictionXPWithMultiplier;
+            // Secondary path not focused: only gets path-specific (benediction,
+            // Wisdom Confluence)
+            secondaryPathDailyXP = benedictionXPWithMultiplier + wisdomConfluenceXP;
         } else {
             // Main path not focused: only gets path-specific (elixir)
             mainPathDailyXP = elixirXPWithMultiplier;
-            // Secondary path focused: gets focus XP + path-specific (benediction)
-            secondaryPathDailyXP = secondaryPathFocusXP + benedictionXPWithMultiplier;
+            // Secondary path focused: gets focus XP + path-specific (benediction,
+            // Wisdom Confluence)
+            secondaryPathDailyXP = secondaryPathFocusXP + benedictionXPWithMultiplier + wisdomConfluenceXP;
         }
-        
-        return { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP };
+
+        return { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP, wisdomConfluenceXP };
     }
 
     calculateScenarioAnalysis(viryaInfo, mainPathDailyXPBase, dailyXP) {
@@ -509,11 +529,12 @@ class OvermortalCalculator {
         return scenarioComparisons;
     }
 
-    assembleResults(viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase, realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus) {
+    assembleResults(viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase, realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus, wisdomConfluenceXP = 0) {
         return {
             dailyXP: this.playerData.dailyXP,
             mainPathDailyXPBase,
             secondaryPathDailyXPBase,
+            wisdomConfluenceXP,
             mainPathAbsorptionBonus,
             realmProgression,
             fruitXPSingle: fruitData.fruitXPSingle,

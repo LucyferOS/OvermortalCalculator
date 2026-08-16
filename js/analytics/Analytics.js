@@ -22,8 +22,10 @@ class Analytics {
      */
     static calculateDailyXPBreakdown(playerData, absorptionBonus) {
         const abodeAura = XPCalculator.calculateAbodeAuraXP(playerData, absorptionBonus);
-        const gemBonus = abodeAura * (GameConstants.gemQuality[playerData.gemQuality] || 0);
-        
+        // Auraseep multiplies the gem's share, so the chart has to read it from
+        // the same helper the daily total does.
+        const gemBonus = XPCalculator.calculateAuraGemXP(playerData, absorptionBonus);
+
         // Get individual pill breakdown
         const pillBreakdown = this.calculatePillXPBreakdown(playerData);
         
@@ -313,8 +315,8 @@ class Analytics {
 
         // Calculate daily XP without red pills
         const abodeAura = XPCalculator.calculateAbodeAuraXP(playerData, absorptionBonus);
-        const gemBonus = abodeAura * (GameConstants.gemQuality[playerData.gemQuality] || 0);
-        
+        const gemBonus = XPCalculator.calculateAuraGemXP(playerData, absorptionBonus);
+
         // Daily XP with every source except red pills, since red pills are what
         // we are solving for.
         const pills = XPCalculator.calculatePillXPBreakdown(playerData);

@@ -14,6 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { PLAYERS } from './fixtures.js';
+import { OvermortalCalculator } from '../js/utilities/Calculator.js';
 import { XPCalculator } from '../js/calculators/XPCalculator.js';
 import { RealmCalculator } from '../js/calculators/RealmCalculator.js';
 import { ViryaCalculator } from '../js/calculators/ViryaCalculator.js';
@@ -64,6 +65,17 @@ function snapshotPlayer(player) {
 
     const progression = RealmCalculator.calculateProgression(player, mainDailyXP, secondaryDailyXP);
 
+    // Path daily XP as the app books it. The helper above deliberately leaves
+    // out the path-specific sources - elixir on the main path, benediction and
+    // Wisdom Confluence on the secondary - so this is the only place they are
+    // pinned, along with what path focus does to them.
+    const calculator = new OvermortalCalculator();
+    calculator.playerData = { ...player };
+    const bonuses = calculator.calculatePathAbsorptionBonuses(virya);
+    const paths = calculator.calculatePathDailyXP(
+        bonuses.mainPathAbsorptionBonus, bonuses.secondaryPathAbsorptionBonus
+    );
+
     // Scenario comparison, as the dashboard's Virya table builds it.
     const comparisons = {};
     const comparator = new ViryaScenarioComparator(player, mainDailyXP, 'snapshot', mainDailyXP, secondaryDailyXP);
@@ -102,6 +114,13 @@ function snapshotPlayer(player) {
         mainDailyXP: round(mainDailyXP),
         mainDailyXPNoBonus: round(mainDailyXPNoBonus),
         secondaryDailyXP: round(secondaryDailyXP),
+        pathDailyXP: {
+            mainBase: round(paths.mainPathDailyXPBase),
+            secondaryBase: round(paths.secondaryPathDailyXPBase),
+            mainWhenFocused: round(paths.mainPathDailyXP),
+            secondaryWhenFocused: round(paths.secondaryPathDailyXP),
+            wisdomConfluenceXP: round(paths.wisdomConfluenceXP)
+        },
         respiraXP: round(XPCalculator.calculateRespiraXP(player)),
         pillXP: round(XPCalculator.calculatePillXP(player)),
         pearlXP: round(XPCalculator.calculatePearlXP(player, virya.absorptionBonus)),

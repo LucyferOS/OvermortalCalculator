@@ -512,6 +512,186 @@ describe('XP rates are a main path property', () => {
     });
 });
 
+describe('Auraseep', () => {
+    // A curio percentage that multiplies the aura gem's share of the Abode Aura
+    // XP, and nothing else: 50% makes the gem worth 1.5x. The field was inert
+    // for a while - stored and restored, but read by no calculation - so these
+    // check it is actually wired up.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 55,
+        gemQuality: 'Epic', goldPill: 5, purplePill: 10, bluePill: 30,
+        ...overrides
+    });
+
+    test('it multiplies the gem share by 1 + the percentage', () => {
+        const plain = XPCalculator.calculateAuraGemXP(at({}), 0);
+        assert.ok(plain > 0);
+
+        for (const [percent, factor] of [[50, 1.5], [100, 2], [12.5, 1.125]]) {
+            const boosted = XPCalculator.calculateAuraGemXP(at({ abodeTemperAuraCurio: percent }), 0);
+            assert.ok(
+                Math.abs(boosted - plain * factor) < 1e-6,
+                `${percent}%: expected ${plain * factor}, got ${boosted}`
+            );
+        }
+    });
+
+    test('it boosts the gem only, not the Abode Aura XP itself', () => {
+        const plain = at({});
+        const boosted = at({ abodeTemperAuraCurio: 50 });
+
+        assert.equal(
+            XPCalculator.calculateAbodeAuraXP(boosted, 0),
+            XPCalculator.calculateAbodeAuraXP(plain, 0),
+            'Auraseep leaked into the Abode Aura XP'
+        );
+        assert.equal(
+            XPCalculator.calculateAbodeXPTotal(boosted, 0) - XPCalculator.calculateAbodeXPTotal(plain, 0),
+            XPCalculator.calculateAuraGemXP(boosted, 0) - XPCalculator.calculateAuraGemXP(plain, 0),
+            'the abode total moved by more than the gem did'
+        );
+    });
+
+    test('it raises daily XP', () => {
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ abodeTemperAuraCurio: 0 }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ abodeTemperAuraCurio: 50 }), 0);
+        assert.ok(some > none, `Auraseep was ignored: ${some} === ${none}`);
+    });
+
+    test('it still applies in easy mode', () => {
+        // It is a gem bonus, not an Abode Aura one, so the typed-in Abode Aura
+        // total does not subsume it - same rule as the pill and Respira bonuses.
+        const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, abodeTemperAuraCurio: 50 }), 0);
+        assert.ok(some > none, `Auraseep was swallowed by easy mode: ${some} === ${none}`);
+    });
+
+    test('with no aura gem there is nothing to multiply', () => {
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ gemQuality: 'No Aura' }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+            at({ gemQuality: 'No Aura', abodeTemperAuraCurio: 50 }), 0
+        );
+        assert.equal(some, none, 'Auraseep paid out without a gem to boost');
+    });
+
+    test('zero or missing leaves the gem exactly as it was', () => {
+        const plain = XPCalculator.calculateAuraGemXP(at({ abodeTemperAuraCurio: 0 }), 0);
+
+        const missing = at({});
+        delete missing.abodeTemperAuraCurio;
+        assert.equal(XPCalculator.calculateAuraGemXP(missing, 0), plain);
+    });
+});
+
+describe('Wisdom Confluence', () => {
+    // A share of the day's abode XP, paid into the secondary path. It is a
+    // second bucket being filled, not a faster fill rate: folding it into the
+    // shared daily total would speed the main path up too, and would break the
+    // rule above that both paths generate XP at the same base rate.
+    const PERCENT = 25;
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 55,
+        secondaryPathRealm: 'Perfection Late', secondaryPathProgress: 80,
+        gemQuality: 'Epic', goldPill: 5, purplePill: 10, bluePill: 30,
+        ...overrides
+    });
+
+    const rates = (player) => {
+        const calc = new OvermortalCalculator();
+        calc.playerData = player;
+        const bonuses = calc.calculatePathAbsorptionBonuses(ViryaCalculator.detectScenario(player));
+        return calc.calculatePathDailyXP(
+            bonuses.mainPathAbsorptionBonus, bonuses.secondaryPathAbsorptionBonus
+        );
+    };
+
+    test('it pays the stated percentage of the day Abode Aura XP', () => {
+        const player = at({ wisdomConfluenceCurio: PERCENT });
+        const abodeAuraXP = XPCalculator.calculateAbodeAuraXP(player, 0);
+
+        assert.ok(abodeAuraXP > 0, 'the fixture must actually earn Abode Aura XP');
+        assert.equal(rates(player).wisdomConfluenceXP, abodeAuraXP * (PERCENT / 100));
+    });
+
+    test('the aura gem is excluded from what it draws on', () => {
+        // The Confluence takes its cut of the aura itself, so neither the gem's
+        // quality nor Auraseep may move it.
+        const baseline = rates(at({ wisdomConfluenceCurio: PERCENT })).wisdomConfluenceXP;
+        assert.ok(baseline > 0);
+
+        for (const overrides of [{ gemQuality: 'Mythic' }, { gemQuality: 'No Aura' }, { abodeTemperAuraCurio: 80 }]) {
+            assert.equal(
+                rates(at({ wisdomConfluenceCurio: PERCENT, ...overrides })).wisdomConfluenceXP,
+                baseline,
+                `${JSON.stringify(overrides)} moved the Confluence, but the gem is not part of it`
+            );
+        }
+    });
+
+    test('it lands on the secondary path and nowhere else', () => {
+        const without = rates(at({ wisdomConfluenceCurio: 0 }));
+        const with_ = rates(at({ wisdomConfluenceCurio: PERCENT }));
+
+        assert.ok(with_.wisdomConfluenceXP > 0);
+        assert.equal(with_.mainPathDailyXPBase, without.mainPathDailyXPBase, 'the main path was credited');
+        assert.equal(with_.mainPathDailyXP, without.mainPathDailyXP, 'the focused main path was credited');
+        assert.equal(
+            with_.secondaryPathDailyXPBase,
+            without.secondaryPathDailyXPBase + with_.wisdomConfluenceXP,
+            'the secondary path did not receive exactly the Confluence'
+        );
+    });
+
+    test('it does not change the rate either path generates XP at', () => {
+        // Guards the fold-it-into-the-daily-total mistake: the shared engine
+        // must be untouched, or the main path speeds up too.
+        const without = at({ wisdomConfluenceCurio: 0 });
+        const with_ = at({ wisdomConfluenceCurio: PERCENT });
+
+        for (const path of ['main', 'secondary']) {
+            assert.equal(
+                Progression.dailyXPForPath(with_, path, 0),
+                Progression.dailyXPForPath(without, path, 0),
+                `the ${path} path base rate moved with Wisdom Confluence`
+            );
+        }
+    });
+
+    test('it is earned whichever path is focused', () => {
+        const onMain = rates(at({ wisdomConfluenceCurio: PERCENT, pathFocus: PATH_MAIN }));
+        const onSecondary = rates(at({ wisdomConfluenceCurio: PERCENT, pathFocus: PATH_SECONDARY }));
+
+        assert.equal(onMain.wisdomConfluenceXP, onSecondary.wisdomConfluenceXP);
+        // The unfocused secondary path earns nothing but its path-specific
+        // sources, so the Confluence is all of it here.
+        assert.equal(
+            rates(at({ wisdomConfluenceCurio: PERCENT, pathFocus: PATH_MAIN })).secondaryPathDailyXP,
+            onMain.wisdomConfluenceXP,
+            'a day spent on the main path must still pay the Confluence'
+        );
+    });
+
+    test('it still applies in easy mode', () => {
+        // Easy mode replaces the abode total with a typed-in one; it does not
+        // stop the abode producing XP, so the Confluence takes its cut of that.
+        const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+        const without = rates(at({ ...easy, wisdomConfluenceCurio: 0 }));
+        const with_ = rates(at({ ...easy, wisdomConfluenceCurio: PERCENT }));
+
+        assert.ok(with_.wisdomConfluenceXP > 0, 'easy mode swallowed the Confluence');
+        assert.equal(with_.secondaryPathDailyXPBase, without.secondaryPathDailyXPBase + with_.wisdomConfluenceXP);
+    });
+
+    test('zero or missing pays nothing', () => {
+        assert.equal(rates(at({ wisdomConfluenceCurio: 0 })).wisdomConfluenceXP, 0);
+
+        const missing = at({});
+        delete missing.wisdomConfluenceCurio;
+        assert.equal(rates(missing).wisdomConfluenceXP, 0);
+    });
+});
+
 describe('fruit projection horizon', () => {
     // The horizon used to be each path's own time to breakthrough, taken from
     // the focus-dependent daily XP. The unfocused path receives only its
