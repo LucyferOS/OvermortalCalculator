@@ -13,7 +13,14 @@ class Dashboard {
     static updateDashboard(results, playerData) {
         // Update Virya display - this is the main display that shows the virya scenario and the bonus.
         if (results.virya) {
-            ViryaTable.updateViryaDisplay(results.virya, playerData, results.dailyXP, results.mainPathDailyXPBase, results.secondaryPathDailyXPBase);
+            ViryaTable.updateViryaDisplay(
+                results.virya,
+                playerData,
+                results.dailyXP,
+                results.mainPathDailyXPBase,
+                results.secondaryPathDailyXPBase,
+                this.fruitDaysSaved(results, 'fruitXPTotalMax')
+            );
         }
         
         // Update basic path information
@@ -118,6 +125,20 @@ class Dashboard {
         { path: 'secondaryPath', time: 'timeToNextMajor', rate: 'secondaryPathDailyXPBase', suffix: 'major-secondary' }
     ];
 
+    /**
+     * Days a fruit stock is worth: its XP cashed in at a base daily rate.
+     * `xpKey` picks the stock (current or max extractor), `rateKey` the path.
+     *
+     * The "Total Days Saved" headline on each fruit card is this at the main
+     * path's base rate, and the Virya table's "Time with Fruits" column quotes
+     * the max-fruit one, so the two figures agree by construction.
+     */
+    static fruitDaysSaved(results, xpKey, rateKey = 'mainPathDailyXPBase') {
+        const fruitXP = results.fruitProjection?.[xpKey] || 0;
+        const dailyXP = results[rateKey] || 0;
+        return (fruitXP > 0 && dailyXP > 0) ? fruitXP / dailyXP : 0;
+    }
+
     static updateFruitDisplays(results) {
         this.renderFruitCard(results, { prefix: 'fruits', xpKey: 'fruitXPTotal' });
     }
@@ -136,18 +157,17 @@ class Dashboard {
 
         // One stock, one XP total: every row is measured against the fruits the
         // player will hold when the timegate lifts.
-        const fruitXP = results.fruitProjection?.[xpKey] || 0;
-        const daysSavedAt = (dailyXP) => ((fruitXP > 0 && dailyXP > 0) ? fruitXP / dailyXP : 0);
+        const daysSavedAt = (rateKey) => Dashboard.fruitDaysSaved(results, xpKey, rateKey);
 
         // The headline is the main path's saving.
-        const headlineSaved = daysSavedAt(results.mainPathDailyXPBase || 0);
+        const headlineSaved = daysSavedAt('mainPathDailyXPBase');
         Dom.updateElementText(`${prefix}-days-saved-display`, headlineSaved > 0 ? format(headlineSaved) : '0d');
 
         for (const { path, time, rate, suffix } of Dashboard.FRUIT_ROWS) {
             const pathData = results.realmProgression?.[path];
             if (!pathData) continue;
 
-            const daysSaved = daysSavedAt(results[rate] || 0);
+            const daysSaved = daysSavedAt(rate);
             const timeWithFruits = Math.max(0, pathData[time] - daysSaved);
 
             if (daysSaved > 0 && timeWithFruits === 0) {

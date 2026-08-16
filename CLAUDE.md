@@ -224,6 +224,14 @@ the canonical list. Key shape:
   Guarded by `tests/invariants.test.js` ("the tier walk agrees with the
   dashboard" and "Wisdom Confluence in the Virya table"), including that a player
   without the curio sees no change.
+- **The Virya table's "Time with Fruits" column is a display-layer subtraction.**
+  It is Time to Cultivate minus the max-fruit card's "Total Days Saved" headline —
+  the max-fruit stock cashed in at the *main path's* base rate, even for a tier
+  reached on the secondary path, because that is the number the player reads on
+  the dashboard and can subtract by hand. Both figures come from
+  `Dashboard.fruitDaysSaved(results, 'fruitXPTotalMax')`; recomputing the saving
+  in `ui/viryaTable.js` is how the two stop agreeing. No calculator knows about
+  this column.
 - **The aura gem's share is its own term, and Auraseep multiplies it.**
   `XPCalculator.calculateAuraGemXP()` is the gem's cut of the Abode Aura XP times
   `1 + abodeTemperAuraCurio/100` — Auraseep at 50% makes the gem worth 1.5x, and
@@ -265,7 +273,7 @@ the canonical list. Key shape:
   overflow handling and `maxRealm` stopping rules. Change it with the snapshot
   in hand, not by reading alone.
 - View element ids follow patterns: Virya table cells are
-  `virya-{completion|eminence|perfect|halfstep}-{time|date|focus|next-realm|xp}`;
+  `virya-{completion|eminence|perfect|halfstep}-{time|date|fruits-time|focus|next-realm|xp}`;
   fruit rows are `fruits[-max]-{minor|major}-{main|secondary}-{time|date}-display`.
   The scenario key is `scenario.toLowerCase().replace('-','')`.
 - `ui/viryaTable.js` and `ui/analyticsView.js` call calculators directly rather
