@@ -14,11 +14,11 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { PLAYERS } from './fixtures.js';
-import { XPCalculator } from '../js/dashboard/XPCalculator.js';
-import { RealmCalculator } from '../js/dashboard/RealmCalculator.js';
-import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
-import { FruitCalculator } from '../js/dashboard/FruitCalculator.js';
-import { ViryaScenarioComparator } from '../js/dashboard/ViryaScenarioComparator.js';
+import { XPCalculator } from '../js/calculators/XPCalculator.js';
+import { RealmCalculator } from '../js/calculators/RealmCalculator.js';
+import { ViryaCalculator } from '../js/calculators/ViryaCalculator.js';
+import { FruitCalculator } from '../js/calculators/FruitCalculator.js';
+import { ViryaScenarioComparator } from '../js/calculators/ViryaScenarioComparator.js';
 import {
     VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION,
     SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP

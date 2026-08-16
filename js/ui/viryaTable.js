@@ -5,7 +5,7 @@
 import { PATH_MAIN, PATH_SECONDARY, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_HALF_STEP, SCENARIO_NO_VIRYA, SCENARIO_PERFECT, VIRYA_SCENARIO_ORDER } from '../utilities/gameData.js';
 import { CalculatorUtils } from '../utilities/utils.js';
 import { Dom } from './dom.js';
-import { ViryaCalculator } from '../dashboard/ViryaCalculator.js';
+import { ViryaCalculator } from '../calculators/ViryaCalculator.js';
 
 class ViryaTable {
     static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {

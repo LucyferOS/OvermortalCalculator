@@ -14,9 +14,9 @@
 //      early is not possible.
 //   3. Progress through the next realm.             (left to the caller)
 
-import { RealmProgressionSimulator } from '../dashboard/RealmProgressionSimulator.js';
-import { XPCalculator } from '../dashboard/XPCalculator.js';
-import { ViryaCalculator } from '../dashboard/ViryaCalculator.js';
+import { RealmProgressionSimulator } from '../calculators/RealmProgressionSimulator.js';
+import { XPCalculator } from '../calculators/XPCalculator.js';
+import { ViryaCalculator } from '../calculators/ViryaCalculator.js';
 import { ViryaRules } from './ViryaRules.js';
 import { nextMajor as nextMajorOf, realmXP, splitRealm } from '../domain/realms.js';
 import { XPData, timegateLength, PERCENTAGE_COMPLETE } from '../utilities/gameData.js';
