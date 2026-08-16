@@ -27,6 +27,24 @@ class XPCalculator {
     }
 
     /**
+     * The aura gem's share of the day's Abode Aura XP, before Auraseep.
+     */
+    static calculateAuraGemBaseXP(playerData, absorptionBonus) {
+        const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
+        return abodeAuraXP * (GameConstants.gemQuality[playerData.gemQuality] || 0);
+    }
+
+    /**
+     * What Auraseep adds on top of the gem's own share - the part of the day's
+     * XP the curio is responsible for, which is what the analytics breakdown
+     * draws as its own slice.
+     */
+    static calculateAuraseepXP(playerData, absorptionBonus) {
+        return this.calculateAuraGemBaseXP(playerData, absorptionBonus)
+            * ((playerData.abodeTemperAuraCurio || 0) / 100);
+    }
+
+    /**
      * The aura gem's share of the day's Abode Aura XP.
      *
      * Auraseep (`abodeTemperAuraCurio`, element id `abode-temper-aura-curio`)
@@ -38,10 +56,8 @@ class XPCalculator {
      * analytic cannot disagree about what the gem is worth.
      */
     static calculateAuraGemXP(playerData, absorptionBonus) {
-        const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
-        const gemShare = abodeAuraXP * (GameConstants.gemQuality[playerData.gemQuality] || 0);
-
-        return gemShare * (1 + ((playerData.abodeTemperAuraCurio || 0) / 100));
+        return this.calculateAuraGemBaseXP(playerData, absorptionBonus)
+            + this.calculateAuraseepXP(playerData, absorptionBonus);
     }
 
     /**
@@ -57,23 +73,37 @@ class XPCalculator {
     }
 
     /**
-     * Wisdom Confluence: a percentage of the day's Abode Aura XP, paid into the
-     * **secondary path** on top of everything else.
+     * A Wisdom Confluence payout: the given percentage of the day's Abode Aura
+     * XP.
      *
-     * The aura gem is excluded - the Confluence draws on the aura itself, so
-     * neither the gem's quality nor Auraseep moves it.
+     * The curio comes in two halves, named here as the game names them:
      *
-     * It is a second bucket being filled, not a faster fill rate, so it must not
-     * be folded into the daily total above - both paths generate XP at the same
-     * base rate, and only the path-specific sources (elixir for the main path,
-     * benediction and this for the secondary) may differ. The caller adds it
-     * where it books benediction.
+     *   - **Aux Cultivation %** pays into the **secondary** path.
+     *   - **Daily EXP %** pays into the **main** path.
+     *
+     * They are otherwise identical, so they share this one term. The aura gem is
+     * excluded from what either draws on - the Confluence takes its cut of the
+     * aura itself, so neither the gem's quality nor Auraseep moves it.
+     *
+     * Each is a second bucket being filled, not a faster fill rate, so neither
+     * may be folded into `calculateDailyXPWithAbsorptionBonus` - both paths
+     * generate XP at the same base rate, and only the path-specific sources may
+     * differ. The caller adds each where it books that path's pill.
      */
-    static calculateWisdomConfluenceXP(playerData, absorptionBonus) {
-        const percent = playerData.wisdomConfluenceCurio || 0;
-        if (percent <= 0) return 0;
+    static wisdomConfluenceShare(playerData, absorptionBonus, percent) {
+        if (!(percent > 0)) return 0;
 
         return this.calculateAbodeAuraXP(playerData, absorptionBonus) * (percent / 100);
+    }
+
+    /** Wisdom Confluence - Aux Cultivation %. Secondary path only. */
+    static calculateWisdomConfluenceAuxXP(playerData, absorptionBonus) {
+        return this.wisdomConfluenceShare(playerData, absorptionBonus, playerData.wisdomConfluenceAuxCurio || 0);
+    }
+
+    /** Wisdom Confluence - Daily EXP %. Main path only. */
+    static calculateWisdomConfluenceDailyXP(playerData, absorptionBonus) {
+        return this.wisdomConfluenceShare(playerData, absorptionBonus, playerData.wisdomConfluenceDailyCurio || 0);
     }
 
     static calculateTotalAbodeBonus(playerData) {
@@ -115,12 +145,25 @@ class XPCalculator {
         return base * (1 + ((playerData.absorptionBonusMonsterScape || 0) / 100));
     }
 
+    /**
+     * The easy-mode Absorption, converted from the percentage the game shows to
+     * the multiplier the maths uses.
+     *
+     * The game states Absorption as a percentage - 220% where the realm table
+     * here holds 2.2 - and the input asks for the figure as shown, so it has to
+     * be divided by 100. Reading it as a bare multiplier made every easy-mode
+     * player's XP come out 100x high.
+     */
+    static easyModeAbsorption(playerData) {
+        return (playerData.absorptionEasyPercent || 0) / 100;
+    }
+
     static calculateCosmoapsisValue(playerData, absorptionBonus) {
         const totalAbode = this.calculateTotalAbode(playerData);
 
         // Easy mode: skip the realm base + Virya bonus breakdown and use the total entered directly
         const effectiveAbsorption = playerData.abodeEasyMode
-            ? (playerData.absorptionEasyValue || 0)
+            ? this.easyModeAbsorption(playerData)
             : this.calculateAbsorption(playerData, absorptionBonus);
 
         // Multiply total abode by effectiveAbsorption to get cosmoapsisValue

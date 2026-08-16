@@ -13,7 +13,8 @@
       "secondaryBase": 1690466.9,
       "mainWhenFocused": 1690466.9,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 101362.5,
     "pillXP": 1099529.6,
@@ -86,7 +87,8 @@
       "secondaryBase": 1753787.3,
       "mainWhenFocused": 1753787.3,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 101362.5,
     "pillXP": 1099529.6,
@@ -159,7 +161,8 @@
       "secondaryBase": 4485537.1,
       "mainWhenFocused": 4485537.1,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
@@ -232,7 +235,8 @@
       "secondaryBase": 4794417.1,
       "mainWhenFocused": 4794417.1,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
@@ -305,7 +309,8 @@
       "secondaryBase": 4794417.1,
       "mainWhenFocused": 4794417.1,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
@@ -378,7 +383,8 @@
       "secondaryBase": 4794417.1,
       "mainWhenFocused": 4794417.1,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
@@ -451,7 +457,8 @@
       "secondaryBase": 4794417.1,
       "mainWhenFocused": 4794417.1,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
@@ -524,7 +531,8 @@
       "secondaryBase": 5103297.1,
       "mainWhenFocused": 5103297.1,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
@@ -597,7 +605,8 @@
       "secondaryBase": 3342869.4,
       "mainWhenFocused": 3342869.4,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 149175,
     "pillXP": 1649294.4,
@@ -670,7 +679,8 @@
       "secondaryBase": 3342869.4,
       "mainWhenFocused": 3342869.4,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 149175,
     "pillXP": 1649294.4,
@@ -743,7 +753,8 @@
       "secondaryBase": 3342869.4,
       "mainWhenFocused": 3342869.4,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 149175,
     "pillXP": 1649294.4,
@@ -816,7 +827,8 @@
       "secondaryBase": 41571899.07,
       "mainWhenFocused": 41221499.07,
       "secondaryWhenFocused": 1128000,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 803250,
     "pillXP": 30482974.83,
@@ -889,7 +901,8 @@
       "secondaryBase": 42955853.01,
       "mainWhenFocused": 43869353.01,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 506047.5,
     "pillXP": 30449817.51,
@@ -958,11 +971,12 @@
     "mainDailyXPNoBonus": 23601749.4,
     "secondaryDailyXP": 23601749.4,
     "pathDailyXP": {
-      "mainBase": 23601749.4,
+      "mainBase": 24366227.4,
       "secondaryBase": 25815879.4,
-      "mainWhenFocused": 23601749.4,
+      "mainWhenFocused": 24366227.4,
       "secondaryWhenFocused": 2214130,
-      "wisdomConfluenceXP": 1274130
+      "wisdomConfluenceAuxXP": 1274130,
+      "wisdomConfluenceDailyXP": 764478
     },
     "respiraXP": 478125,
     "pillXP": 16498148.4,
@@ -1035,7 +1049,8 @@
       "secondaryBase": 34982062.3,
       "mainWhenFocused": 34982062.3,
       "secondaryWhenFocused": 0,
-      "wisdomConfluenceXP": 0
+      "wisdomConfluenceAuxXP": 0,
+      "wisdomConfluenceDailyXP": 0
     },
     "respiraXP": 717187.5,
     "pillXP": 17727914.8,

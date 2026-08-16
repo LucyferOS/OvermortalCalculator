@@ -43,8 +43,8 @@ class Dashboard {
             this.updatePathResults('secondary', results.realmProgression.secondaryPath, playerData.pathFocus === PATH_SECONDARY);
         }
 
-        this.updateFruitDisplays(results);
-        this.updateMaxFruitDisplays(results);
+        this.updateFruitDisplays(results, playerData.pathFocus);
+        this.updateMaxFruitDisplays(results, playerData.pathFocus);
         this.updateFruitRecommendations(results);
         
         // Update Virya comparison cells
@@ -63,9 +63,34 @@ class Dashboard {
         AnalyticsView.updateAnalytics(results, playerData);
     }
 
+    /**
+     * What an unfocused path's timings read as.
+     *
+     * Path focus is all-or-nothing: a path the player is not focusing banks only
+     * its own path-specific sources, so its "time to next realm" is a figure
+     * measured in years that says nothing about any plan the player is actually
+     * considering. Showing a dash is the honest version - the number exists, but
+     * only for the path being pushed.
+     */
+    static UNFOCUSED_TIME = '-';
+    static UNFOCUSED_DATE = '--';
+
     static updatePathResults(prefix, pathData, isFocused = false) {
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
+
+        // Progress bars still show real state, so they are filled in either way;
+        // only the projections are withheld.
+        if (!isFocused) {
+            for (const stage of ['minor', 'major']) {
+                Dom.updateElementText(`${prefix}-${stage}-time-display`, Dashboard.UNFOCUSED_TIME);
+                Dom.updateElementText(`${prefix}-${stage}-date-display`, Dashboard.UNFOCUSED_DATE);
+                this.setFocusHighlight(`${prefix}-${stage}-time-display`, false);
+            }
+            Dom.updateProgressBar(`${prefix}-minor-progress-display`, pathData.progressPercentMinor);
+            Dom.updateProgressBar(`${prefix}-major-progress-display`, pathData.progressPercentMajor);
+            return;
+        }
 
         // Minor realm
         if (pathData.progressPercentMinor >= 100) {
@@ -76,16 +101,7 @@ class Dashboard {
             Dom.updateElementText(`${prefix}-minor-date-display`, `Estimated: ${formatDate(pathData.timeToNextMinor)}`);
         }
         Dom.updateProgressBar(`${prefix}-minor-progress-display`, pathData.progressPercentMinor);
-        
-        // Add focus indicator to minor result box
-        const minorResultBox = document.querySelector(`#${prefix}-minor-time-display`)?.closest('.result-box');
-        if (minorResultBox) {
-            if (isFocused) {
-                minorResultBox.classList.add('path-focused');
-            } else {
-                minorResultBox.classList.remove('path-focused');
-            }
-        }
+        this.setFocusHighlight(`${prefix}-minor-time-display`, isFocused);
 
         // Major realm
         if (pathData.progressPercentMajor >= 100) {
@@ -96,16 +112,13 @@ class Dashboard {
             Dom.updateElementText(`${prefix}-major-date-display`, `Estimated: ${formatDate(pathData.timeToNextMajor)}`);
         }
         Dom.updateProgressBar(`${prefix}-major-progress-display`, pathData.progressPercentMajor);
-        
-        // Add focus indicator to major result box
-        const majorResultBox = document.querySelector(`#${prefix}-major-time-display`)?.closest('.result-box');
-        if (majorResultBox) {
-            if (isFocused) {
-                majorResultBox.classList.add('path-focused');
-            } else {
-                majorResultBox.classList.remove('path-focused');
-            }
-        }
+        this.setFocusHighlight(`${prefix}-major-time-display`, isFocused);
+    }
+
+    /** Marks the result box a time display sits in as the focused path's. */
+    static setFocusHighlight(timeDisplayId, isFocused) {
+        const resultBox = document.querySelector(`#${timeDisplayId}`)?.closest('.result-box');
+        resultBox?.classList.toggle('path-focused', isFocused);
     }
 
     /**
@@ -119,10 +132,10 @@ class Dashboard {
      * focus-dependent rate made the unfocused path's saving explode.
      */
     static FRUIT_ROWS = [
-        { path: 'mainPath', time: 'timeToNextMinor', rate: 'mainPathDailyXPBase', suffix: 'minor-main' },
-        { path: 'mainPath', time: 'timeToNextMajor', rate: 'mainPathDailyXPBase', suffix: 'major-main' },
-        { path: 'secondaryPath', time: 'timeToNextMinor', rate: 'secondaryPathDailyXPBase', suffix: 'minor-secondary' },
-        { path: 'secondaryPath', time: 'timeToNextMajor', rate: 'secondaryPathDailyXPBase', suffix: 'major-secondary' }
+        { path: 'mainPath', focus: PATH_MAIN, time: 'timeToNextMinor', rate: 'mainPathDailyXPBase', suffix: 'minor-main' },
+        { path: 'mainPath', focus: PATH_MAIN, time: 'timeToNextMajor', rate: 'mainPathDailyXPBase', suffix: 'major-main' },
+        { path: 'secondaryPath', focus: PATH_SECONDARY, time: 'timeToNextMinor', rate: 'secondaryPathDailyXPBase', suffix: 'minor-secondary' },
+        { path: 'secondaryPath', focus: PATH_SECONDARY, time: 'timeToNextMajor', rate: 'secondaryPathDailyXPBase', suffix: 'major-secondary' }
     ];
 
     /**
@@ -139,19 +152,24 @@ class Dashboard {
         return (fruitXP > 0 && dailyXP > 0) ? fruitXP / dailyXP : 0;
     }
 
-    static updateFruitDisplays(results) {
-        this.renderFruitCard(results, { prefix: 'fruits', xpKey: 'fruitXPTotal' });
+    static updateFruitDisplays(results, pathFocus) {
+        this.renderFruitCard(results, { prefix: 'fruits', xpKey: 'fruitXPTotal', pathFocus });
     }
 
-    static updateMaxFruitDisplays(results) {
-        this.renderFruitCard(results, { prefix: 'fruits-max', xpKey: 'fruitXPTotalMax' });
+    static updateMaxFruitDisplays(results, pathFocus) {
+        this.renderFruitCard(results, { prefix: 'fruits-max', xpKey: 'fruitXPTotalMax', pathFocus });
     }
 
     /**
      * Renders one of the two fruit cards. They differ only in which extractor
      * the fruit XP was costed at and which element ids they write to.
+     *
+     * Rows for the path the player is not focusing are dashed out for the same
+     * reason the Player Time to Cultivate card dashes its own: they are that
+     * path's breakthrough shortened by fruits, and an unfocused path's
+     * breakthrough is not a date anyone is planning around.
      */
-    static renderFruitCard(results, { prefix, xpKey }) {
+    static renderFruitCard(results, { prefix, xpKey, pathFocus }) {
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
 
@@ -163,9 +181,15 @@ class Dashboard {
         const headlineSaved = daysSavedAt('mainPathDailyXPBase');
         Dom.updateElementText(`${prefix}-days-saved-display`, headlineSaved > 0 ? format(headlineSaved) : '0d');
 
-        for (const { path, time, rate, suffix } of Dashboard.FRUIT_ROWS) {
+        for (const { path, focus, time, rate, suffix } of Dashboard.FRUIT_ROWS) {
             const pathData = results.realmProgression?.[path];
             if (!pathData) continue;
+
+            if (pathFocus && focus !== pathFocus) {
+                Dom.updateElementText(`${prefix}-${suffix}-time-display`, Dashboard.UNFOCUSED_TIME);
+                Dom.updateElementText(`${prefix}-${suffix}-date-display`, Dashboard.UNFOCUSED_DATE);
+                continue;
+            }
 
             const daysSaved = daysSavedAt(rate);
             const timeWithFruits = Math.max(0, pathData[time] - daysSaved);

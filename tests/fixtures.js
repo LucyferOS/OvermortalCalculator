@@ -40,7 +40,7 @@ const BASE = {
 
     abodeEasyMode: false,
     abodeAuraEasyValue: 130.0,
-    absorptionEasyValue: 0.317,
+    absorptionEasyPercent: 31.7,
 
     absorptionBonusMonsterScape: 0,
 
@@ -60,7 +60,8 @@ const BASE = {
     abodeBonusMiniWorld: 0,
     abodeBonusFiveAsthenia: 0,
     abodeTemperAuraCurio: 0,
-    wisdomConfluenceCurio: 0,
+    wisdomConfluenceAuxCurio: 0,
+    wisdomConfluenceDailyCurio: 0,
 
     respiraAttemptsImmortalFriend: 0,
     respiraAttemptsTechnique: 0,
@@ -222,9 +223,10 @@ export const PLAYERS = {
         timegateDays: 10
     }),
 
-    // The two curios that are not Abode Aura bonuses: Wisdom Confluence feeding
-    // the secondary path, and Auraseep multiplying the aura gem. The paths sit
-    // in different majors so a rate priced off the wrong one would show up.
+    // The curios that are not Abode Aura bonuses: the two Wisdom Confluence
+    // shares - Aux Cultivation feeding the secondary path, Daily EXP the main
+    // one - and Auraseep multiplying the aura gem. The paths sit in different
+    // majors so a rate priced off the wrong one would show up.
     curios: makePlayer({
         mainPathRealm: 'Nirvana Mid', mainPathProgress: 55,
         secondaryPathRealm: 'Perfection Late', secondaryPathProgress: 80,
@@ -232,7 +234,7 @@ export const PLAYERS = {
         goldPill: 5, purplePill: 10, bluePill: 30,
         benediction: 2, benedictionConsumed: 30,
         abodeBonusSectLevel: 40, abodeBonusCelestialSpring: 25,
-        wisdomConfluenceCurio: 25, abodeTemperAuraCurio: 50
+        wisdomConfluenceAuxCurio: 25, wisdomConfluenceDailyCurio: 15, abodeTemperAuraCurio: 50
     }),
 
     easyMode: makePlayer({
@@ -240,7 +242,7 @@ export const PLAYERS = {
         secondaryPathRealm: 'Nirvana Late', secondaryPathProgress: 90,
         abodeEasyMode: true,
         abodeAuraEasyValue: 480,
-        absorptionEasyValue: 2.9
+        absorptionEasyPercent: 290
     })
 };
 

@@ -61,8 +61,9 @@ export function benedictionXP(playerData) {
  *
  * `dailyXPForPath` above is the character's rate alone - the same for both
  * paths, since it is priced off the main path's realm. These two add what only
- * one path collects: elixir for the main path, benediction and the Wisdom
- * Confluence for the secondary.
+ * one path collects: elixir and the Wisdom Confluence's Daily EXP share for the
+ * main path, benediction and the Confluence's Aux Cultivation share for the
+ * secondary.
  *
  * They live here, and not in each caller, because two callers need the same
  * figure at *different* absorption bonuses. `Calculator` wants it at the bonus
@@ -73,7 +74,9 @@ export function benedictionXP(playerData) {
  * bonus a tier reached en route grants.
  */
 export function mainPathDailyXPBase(playerData, absorptionBonus) {
-    return dailyXPForPath(playerData, 'main', absorptionBonus) + elixirXP(playerData);
+    return dailyXPForPath(playerData, 'main', absorptionBonus)
+        + elixirXP(playerData)
+        + XPCalculator.calculateWisdomConfluenceDailyXP(playerData, absorptionBonus);
 }
 
 export function secondaryPathDailyXPBase(playerData, absorptionBonus) {
@@ -82,7 +85,7 @@ export function secondaryPathDailyXPBase(playerData, absorptionBonus) {
 
     return dailyXPForPath(state, 'secondary', absorptionBonus)
         + benedictionXP(state)
-        + XPCalculator.calculateWisdomConfluenceXP(state, absorptionBonus);
+        + XPCalculator.calculateWisdomConfluenceAuxXP(state, absorptionBonus);
 }
 
 /**

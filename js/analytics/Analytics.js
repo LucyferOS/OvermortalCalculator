@@ -15,24 +15,42 @@ class Analytics {
     }
 
     /**
-     * Calculate the breakdown of daily XP by source
+     * Calculate the breakdown of daily XP by source.
+     *
+     * `total` is the **main path's** day and must equal
+     * `Progression.mainPathDailyXPBase` - that equality is the guard against a
+     * source being booked twice or drawn from a stale copy of the maths, and
+     * `tests/invariants.test.js` pins it. `allPathsTotal` adds the one source
+     * the chart draws that the main path does not collect: Wisdom Confluence's
+     * Aux Cultivation share, which fills the secondary path. The chart itself
+     * shows every slice, so it totals with `allPathsTotal`.
+     *
      * @param {Object} playerData - Player data object
      * @param {number} absorptionBonus - Absorption bonus from Virya (0-0.4)
-     * @returns {Object} Object with abodeAura, gemBonus, individual pill types, respira, and total
+     * @returns {Object} Object with abodeAura, gemBonus, auraseep, the two
+     *   Wisdom Confluence shares, individual pill types, respira and the totals
      */
     static calculateDailyXPBreakdown(playerData, absorptionBonus) {
         const abodeAura = XPCalculator.calculateAbodeAuraXP(playerData, absorptionBonus);
-        // Auraseep multiplies the gem's share, so the chart has to read it from
-        // the same helper the daily total does.
-        const gemBonus = XPCalculator.calculateAuraGemXP(playerData, absorptionBonus);
+        // The gem's own share and what Auraseep adds to it are drawn separately,
+        // but both come from the helpers the daily total uses, so
+        // gemBonus + auraseep is still exactly calculateAuraGemXP().
+        const gemBonus = XPCalculator.calculateAuraGemBaseXP(playerData, absorptionBonus);
+        const auraseep = XPCalculator.calculateAuraseepXP(playerData, absorptionBonus);
 
         // Get individual pill breakdown
         const pillBreakdown = this.calculatePillXPBreakdown(playerData);
-        
+
         const respira = XPCalculator.calculateRespiraXP(playerData);
-        
+
         const pearl = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
-        
+
+        // The two halves of the Wisdom Confluence curio. Daily EXP is the main
+        // path's, so it counts toward `total`; Aux Cultivation fills the
+        // secondary path and only counts toward `allPathsTotal`.
+        const wisdomConfluenceDaily = XPCalculator.calculateWisdomConfluenceDailyXP(playerData, absorptionBonus);
+        const wisdomConfluenceAux = XPCalculator.calculateWisdomConfluenceAuxXP(playerData, absorptionBonus);
+
         // Calculate total pills XP. This chart is the main path's day, so it
         // adds elixir back on top of the character's rate - the same booking
         // Calculator does for mainPathDailyXPBase. Benediction is the secondary
@@ -41,15 +59,20 @@ class Analytics {
                           pillBreakdown.bluePills + pillBreakdown.elixir +
                           pillBreakdown.redPills;
 
-        const total = abodeAura + gemBonus + totalPills + respira + pearl;
+        const total = abodeAura + gemBonus + auraseep + totalPills + respira + pearl
+            + wisdomConfluenceDaily;
 
         return {
             abodeAura,
             gemBonus,
+            auraseep,
             ...pillBreakdown,
             respira,
             pearl,
-            total
+            wisdomConfluenceDaily,
+            wisdomConfluenceAux,
+            total,
+            allPathsTotal: total + wisdomConfluenceAux
         };
     }
 
@@ -90,11 +113,18 @@ class Analytics {
         }
 
         const ctx = canvas.getContext('2d');
-        
+
+        // Every slice is added into chartTotal below, which is why the two
+        // Confluence shares are drawn from the breakdown's fields rather than
+        // recomputed: the Aux share lands on the secondary path, so the total
+        // the centre reports is the character's whole day, not the main path's.
+        const chartTotal = breakdown.allPathsTotal ?? breakdown.total;
+
         // Prepare data with individual pill types
         const dataSources = [
             { label: 'Abode Aura', value: breakdown.abodeAura, color: '--primary' },
             { label: 'Gem Bonus', value: breakdown.gemBonus, color: '--secondary' },
+            { label: 'Auraseep', value: breakdown.auraseep || 0, color: '#7AD7F0' },
             { label: 'Gold Pills', value: breakdown.goldPills || 0, color: '#FFD700' },
             { label: 'Purple Pills', value: breakdown.purplePills || 0, color: '#9D4EDD' },
             { label: 'Blue Pills', value: breakdown.bluePills || 0, color: '#4361EE' },
@@ -102,9 +132,11 @@ class Analytics {
             { label: 'Blessing Pills', value: breakdown.benediction || 0, color: '#FF9F00' },
             { label: 'Red Pills', value: breakdown.redPills || 0, color: '#E63946' },
             { label: 'Respira', value: breakdown.respira, color: '--accent' },
-            { label: 'Pearl', value: breakdown.pearl || 0, color: '#FFB6C1' }
+            { label: 'Pearl', value: breakdown.pearl || 0, color: '#FFB6C1' },
+            { label: 'Confluence (Daily EXP)', value: breakdown.wisdomConfluenceDaily || 0, color: '#B084F5' },
+            { label: 'Confluence (Aux Cultivation)', value: breakdown.wisdomConfluenceAux || 0, color: '#5E4FA2' }
         ];
-        
+
         // Filter out zero values
         const validSources = dataSources.filter(source => source.value > 0);
         
@@ -230,8 +262,7 @@ class Analytics {
                                     } else if (context.dataset && context.dataset.data && context.dataIndex !== undefined) {
                                         value = context.dataset.data[context.dataIndex] || 0;
                                     }
-                                    const total = breakdown.total;
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(2) : 0;
+                                    const percentage = chartTotal > 0 ? ((value / chartTotal) * 100).toFixed(2) : 0;
                                     return `${label}: ${CalculatorUtils.formatLargeNumber(value)} (${percentage}%)`;
                                 } catch (error) {
                                     return context.label || '';
@@ -246,8 +277,8 @@ class Analytics {
                 afterDraw: (chart) => {
                     const ctx = chart.ctx;
                     const chartArea = chart.chartArea;
-                    const total = breakdown.total;
-                    
+                    const total = chartTotal;
+
                     // Check if any element is active (hovered)
                     const activeElements = chart.getActiveElements();
                     if (activeElements.length === 0 && total > 0) {
