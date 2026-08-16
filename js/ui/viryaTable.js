@@ -147,19 +147,15 @@ class ViryaTable {
             return;
         }
         
-        // Calculate days needed to reach this scenario using both path daily XP values
-        // For all scenarios, use base values (full XP including elixir/benediction) for Virya table
-        // This ensures consistent calculations regardless of path focus
-        // If both paths are at the same realm, use the same base XP for consistency
-        // Otherwise, Completion uses main path base XP, secondary path scenarios use secondary path base XP
-        const arePathsAtSameRealm = playerData.mainPathRealmMajor === playerData.secondaryPathRealmMajor;
-        let mainPathXPForScenario = mainPathDailyXPBase;
-        // If paths are at same realm, use main path base XP for both to ensure consistency
-        // Otherwise, use secondary path base XP for secondary path scenarios
-        let secondaryPathXPForScenario = arePathsAtSameRealm ? mainPathDailyXPBase : secondaryPathDailyXPBase;
-        
-        
-        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, mainPathXPForScenario, secondaryPathXPForScenario);
+        // Calculate days needed to reach this scenario using both path daily XP values.
+        // Both are the base values (full XP including elixir/benediction), so the
+        // table reads the same whichever path currently holds the focus.
+        //
+        // These used to be swapped around when the two paths sat in the same major
+        // realm, to force Completion and Eminence to agree. They agree on their own
+        // now: the walk quotes its main path leg at exactly the Completion figure
+        // and re-derives the secondary path's rate per leg.
+        const scenarioInfo = ViryaCalculator.calculateDaysToScenario(scenario, playerData, mainPathDailyXPBase, secondaryPathDailyXPBase);
         const daysToReach = scenarioInfo?.daysNeeded;
         const requiredPathFocus = scenarioInfo?.requiredPathFocus || PATH_MAIN;
         

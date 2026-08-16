@@ -92,7 +92,7 @@ every calculate.
 | Save/load/export/import | `js/utilities/DataManager.js` |
 | Event listeners, tab navigation, path-focus clicks | `js/utilities/EventManager.js` |
 | Release notes / "How to use this calculator" tab | `README.md` (loaded by `markdownLoader.js`) |
-| Version number | `package.json` + the README release-notes heading |
+| Version number | `package.json` + the README release-notes heading + **two hard-coded copies in `index.html`** (the header badge and the footer line) |
 
 ## The data objects
 
@@ -170,13 +170,28 @@ the canonical list. Key shape:
   costs no days of focus, so they are the only way to buy secondary path
   progress without stalling the main path. Wisdom Confluence is the other:
   it pays out whichever path is focused.
-- **Path-specific XP sources are booked by `Calculator`, not `XPCalculator`.**
+- **Path-specific XP sources are booked once, on their own path.**
   `calculateDailyXPWithAbsorptionBonus()` is the character's *rate*, identical
-  for both paths — anything that lands on one path only is added afterwards, in
-  `Calculator.calculatePathDailyXP()`, alongside elixir and benediction. Folding
-  such a source into the daily total would credit the main path with it too and
-  break the "both paths generate XP at the same base rate" invariant.
-  **Wisdom Confluence** is one: a curio percentage
+  for both paths — anything that lands on one path only is added afterwards.
+  `XPCalculator.calculatePillXPBreakdown()` therefore leaves **both** elixir and
+  benediction out of its `total` while still reporting them as fields for the
+  analytics chart to draw. Elixir used to be inside that total, so the main path
+  was credited with it twice (once there, once where `Calculator` books it) and
+  the secondary path — which reads the same shared rate — was credited with an
+  elixir it never receives. Folding such a source into the daily total breaks the
+  "both paths generate XP at the same base rate" invariant. Guarded by
+  `tests/invariants.test.js` ("path-specific pills are booked once").
+- **One definition of what a path banks in a day.**
+  `Progression.mainPathDailyXPBase(playerData, bonus)` and
+  `Progression.secondaryPathDailyXPBase(playerData, bonus)` are the character's
+  rate at that absorption bonus plus that path's own sources — elixir for the
+  main path, benediction and the Wisdom Confluence for the secondary.
+  `Calculator.calculatePathDailyXP()` uses them for the dashboard at today's
+  bonus; `ViryaCalculator` uses them per leg at the bonus that leg is run at.
+  Booking them separately is what let the Virya walk price the secondary path
+  with the main path's elixir. `Progression.elixirXP()` /
+  `Progression.benedictionXP()` are the individual terms, multiplier included.
+  **Wisdom Confluence** is one such source: a curio percentage
   (`playerData.wisdomConfluenceCurio`) of the day's **Abode Aura XP**
   (`XPCalculator.calculateAbodeAuraXP()`), paid into the **secondary path**, on
   top of everything else and regardless of path focus. The aura gem's share is
@@ -184,16 +199,31 @@ the canonical list. Key shape:
   Easy mode does not swallow it: it takes its cut of whatever the Abode Aura XP
   is, typed in or broken down. Guarded by `tests/invariants.test.js` ("Wisdom
   Confluence").
-- **The Virya table's tier timings walk the secondary path, so they credit the
-  Confluence.** `ViryaCalculator.secondaryPathRate()` is the rate any secondary
-  path leg is walked at: the character's rate (from the *main* path's realm) plus
-  the Confluence. On top of that, `calculateDaysToScenarioWithBonuses()` banks
-  the Confluence earned during the main path completion leg and spends it against
-  the first secondary leg before charging any days — the curio pays out whichever
-  path holds the focus, so those days are not lost. Completion is untouched: it
-  is pure main path progress. Both are guarded by `tests/invariants.test.js`
-  ("Wisdom Confluence in the Virya table"), including that a player without the
-  curio sees no change.
+- **The Virya table's tier timings must agree with the dashboard.** A tier's time
+  to cultivate is the main path finishing its realm, then the secondary path
+  walking to the tier's requirement — the same two figures the dashboard shows,
+  so a player can and does add them up by hand. The walk in
+  `calculateDaysToScenarioWithBonuses()` therefore has to land *at or just under*
+  that sum, never over: the tiers passed on the way grant absorption, which is
+  the only thing that may separate them. Three rules keep it there:
+  - The main path leg **is** the Completion row —
+    `calculateXPForCompletion() / mainPathDailyXP`, nothing else. Every tier
+    requires Completion, so a leg priced any other way makes a tier read as
+    arriving before what it depends on. It used to be an averaged-rate walk with
+    a `Math.max` clamp bolted on to hide the gap.
+  - Each secondary leg is costed at `ViryaCalculator.secondaryPathRate()` — which
+    is `Progression.secondaryPathDailyXPBase()` — at the bonus in effect for that
+    leg: the highest of any tier already reached in the walk and any bonus still
+    carrying from last realm at that leg's starting stage
+    (`ViryaCalculator.currentBonusAt()`). The rate must be re-derived per leg;
+    handing in one precomputed number is what made the bonus argument dead.
+  - The Confluence earned during the main path leg is banked and spent against
+    the first secondary leg before any days are charged — the curio pays out
+    whichever path holds the focus, so those days are not lost. Completion is
+    untouched: it is pure main path progress.
+  Guarded by `tests/invariants.test.js` ("the tier walk agrees with the
+  dashboard" and "Wisdom Confluence in the Virya table"), including that a player
+  without the curio sees no change.
 - **The aura gem's share is its own term, and Auraseep multiplies it.**
   `XPCalculator.calculateAuraGemXP()` is the gem's cut of the Abode Aura XP times
   `1 + abodeTemperAuraCurio/100` — Auraseep at 50% makes the gem worth 1.5x, and
@@ -246,12 +276,14 @@ the canonical list. Key shape:
 
 ## Testing
 
-- `npm test` — `tests/invariants.test.js`, 163 assertions. Each `describe` block
+- `npm test` — `tests/invariants.test.js`, 198 assertions. Each `describe` block
   guards a bug the codebase has already had once: the absorption bonus must
   actually change daily XP, the secondary path must not inherit main-path state,
   results must not depend on stale written-back fields, the analytics breakdown
-  must sum to the daily XP total, tier detection must be monotonic. A failure
-  here is a returning bug, not a new one.
+  must sum to the main path's daily XP, tier detection must be monotonic, a
+  path-specific pill must land on exactly one path exactly once, and the Virya
+  table's tier walk must not read slower than the dashboard figures a player can
+  add up by hand. A failure here is a returning bug, not a new one.
 - `npm run snapshot` — rewrites `tests/__snapshots__/current.json` with rounded
   outputs for every fixture player. **Run it before and after any change to the
   maths and diff it**; that's the safety net for behaviour the unit tests don't

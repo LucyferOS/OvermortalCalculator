@@ -33,11 +33,14 @@ class Analytics {
         
         const pearl = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
         
-        // Calculate total pills XP
-        const totalPills = pillBreakdown.goldPills + pillBreakdown.purplePills + 
-                          pillBreakdown.bluePills + pillBreakdown.elixir + 
-                          pillBreakdown.benediction + pillBreakdown.redPills;
-        
+        // Calculate total pills XP. This chart is the main path's day, so it
+        // adds elixir back on top of the character's rate - the same booking
+        // Calculator does for mainPathDailyXPBase. Benediction is the secondary
+        // path's pill and stays out.
+        const totalPills = pillBreakdown.goldPills + pillBreakdown.purplePills +
+                          pillBreakdown.bluePills + pillBreakdown.elixir +
+                          pillBreakdown.redPills;
+
         const total = abodeAura + gemBonus + totalPills + respira + pearl;
 
         return {
@@ -319,8 +322,10 @@ class Analytics {
 
         // Daily XP with every source except red pills, since red pills are what
         // we are solving for.
+        // Elixir is added back on: this analytic is about the main path's own
+        // breakthrough, and elixir is the pill that feeds it.
         const pills = XPCalculator.calculatePillXPBreakdown(playerData);
-        const pillXPWithoutRedPills = pills.total - pills.redPills;
+        const pillXPWithoutRedPills = pills.total + pills.elixir - pills.redPills;
         const respiraXP = XPCalculator.calculateRespiraXP(playerData);
         const pearlXP = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
 

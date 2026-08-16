@@ -20,8 +20,7 @@ import { ViryaRules } from '../js/engine/ViryaRules.js';
 import { Progression } from '../js/engine/Progression.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
-    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, PATH_MAIN, PATH_SECONDARY,
-    PERCENTAGE_COMPLETE
+    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, PATH_MAIN, PATH_SECONDARY
 } from '../js/utilities/gameData.js';
 
 const entries = Object.entries(PLAYERS);
@@ -287,9 +286,12 @@ describe('analytics agree with the calculator', () => {
     // chart, the daily XP total and the red-pill analytic could disagree.
     for (const [name, player] of entries) {
         test(`${name}: the XP breakdown sums to the daily XP total`, async () => {
+            // The chart draws the main path's day, so it is pinned to the same
+            // helper Calculator books mainPathDailyXPBase with - character rate
+            // plus elixir, exactly once.
             const { Analytics } = await import('../js/analytics/Analytics.js');
             const breakdown = Analytics.calculateDailyXPBreakdown(player, 0);
-            const total = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
+            const total = Progression.mainPathDailyXPBase(player, 0);
             assert.ok(
                 Math.abs(breakdown.total - total) < 1e-6,
                 `breakdown ${breakdown.total} != daily XP ${total}`
@@ -715,8 +717,10 @@ describe('Wisdom Confluence in the Virya table', () => {
         const player = at({ wisdomConfluenceCurio: 30 });
 
         assert.equal(
-            ViryaCalculator.secondaryPathRate(player, 0, rateFor(player)),
-            rateFor(player) + XPCalculator.calculateWisdomConfluenceXP(player, 0)
+            ViryaCalculator.secondaryPathRate(player, 0),
+            rateFor(player)
+                + Progression.benedictionXP(player)
+                + XPCalculator.calculateWisdomConfluenceXP(player, 0)
         );
     });
 
@@ -747,10 +751,7 @@ describe('Wisdom Confluence in the Virya table', () => {
         // reaching Completion.
         const player = at({ secondaryPathProgress: 70, wisdomConfluenceCurio: 30 });
 
-        const mainLegDays = ViryaCalculator.calculateDaysForMainPathStage(
-            player.mainPathRealm, player.mainPathProgress,
-            `${player.mainPathRealmMajor} Late`, PERCENTAGE_COMPLETE, player
-        );
+        const mainLegDays = ViryaCalculator.calculateXPForCompletion(player) / rateFor(player);
         const banked = mainLegDays * XPCalculator.calculateWisdomConfluenceXP(player, 0);
         const legXP = ViryaCalculator.calculateXPToReach(
             player.secondaryPathRealm, player.secondaryPathProgress, 'Perfection Mid', 0
@@ -769,9 +770,10 @@ describe('Wisdom Confluence in the Virya table', () => {
     });
 
     test('no tier ever lands before the Completion it requires', () => {
-        // The Completion row is quoted at today's flat rate, the tier walk
-        // averages the rate across the main path stage, and a big enough credit
-        // exposes the gap between them.
+        // Every tier requires Completion first, so the walk's main path leg has
+        // to be the Completion figure itself. It used to be averaged across the
+        // stage instead, and a credit big enough to cover the secondary legs
+        // outright exposed the gap: Eminence read as arriving weeks early.
         for (const [name, player] of entries) {
             for (const curio of [0, 30, 90]) {
                 const p = makePlayer({ ...player, wisdomConfluenceCurio: curio });
@@ -796,11 +798,12 @@ describe('Wisdom Confluence in the Virya table', () => {
         for (const [name, player] of entries) {
             if (player.wisdomConfluenceCurio) continue;
             const rate = rateFor(player);
+            const expected = rate + Progression.benedictionXP(player);
 
             for (const tier of [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
                 const info = ViryaCalculator.calculateDaysToScenario(tier, player, rate, rate);
-                const viaRate = ViryaCalculator.secondaryPathRate(player, 0, rate);
-                assert.equal(viaRate, rate, `${name}: the rate moved without the curio`);
+                const viaRate = ViryaCalculator.secondaryPathRate(player, 0);
+                assert.equal(viaRate, expected, `${name}: the rate moved without the curio`);
                 assert.ok(!Number.isNaN(info.daysNeeded), `${name}/${tier}: days went NaN`);
             }
         }
@@ -862,5 +865,224 @@ describe('fruit projection horizon', () => {
             'the count did not match a direct projection over the same horizon'
         );
         assert.ok(data.projectedFruits >= 120, 'the stock already held must be included');
+    });
+});
+
+describe('the tier walk agrees with the dashboard', () => {
+    // A player added up the dashboard's two "time to next realm" figures - the
+    // main path finishing its realm on main focus, then the secondary path
+    // reaching the same major's Late on secondary focus - and got 63 days,
+    // where the Virya table's Half-Step row read 65. The manual sum is the walk
+    // priced at today's flat rate throughout, so the table should have come out
+    // a little *under* it: Eminence and Perfect are crossed on the way and each
+    // grants absorption. Three things put it over instead, one per test below.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Late', mainPathProgress: 60,
+        secondaryPathRealm: 'Nirvana Mid', secondaryPathProgress: 40,
+        gemQuality: 'Mythic', goldPill: 5, purplePill: 10, bluePill: 30,
+        abodeBonusSectLevel: 40, abodeBonusCelestialSpring: 25,
+        ...overrides
+    });
+
+    const ratesFor = (player) => {
+        const calc = new OvermortalCalculator();
+        calc.playerData = player;
+        const bonuses = calc.calculatePathAbsorptionBonuses(ViryaCalculator.detectScenario(player));
+        return calc.calculatePathDailyXP(
+            bonuses.mainPathAbsorptionBonus, bonuses.secondaryPathAbsorptionBonus
+        );
+    };
+
+    // The Virya table's own call: both figures are the base rates.
+    const daysTo = (player, tier) => {
+        const r = ratesFor(player);
+        return ViryaCalculator.calculateDaysToScenario(
+            tier, player, r.mainPathDailyXPBase, r.secondaryPathDailyXPBase
+        ).daysNeeded;
+    };
+
+    test('a tier reached on the way speeds up the rest of the walk', () => {
+        // Defect: secondaryPathRate took a precomputed rate and used it as the
+        // character rate, so the bonusActive argument reached nothing but the
+        // Wisdom Confluence. Crossing Eminence and Perfect granted +0.2
+        // absorption to no part of the walk.
+        const player = at();
+
+        const withBonus = ViryaCalculator.secondaryPathRate(player, 0.2);
+        const without = ViryaCalculator.secondaryPathRate(player, 0);
+        assert.ok(withBonus > without, `the absorption bonus did not move the walking rate (${withBonus} vs ${without})`);
+
+        // And it shows up in the timing: Half-Step is reached faster than the
+        // same XP walked flat out at the no-bonus rate.
+        const halfStepXP = ViryaCalculator.calculateXPForHalfStep(player);
+        const completionXP = ViryaCalculator.calculateXPForCompletion(player);
+        const r = ratesFor(player);
+        const flat = completionXP / r.mainPathDailyXPBase
+            + (halfStepXP - completionXP) / r.secondaryPathDailyXPBase;
+
+        assert.ok(
+            daysTo(player, SCENARIO_HALF_STEP) < flat,
+            'Half-Step was not faster than the same walk at a flat no-bonus rate'
+        );
+    });
+
+    test('the secondary path is walked with benediction, not the main path elixir', () => {
+        // Defect: the walk was handed mainPathDailyXPBase, which carries elixir.
+        // The secondary path never gets elixir; it gets benediction. Players
+        // running one and not the other had the walk mispriced in both
+        // directions.
+        const bare = at();
+        const withBenediction = at({ benediction: 6, benedictionConsumed: 10 });
+        const withElixir = at({ elixir: 6, elixirConsumed: 10 });
+
+        assert.ok(
+            daysTo(withBenediction, SCENARIO_HALF_STEP) < daysTo(bare, SCENARIO_HALF_STEP),
+            'benediction did not speed the secondary path walk up'
+        );
+
+        // Elixir only shortens the main path leg, so it helps Completion and
+        // Half-Step by the same number of days, not by more.
+        const elixirSavesOnCompletion = daysTo(bare, SCENARIO_COMPLETION) - daysTo(withElixir, SCENARIO_COMPLETION);
+        const elixirSavesOnHalfStep = daysTo(bare, SCENARIO_HALF_STEP) - daysTo(withElixir, SCENARIO_HALF_STEP);
+
+        assert.ok(elixirSavesOnCompletion > 0, 'the fixture must have a main path leg for elixir to shorten');
+        assert.ok(
+            Math.abs(elixirSavesOnHalfStep - elixirSavesOnCompletion) < 1e-9,
+            `elixir was credited to the secondary path legs (${elixirSavesOnHalfStep}d vs ${elixirSavesOnCompletion}d)`
+        );
+    });
+
+    test('the main path leg is exactly the Completion row', () => {
+        // Defect: the leg went through its own averaged-rate helper, which left
+        // out elixir, ignored the bonus carried from last realm, and priced the
+        // back half of the run at a tier only earned once the leg finishes. A
+        // max() against the Completion figure hid the disagreement.
+        for (const [name, player] of entries) {
+            for (const overrides of [{}, { elixir: 4, elixirConsumed: 10 }, { hadViryaLastRealm: 'Halfstep' }]) {
+                const p = makePlayer({ ...player, ...overrides });
+                const completion = daysTo(p, SCENARIO_COMPLETION);
+                if (!Number.isFinite(completion) || completion <= 0) continue;
+
+                const r = ratesFor(p);
+                if (r.secondaryPathDailyXPBase <= 0) continue;
+
+                for (const tier of [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
+                    const days = daysTo(p, tier);
+                    if (!Number.isFinite(days)) continue;
+                    assert.ok(
+                        days >= completion - 1e-9,
+                        `${name} ${JSON.stringify(overrides)}: ${tier} (${days}d) landed before Completion (${completion}d)`
+                    );
+                }
+            }
+        }
+    });
+
+    test('a bonus carried from last realm shortens the walk', () => {
+        // The carry was absent from the walk entirely: mainPathDailyXPBase
+        // includes it, the walk's own rates did not.
+        const bare = at({ mainPathRealm: 'Nirvana Early', mainPathProgress: 10, hadViryaLastRealm: 'No' });
+        const carried = at({ mainPathRealm: 'Nirvana Early', mainPathProgress: 10, hadViryaLastRealm: 'Halfstep' });
+
+        assert.equal(
+            ViryaCalculator.currentBonusAt(carried, SCENARIO_NO_VIRYA, 'Early'),
+            0.4,
+            'Half-Step carries through the next realm Early stage'
+        );
+        assert.equal(ViryaCalculator.currentBonusAt(bare, SCENARIO_NO_VIRYA, 'Early'), 0);
+
+        assert.ok(
+            daysTo(carried, SCENARIO_HALF_STEP) < daysTo(bare, SCENARIO_HALF_STEP),
+            'the carried bonus did not shorten the tier walk'
+        );
+    });
+
+    test('the walk is unaffected by which path currently holds the focus', () => {
+        // The table reads off the base rates, so toggling focus must not move a
+        // single row - that is what makes adding two dashboard figures together
+        // a fair comparison in the first place.
+        for (const tier of [SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
+            assert.equal(
+                daysTo(at({ pathFocus: PATH_MAIN }), tier),
+                daysTo(at({ pathFocus: PATH_SECONDARY }), tier),
+                `${tier} moved with path focus`
+            );
+        }
+    });
+});
+
+describe('path-specific pills are booked once, on their own path', () => {
+    // Elixir used to sit inside calculatePillXPBreakdown().total, which is the
+    // character's rate. That rate is shared by both paths, so the main path was
+    // credited with elixir twice - once there and once where Calculator books
+    // it - and the secondary path was credited with elixir it never receives.
+    // Benediction was already excluded; this is the symmetric half.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 40,
+        secondaryPathRealm: 'Perfection Late', secondaryPathProgress: 50,
+        gemQuality: 'Epic', goldPill: 5, purplePill: 10, bluePill: 30,
+        abodeBonusSectLevel: 40, ...overrides
+    });
+
+    const bare = at();
+    const withElixir = at({ elixir: 4, elixirConsumed: 10 });
+    const withBenediction = at({ benediction: 4, benedictionConsumed: 10 });
+
+    test('neither pill moves the character rate', () => {
+        const rate = (p) => XPCalculator.calculateDailyXPWithAbsorptionBonus(p, 0);
+
+        assert.ok(Progression.elixirXP(withElixir) > 0, 'the fixture must earn elixir XP');
+        assert.ok(Progression.benedictionXP(withBenediction) > 0, 'the fixture must earn benediction XP');
+
+        assert.equal(rate(withElixir), rate(bare), 'elixir leaked into the shared character rate');
+        assert.equal(rate(withBenediction), rate(bare), 'benediction leaked into the shared character rate');
+    });
+
+    test('elixir lands on the main path exactly once', () => {
+        assert.equal(
+            Progression.mainPathDailyXPBase(withElixir, 0),
+            Progression.mainPathDailyXPBase(bare, 0) + Progression.elixirXP(withElixir),
+            'the main path did not receive exactly one helping of elixir'
+        );
+        assert.equal(
+            Progression.secondaryPathDailyXPBase(withElixir, 0),
+            Progression.secondaryPathDailyXPBase(bare, 0),
+            'the secondary path was credited with the main path elixir'
+        );
+    });
+
+    test('benediction lands on the secondary path exactly once', () => {
+        assert.equal(
+            Progression.secondaryPathDailyXPBase(withBenediction, 0),
+            Progression.secondaryPathDailyXPBase(bare, 0) + Progression.benedictionXP(withBenediction),
+            'the secondary path did not receive exactly one helping of benediction'
+        );
+        assert.equal(
+            Progression.mainPathDailyXPBase(withBenediction, 0),
+            Progression.mainPathDailyXPBase(bare, 0),
+            'the main path was credited with the secondary path benediction'
+        );
+    });
+
+    test('Calculator books them the same way the engine helpers do', () => {
+        for (const [name, player] of entries) {
+            const calc = new OvermortalCalculator();
+            calc.playerData = player;
+            const bonuses = calc.calculatePathAbsorptionBonuses(ViryaCalculator.detectScenario(player));
+            const rates = calc.calculatePathDailyXP(
+                bonuses.mainPathAbsorptionBonus, bonuses.secondaryPathAbsorptionBonus
+            );
+
+            assert.equal(
+                rates.mainPathDailyXPBase,
+                Progression.mainPathDailyXPBase(player, bonuses.mainPathAbsorptionBonus),
+                `${name}: the dashboard main path rate drifted from the engine helper`
+            );
+            assert.equal(
+                rates.secondaryPathDailyXPBase,
+                Progression.secondaryPathDailyXPBase(player, bonuses.secondaryPathAbsorptionBonus),
+                `${name}: the dashboard secondary path rate drifted from the engine helper`
+            );
+        }
     });
 });
