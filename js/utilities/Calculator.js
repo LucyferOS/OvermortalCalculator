@@ -239,7 +239,10 @@ class OvermortalCalculator {
             respiraBonusImmortalFriend,
             respiraBonusTechnique,
             respiraBonusCurio,
-            respiraBonusTotal
+            respiraBonusTotal,
+            // Nirvana Dipper Mansion is a Respira bonus, not an Abode Aura one, so it
+            // is read here (and applied) regardless of the Abode Aura easy mode.
+            respiraNirvanaDipperMansion: getNumberValue('respira-nirvana-dipper-mansion')
         };
     }
 

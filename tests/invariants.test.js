@@ -51,6 +51,64 @@ describe('absorption bonus', () => {
     });
 });
 
+describe('non-Abode Nirvana mechanics', () => {
+    // The Nirvana mansion bonuses split across two systems: Path of Ascension /
+    // Horn / Neck feed Abode Aura, while Chariot / Turtle Beak / Ghost / Dipper
+    // feed pill and Respira XP. Easy mode replaces only the Abode Aura and
+    // Absorption totals, so the pill/Respira mansions must still apply.
+    const withPills = { goldPill: 10, purplePill: 10, bluePill: 10 };
+
+    const mansions = [
+        ['pillBonusNirvanaChariotMansion', 'Gold pill Chariot Mansion'],
+        ['pillBonusNirvanaTurtleBeakMansion', 'Purple pill Turtle Beak Mansion'],
+        ['pillBonusNirvanaGhostMansion', 'Blue pill Ghost Mansion'],
+        ['respiraNirvanaDipperMansion', 'Respira Dipper Mansion']
+    ];
+
+    for (const easyMode of [false, true]) {
+        const label = easyMode ? 'easy mode' : 'detailed mode';
+
+        for (const [field, name] of mansions) {
+            test(`${label}: ${name} raises daily XP`, () => {
+                const base = makePlayer({
+                    mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+                    abodeEasyMode: easyMode, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9,
+                    ...withPills
+                });
+                const boosted = makePlayer({
+                    mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+                    abodeEasyMode: easyMode, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9,
+                    ...withPills, [field]: 10
+                });
+
+                const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(base, 0);
+                const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(boosted, 0);
+                assert.ok(some > none, `${field} was ignored: ${some} === ${none}`);
+            });
+        }
+    }
+
+    test('easy mode still ignores the Abode Aura mansions', () => {
+        const shared = {
+            mainPathRealm: 'Nirvana Mid', mainPathProgress: 50,
+            abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9
+        };
+        const base = makePlayer(shared);
+        const boosted = makePlayer({
+            ...shared,
+            abodeBonusNirvanaPathofAscension: 16,
+            abodeBonusNirvanaHornMansion: 21.1,
+            abodeBonusNirvanaNeckMansion: 21.1
+        });
+
+        assert.equal(
+            XPCalculator.calculateDailyXPWithAbsorptionBonus(boosted, 0),
+            XPCalculator.calculateDailyXPWithAbsorptionBonus(base, 0),
+            'the typed-in Abode Aura total must subsume the Abode Aura mansions'
+        );
+    });
+});
+
 describe('path independence', () => {
     // Defect 2: the secondary path was costed at the main path's absorption.
     test('secondary path XP does not depend on where the main path is', () => {

@@ -155,6 +155,12 @@ h1 {
     color: var(--secondary);
 }
 
+.card-note {
+    margin: -16px 0 20px;
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
 .chart-container {
     position: relative;
     width: 100%;

@@ -186,8 +186,12 @@ class XPCalculator {
         
         const respiraAttemptsGush = playerData.respiraAttemptsTotal * expectedGushValue;
         
-        const realmRespiraXP = XPData[playerData.mainPathRealmMajor + "XP"].respira;
-        
+        // Nirvana Dipper Mansion boosts the Respira XP per attempt, the same way the
+        // Chariot/Turtle Beak/Ghost mansions boost their pills. It is a Respira bonus,
+        // not an Abode Aura one, so easy mode does not replace it.
+        const realmRespiraXP = XPData[playerData.mainPathRealmMajor + "XP"].respira
+            * (1 + ((playerData.respiraNirvanaDipperMansion || 0) / 100));
+
         const baseRespiraXP = respiraAttemptsGush * realmRespiraXP * 1000;
         const respiraExp = baseRespiraXP * playerData.respiraBonusTotal;
         
