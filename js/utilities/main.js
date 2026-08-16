@@ -2,6 +2,7 @@ import { MarkdownLoader } from './markdownLoader.js';
 import { OvermortalCalculator } from './Calculator.js';
 import { EventManager } from './EventManager.js';
 import { UIManager } from './UIManager.js';
+import { InputLimits } from '../ui/inputLimits.js';
 
 class OvermortalApp {
     constructor() {
@@ -19,7 +20,15 @@ class OvermortalApp {
     onDOMContentLoaded() {
         this.originalCalculateBtnText = document.getElementById('calculate-btn').innerHTML;
         this.eventManager.setupEventListeners();
+
+        // Keep every number field inside the limits its markup declares.
+        InputLimits.watchAll();
+
         this.loadSavedData();
+
+        // Restored data bypasses typing entirely, so it is checked here. A save
+        // exported before the limits were enforced can hold anything.
+        InputLimits.enforceAll();
 
         // Hide debug menu item initially (debug starts as disabled)
         UIManager.updateDebugMenuVisibility(this.calculator.debugEnabled);
