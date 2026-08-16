@@ -1,12 +1,12 @@
-import { XPCalculator } 	from '../dashboard/XPCalculator.js';
-import { RealmCalculator }	from '../dashboard/RealmCalculator.js';
-import { ViryaCalculator }	from '../dashboard/ViryaCalculator.js';
+import { XPCalculator } 	from '../calculators/XPCalculator.js';
+import { RealmCalculator }	from '../calculators/RealmCalculator.js';
+import { ViryaCalculator }	from '../calculators/ViryaCalculator.js';
 import { Realms, GameConstants, PATH_MAIN, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE, BASE_RESPIRA_ATTEMPTS } from './gameData.js';
 import { CalculatorUtils } 	from './utils.js';
 import { DataManager } 		from './DataManager.js';
-import { FruitCalculator } 	from '../dashboard/FruitCalculator.js'; 
-import { Recommendations } 	from '../dashboard/Recommendations.js';
-import { ViryaScenarioComparator } from '../dashboard/ViryaScenarioComparator.js';
+import { FruitCalculator } 	from '../calculators/FruitCalculator.js'; 
+import { Recommendations } 	from '../calculators/Recommendations.js';
+import { ViryaScenarioComparator } from '../calculators/ViryaScenarioComparator.js';
 import { Progression } from '../engine/Progression.js';
 import { ViryaRules } from '../engine/ViryaRules.js';
 

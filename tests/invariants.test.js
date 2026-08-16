@@ -1,17 +1,20 @@
 // Invariants the calculator must satisfy.
 //
-// Each group here corresponds to a defect from REFACTOR_PLAN.md. They were
-// written before the fixes, failed against the original code, and now pass —
-// so they are the regression tests for those defects specifically, not just
-// general coverage.
+// Each group here guards a specific bug the codebase has already had once: a
+// cached derived value that swallowed the absorption bonus, a secondary path
+// costed at the main path's absorption, stale written-back state leaking into
+// hypothetical futures, and three copies of the pill maths that disagreed.
+// These tests were written before those fixes and failed against the code as it
+// then stood, so they are targeted regression tests rather than general
+// coverage — treat a failure here as a returning bug, not a new one.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { PLAYERS, makePlayer } from './fixtures.js';
-import { XPCalculator } from '../js/dashboard/XPCalculator.js';
-import { FruitCalculator } from '../js/dashboard/FruitCalculator.js';
-import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
+import { XPCalculator } from '../js/calculators/XPCalculator.js';
+import { FruitCalculator } from '../js/calculators/FruitCalculator.js';
+import { ViryaCalculator } from '../js/calculators/ViryaCalculator.js';
 import { ViryaRules } from '../js/engine/ViryaRules.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,

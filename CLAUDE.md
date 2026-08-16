@@ -3,6 +3,10 @@
 Read this before searching. It tells you which files a change is likely to
 touch. Only go hunting through the codebase when the answer isn't here.
 
+Keep it current: when a change adds a module, moves a folder, introduces a new
+domain rule, or invalidates something written here, update this file in the same
+commit. A stale map is worse than no map.
+
 ## What this is
 
 A static, no-build browser app that estimates realm breakthrough timing for the
@@ -25,10 +29,9 @@ index.html            all markup: nav, the 6 tab sections, every input & output 
 css/style.css         layout, cards, tables, theme variables (:root colours)
 css/utilities.css     utility classes (.hidden, .card-grid, …)
 README.md             user-facing docs + release notes; RENDERED INTO THE APP at runtime
-REFACTOR_PLAN.md      the audit that produced the current structure (mostly implemented)
 
 js/utilities/         entry point + app orchestration + shared data  (legacy folder name)
-js/dashboard/         the calculation modules                        (NOT the view)
+js/calculators/       the calculation modules
 js/engine/            Virya rules & the shared breakthrough simulation
 js/domain/            pure realm-ladder maths
 js/data/              the Virya tier table
@@ -37,10 +40,9 @@ js/ui/                the view layer, split by surface
 tests/                node:test invariants + a characterization snapshot
 ```
 
-**Two naming traps.** `js/dashboard/` holds *calculators*, `js/ui/dashboard.js`
-holds the *dashboard view*. And `js/utilities/` is not a helpers folder — it is
-the app layer (entry point, orchestrator, game data). The generic helpers are
-just `js/utilities/utils.js`.
+**One naming trap left.** `js/utilities/` is not a helpers folder — it is the app
+layer (entry point, orchestrator, game data). The generic helpers are just
+`js/utilities/utils.js`.
 
 ## Control flow
 
@@ -49,13 +51,13 @@ index.html
  └─ js/utilities/main.js          OvermortalApp — boots on DOMContentLoaded
      ├─ EventManager.js           wires every DOM listener (nav, buttons, autosave)
      ├─ Calculator.js             reads DOM → playerData → runs everything → results
-     │    ├─ dashboard/XPCalculator.js           daily XP: abode aura, pills, respira, pearl
-     │    ├─ dashboard/RealmCalculator.js        time to next minor/major realm
-     │    ├─ dashboard/ViryaCalculator.js        tier detection, XP/days to a tier
-     │    ├─ dashboard/ViryaScenarioComparator.js  tier A vs tier B over a timegate window
-     │    ├─ dashboard/RealmProgressionSimulator.js  day-by-day realm walk
-     │    ├─ dashboard/FruitCalculator.js        fruit XP + weekly projection
-     │    ├─ dashboard/Recommendations.js        minimum extractor levels for a target
+     │    ├─ calculators/XPCalculator.js           daily XP: abode aura, pills, respira, pearl
+     │    ├─ calculators/RealmCalculator.js        time to next minor/major realm
+     │    ├─ calculators/ViryaCalculator.js        tier detection, XP/days to a tier
+     │    ├─ calculators/ViryaScenarioComparator.js  tier A vs tier B over a timegate window
+     │    ├─ calculators/RealmProgressionSimulator.js  day-by-day realm walk
+     │    ├─ calculators/FruitCalculator.js        fruit XP + weekly projection
+     │    ├─ calculators/Recommendations.js        minimum extractor levels for a target
      │    └─ DataManager.js                      localStorage / export / import
      └─ UIManager.js              thin facade → js/ui/*
           └─ ui/dashboard.js → ui/viryaTable.js, ui/analyticsView.js → analytics/Analytics.js
@@ -72,15 +74,15 @@ every calculate.
 |---|---|
 | New/changed game number (realm XP, absorption, pill XP, timegate, extractor, fruit tables) | `js/utilities/gameData.js` |
 | New player input field | `index.html` (markup) → `Calculator.update*Inputs()` (read) → `main.js syncInputsToCalculator()` (reset/restore) → the calculator that consumes it |
-| Daily XP formula, abode aura, pills, respira, pearl, elixir/benediction falloff | `js/dashboard/XPCalculator.js` |
+| Daily XP formula, abode aura, pills, respira, pearl, elixir/benediction falloff | `js/calculators/XPCalculator.js` |
 | Virya tier requirements, bonus values, how far a bonus carries | `js/data/viryaRules.js` (the table) — reading logic is `js/engine/ViryaRules.js` |
-| "Which tier am I / how long to reach a tier" | `js/dashboard/ViryaCalculator.js` |
-| "Is tier X worth it vs just breaking through" (the comparison columns) | `js/dashboard/ViryaScenarioComparator.js` |
+| "Which tier am I / how long to reach a tier" | `js/calculators/ViryaCalculator.js` |
+| "Is tier X worth it vs just breaking through" (the comparison columns) | `js/calculators/ViryaScenarioComparator.js` |
 | The walk up to a breakthrough (shared by the two above) | `js/engine/Progression.js` |
 | Realm ordering, XP between two positions, "am I past X" | `js/domain/realms.js` |
-| Time to next minor/major realm | `js/dashboard/RealmCalculator.js` |
-| Fruit counts, weekly income, token conversion | `js/dashboard/FruitCalculator.js` + `Calculator.calculateFruitData()` |
-| Extractor level recommendations | `js/dashboard/Recommendations.js` |
+| Time to next minor/major realm | `js/calculators/RealmCalculator.js` |
+| Fruit counts, weekly income, token conversion | `js/calculators/FruitCalculator.js` + `Calculator.calculateFruitData()` |
+| Extractor level recommendations | `js/calculators/Recommendations.js` |
 | Charts, red-pill analytic | `js/analytics/Analytics.js` (maths+render), `js/ui/analyticsView.js` (wiring) |
 | Dashboard cards, fruit cards, timegate card, focus highlighting | `js/ui/dashboard.js` |
 | The Virya table rows/cells and its recommendation line | `js/ui/viryaTable.js` |
@@ -105,8 +107,9 @@ the canonical list. Key shape:
 - `Calculator.calculateAll()` also writes `cosmoapsisValue`, `dailyXP`,
   `totalAbode`, `totalAbodeBonus`, `viryaScenario`, `viryaAbsorptionBonus` back
   onto `playerData` — for the debug tab. **Nothing downstream may read those
-  back**; that was the bug class REFACTOR_PLAN §2 documents and the tests in
-  `tests/invariants.test.js` guard against.
+  back.** A cached `cosmoapsisValue` once silently swallowed every Virya
+  absorption bonus, and a stale `viryaScenario` made hypothetical future states
+  report tiers they hadn't earned. `tests/invariants.test.js` guards both.
 
 **`results`** — assembled by `Calculator.assembleResults()`. Fields:
 `dailyXP`, `mainPathDailyXPBase`, `secondaryPathDailyXPBase`,
@@ -168,11 +171,12 @@ the canonical list. Key shape:
 
 ## Testing
 
-- `npm test` — `tests/invariants.test.js`, 150+ assertions. Each `describe`
-  block maps to a defect from `REFACTOR_PLAN.md` §2: the absorption bonus must
+- `npm test` — `tests/invariants.test.js`, 156 assertions. Each `describe` block
+  guards a bug the codebase has already had once: the absorption bonus must
   actually change daily XP, the secondary path must not inherit main-path state,
   results must not depend on stale written-back fields, the analytics breakdown
-  must sum to the daily XP total, tier detection must be monotonic.
+  must sum to the daily XP total, tier detection must be monotonic. A failure
+  here is a returning bug, not a new one.
 - `npm run snapshot` — rewrites `tests/__snapshots__/current.json` with rounded
   outputs for every fixture player. **Run it before and after any change to the
   maths and diff it**; that's the safety net for behaviour the unit tests don't
