@@ -38,10 +38,9 @@ lucyfer_os
 #### Version 0.4.7.0 (BETA)
   * **Easy mode's Absorption is now read as a percentage.** It was being taken as a bare multiplier, so anyone typing the figure the game shows — 220 for 220% — came out with roughly 100x the XP they should have. It now asks for the percentage as the game states it.
     * **You will need to re-enter this field once.** The old value cannot be converted safely (there is no way to tell a multiplier of 2.9 from a percentage of 2.9), so the field starts at its default and you should type your current Absorption percentage in.
-  * **Wisdom Confluence is now split into its two halves, named as the game names them.**
+  * **Wisdom Confluence is now accounting for the "daily xp" affix**
     * **Aux Cultivation %** is the curio field you already had — it pays that share of the Abode Aura XP you earn in a day into your **secondary path**. Your saved value carries over.
     * **Daily EXP %** is new, and works exactly the same way except that the XP goes to your **main path**.
-    * Both are earned whichever path you are focusing, and neither counts the Aura Gem's share.
   * **The Daily XP Sources chart now shows Auraseep and both Wisdom Confluence shares.** Auraseep is split out of the Gem Bonus slice rather than hidden inside it — the two together are still exactly what your gem is worth. The chart's total is now everything you earn in a day across both paths, so it includes the Aux Cultivation share.
   * **The dashboard no longer quotes timings for the path you are not focusing.** Path focus is all-or-nothing: an unfocused path banks only its own pill and Confluence share, so its "time to next realm" was a figure years out that described nothing you were actually considering. Those cells now read "-" on the **Player Time to Cultivate** card and both fruit cards. Progress bars, realms and the Virya table are unaffected.
 
