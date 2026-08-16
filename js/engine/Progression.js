@@ -36,7 +36,14 @@ import { XPData, timegateLength, PERCENTAGE_COMPLETE } from '../utilities/gameDa
 export function dailyXPForPath(playerData, path, absorptionBonus) {
     const state = asPathPlayerData(playerData, path);
     if (!state) return 0;
-    return XPCalculator.calculateDailyXPWithAbsorptionBonus(state, absorptionBonus);
+    return XPCalculator.calculateDailyXPWithAbsorptionBonus(
+        state, absorptionBonus, { consumable: consumableFor(path) }
+    );
+}
+
+/** Elixirs feed the main path, blessing pills feed the secondary path. */
+export function consumableFor(path) {
+    return path === 'secondary' ? 'benediction' : 'elixir';
 }
 
 /**
@@ -181,4 +188,4 @@ export function simulateToBreakthrough({ playerData, targetTier, mainDailyXP, se
     };
 }
 
-export const Progression = { dailyXPForPath, asPathPlayerData, simulateToBreakthrough };
+export const Progression = { dailyXPForPath, asPathPlayerData, consumableFor, simulateToBreakthrough };

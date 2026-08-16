@@ -338,7 +338,11 @@ class ViryaCalculator {
                 mainPathRealmMinor: startMinor,
                 mainPathProgress: startProgress
             };
-            const startDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(startPlayerData, bonusActive);
+            // These legs are the secondary path climbing, so blessing pills
+            // apply here and elixirs do not.
+            const startDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+                startPlayerData, bonusActive, { consumable: 'benediction' }
+            );
             
             const [endMajor, endMinor] = endRealm.split(' ');
             const endPlayerData = {
@@ -348,7 +352,9 @@ class ViryaCalculator {
                 mainPathRealmMinor: endMinor,
                 mainPathProgress: endProgress
             };
-            const endDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(endPlayerData, bonusActive);
+            const endDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+                endPlayerData, bonusActive, { consumable: 'benediction' }
+            );
             
             // Average accounts for daily XP increasing as realm progresses
             averageDailyXP = (startDailyXP + endDailyXP) / 2;
