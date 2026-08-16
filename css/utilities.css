@@ -8,6 +8,7 @@
 .justify-between { justify-content: space-between; }
 .gap-15 { gap: 15px; }
 .w-full { width: 100%; }
+.hidden { display: none !important; }
 
 /* Common card patterns */
 .card-grid {

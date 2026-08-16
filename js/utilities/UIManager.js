@@ -586,6 +586,29 @@ class UIManager {
         });
     }
 
+    // Shows/hides the detailed Abode Aura breakdown fields based on the Easy Mode toggle.
+    static updateAbodeEasyModeVisibility() {
+        const easyModeSelect = document.getElementById('abode-easy-mode');
+        const isEasyMode = easyModeSelect?.value === 'Yes';
+
+        const easyFields = document.getElementById('abode-easy-fields');
+        if (easyFields) {
+            easyFields.classList.toggle('hidden', !isEasyMode);
+        }
+
+        const stageSpecificCard = document.getElementById('stage-specific-mechanics-card');
+        if (stageSpecificCard) {
+            stageSpecificCard.classList.toggle('hidden', isEasyMode);
+        }
+
+        ['abode-aura-technique', 'abode-aura-curio'].forEach((fieldId) => {
+            const inputGroup = document.getElementById(fieldId)?.closest('.input-group');
+            if (inputGroup) {
+                inputGroup.classList.toggle('hidden', isEasyMode);
+            }
+        });
+    }
+
     static updateProgressBar(elementId, percent) {
         const element = document.getElementById(elementId);
         if (element) {

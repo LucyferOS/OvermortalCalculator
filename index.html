@@ -542,6 +542,41 @@
                 </div>
 
                 <div class="card">
+                    <h2 class="card-title">
+                        Abode Aura &amp; Absorption - Easy Mode
+                        <span class="tooltip-icon" title="Skip hunting down every individual Abode Aura source (sect, world arrays, techniques, curios, etc.) and every Absorption source. Enable this to type your totals in directly instead."><i class="fa-solid fa-circle-info"></i></span>
+                    </h2>
+                    <div class="grid">
+                        <div class="input-group">
+                            <label for="abode-easy-mode">
+                                Use Easy Mode
+                                <span class="tooltip-icon" title="When set to Yes, the detailed Abode Aura breakdown (Stage Specific Mechanics card, plus the Technique/Curio Abode Aura fields) is ignored, and the Abode Aura / Absorption values entered here are used instead."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <select id="abode-easy-mode">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid hidden" id="abode-easy-fields">
+                        <div class="input-group required">
+                            <label for="abode-aura-easy">
+                                Abode Aura
+                                <span class="tooltip-icon" title="Your total Abode Aura value, as shown in-game. Replaces the base value plus every detailed bonus field below."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="abode-aura-easy" step="0.1" min="0" value="130.0">
+                        </div>
+                        <div class="input-group required">
+                            <label for="absorption-easy">
+                                Absorption
+                                <span class="tooltip-icon" title="Your total effective Absorption value (realm base + any bonuses), as shown in-game. Replaces the realm's base Absorption plus the calculated Virya bonus."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="absorption-easy" step="0.001" min="0" value="0.317">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="stage-specific-mechanics-card">
                     <h2 class="card-title">Stage Specific Mechanics</h2>
                     <div class="grid">
                         <div class="input-group required">

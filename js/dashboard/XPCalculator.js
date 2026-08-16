@@ -32,6 +32,11 @@ class XPCalculator {
     }
 
     static calculateTotalAbode(playerData) {
+        // Easy mode: skip the detailed breakdown and use the total entered directly
+        if (playerData.abodeEasyMode) {
+            return playerData.abodeAuraEasyValue || 0;
+        }
+
         const totalAbodeBonus = this.calculateTotalAbodeBonus(playerData);
         // Multiply baseAbodeAura by totalAbodeBonus (as percentage) to get bonus amount
         const bonusAmount = playerData.baseAbodeAura * (totalAbodeBonus / 100);
@@ -41,13 +46,15 @@ class XPCalculator {
 
     static calculateCosmoapsisValue(playerData, absorptionBonus) {
         const totalAbode = this.calculateTotalAbode(playerData);
-        
-        const baseAbsorption = Realms[playerData.mainPathRealm]?.absorption || 0;
-        const effectiveAbsorption = baseAbsorption + absorptionBonus;
-        
+
+        // Easy mode: skip the realm base + Virya bonus breakdown and use the total entered directly
+        const effectiveAbsorption = playerData.abodeEasyMode
+            ? (playerData.absorptionEasyValue || 0)
+            : (Realms[playerData.mainPathRealm]?.absorption || 0) + absorptionBonus;
+
         // Multiply total abode by effectiveAbsorption to get cosmoapsisValue
         const cosmoapsisValue = totalAbode * effectiveAbsorption;
-        
+
         return cosmoapsisValue;
     }
 
