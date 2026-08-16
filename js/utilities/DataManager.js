@@ -1,4 +1,4 @@
-import { CalculatorUtils } from './utils.js';
+
 // this is used to save and load the data from the local storage.
 class DataManager {
     constructor(storageKey = 'overmortal_calculator_data') {

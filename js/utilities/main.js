@@ -3,7 +3,6 @@ import { OvermortalCalculator } from './Calculator.js';
 import { EventManager } from './EventManager.js';
 import { UIManager } from './UIManager.js';
 
-
 class OvermortalApp {
     constructor() {
         this.calculator = new OvermortalCalculator();

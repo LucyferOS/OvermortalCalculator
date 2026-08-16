@@ -134,6 +134,4 @@ class RealmCalculator {
 	}
 }
 
-
-
 export { RealmCalculator };

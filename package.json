@@ -1,0 +1,11 @@
+{
+  "name": "overmortal-calculator",
+  "version": "0.3.6.2",
+  "private": true,
+  "type": "module",
+  "description": "Overmortal realm breakthrough calculator",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\"",
+    "snapshot": "node tests/snapshot.mjs"
+  }
+}

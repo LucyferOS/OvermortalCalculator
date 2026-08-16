@@ -99,12 +99,6 @@ export const GameConstants = {
         'Mythic': 	.28
     },
 
-    viryaBonus: {
-        'Eminence': 0.2,
-        'Perfection': 0.2,
-        'Halfstep': 0.4
-    },
-
     artifactEnergyReplenishment: {
         'No artifact': 0,
         '0 star': 1,

@@ -1,13 +1,14 @@
 import { XPCalculator } 	from '../dashboard/XPCalculator.js';
 import { RealmCalculator }	from '../dashboard/RealmCalculator.js';
 import { ViryaCalculator }	from '../dashboard/ViryaCalculator.js';
-import { Realms, XPData, GameConstants, PATH_MAIN, PATH_SECONDARY, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE, BASE_RESPIRA_ATTEMPTS } from './gameData.js';
+import { Realms, GameConstants, PATH_MAIN, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE, BASE_RESPIRA_ATTEMPTS } from './gameData.js';
 import { CalculatorUtils } 	from './utils.js';
 import { DataManager } 		from './DataManager.js';
 import { FruitCalculator } 	from '../dashboard/FruitCalculator.js'; 
 import { Recommendations } 	from '../dashboard/Recommendations.js';
 import { ViryaScenarioComparator } from '../dashboard/ViryaScenarioComparator.js';
-
+import { Progression } from '../engine/Progression.js';
+import { ViryaRules } from '../engine/ViryaRules.js';
 
 class OvermortalCalculator {
     constructor() {
@@ -128,50 +129,6 @@ class OvermortalCalculator {
         };
     }
 
-    /**
-     * Maps "had Virya last realm" value to absorption bonus
-     * @param {string} hadViryaLastRealm - Value from "had-Virya" field ("No", "Eminence", "Perfection", "Halfstep")
-     * @returns {number} Absorption bonus (0, 0.2, or 0.4)
-     */
-    static getHadViryaAbsorptionBonus(hadViryaLastRealm) {
-        const bonusMap = {
-            'No': 0,
-            [SCENARIO_EMINENCE]: 0.2,
-            'Perfection': 0.2,
-            'Halfstep': 0.4
-        };
-        return bonusMap[hadViryaLastRealm] || 0;
-    }
-
-    /**
-     * Determines if "had Virya last realm" bonus is still active based on current minor realm
-     * @param {string} hadViryaLastRealm - Value from "had-Virya" field
-     * @param {string} currentMinorRealm - Current minor realm ("Early", "Mid", or "Late")
-     * @returns {boolean} True if bonus is still active, false otherwise
-     */
-    static isHadViryaBonusActive(hadViryaLastRealm, currentMinorRealm) {
-        if (!hadViryaLastRealm || hadViryaLastRealm === 'No') {
-            return false;
-        }
-
-        // Bonus expiration logic:
-        // - Eminence: Expires at "Next Major Early" (active only in Early)
-        // - Perfection: Expires at "Next Major Mid" (active in Early and Mid)
-        // - Half-Step: Expires at start of "Next Major Late" (active in Early and Mid, expires at Late)
-        switch (hadViryaLastRealm) {
-            case 'Eminence':
-                // Expires at Next Major Early - only active in Early
-                return currentMinorRealm === 'Early';
-            case 'Perfection':
-                // Expires at Next Major Mid - active in Early and Mid
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            case 'Halfstep':
-                // Expires at start of Next Major Late - active in Early and Mid, expires at Late
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            default:
-                return false;
-        }
-    }
     // This used to be one big function, now it is split into smaller ones to make it easier to read and maintain.
     updatePathInputs() {
         const getNumberValue = CalculatorUtils.getNumberValue;
@@ -319,51 +276,6 @@ class OvermortalCalculator {
     }
     // End of old method - helper methods below
 
-    /**
-     * Maps "had Virya last realm" value to absorption bonus
-     * @param {string} hadViryaLastRealm - Value from "had-Virya" field ("No", "Eminence", "Perfection", "Halfstep")
-     * @returns {number} Absorption bonus (0, 0.2, or 0.4)
-     */
-    static getHadViryaAbsorptionBonus(hadViryaLastRealm) {
-        const bonusMap = {
-            'No': 0,
-            [SCENARIO_EMINENCE]: 0.2,
-            'Perfection': 0.2,
-            'Halfstep': 0.4
-        };
-        return bonusMap[hadViryaLastRealm] || 0;
-    }
-
-    /**
-     * Determines if "had Virya last realm" bonus is still active based on current minor realm
-     * @param {string} hadViryaLastRealm - Value from "had-Virya" field
-     * @param {string} currentMinorRealm - Current minor realm ("Early", "Mid", or "Late")
-     * @returns {boolean} True if bonus is still active, false otherwise
-     */
-    static isHadViryaBonusActive(hadViryaLastRealm, currentMinorRealm) {
-        if (!hadViryaLastRealm || hadViryaLastRealm === 'No') {
-            return false;
-        }
-
-        // Bonus expiration logic:
-        // - Eminence: Expires at "Next Major Early" (active only in Early)
-        // - Perfection: Expires at "Next Major Mid" (active in Early and Mid)
-        // - Half-Step: Expires at start of "Next Major Late" (active in Early and Mid, expires at Late)
-        switch (hadViryaLastRealm) {
-            case 'Eminence':
-                // Expires at Next Major Early - only active in Early
-                return currentMinorRealm === 'Early';
-            case 'Perfection':
-                // Expires at Next Major Mid - active in Early and Mid
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            case 'Halfstep':
-                // Expires at start of Next Major Late - active in Early and Mid, expires at Late
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            default:
-                return false;
-        }
-    }
-
     calculateAll() {
         this.updateFromInputs();
     
@@ -392,8 +304,6 @@ class OvermortalCalculator {
         return this.calculationResults;
     }
 
-
-
     calculateViryaInfo() {
         const viryaInfo = ViryaCalculator.detectScenario(this.playerData);
         this.playerData.viryaScenario = viryaInfo.scenario;
@@ -405,30 +315,28 @@ class OvermortalCalculator {
         return viryaInfo;
     }
 
+    /**
+     * The absorption bonus each path gets right now.
+     *
+     * While a tier is held it applies to both paths. Once the player has broken
+     * through, the tier they held last realm may still be helping, but only for
+     * as many minor stages as that tier carries, and each path is at its own
+     * stage.
+     */
     calculatePathAbsorptionBonuses(viryaInfo) {
-        let mainPathAbsorptionBonus = viryaInfo.absorptionBonus;
-        let secondaryPathAbsorptionBonus = viryaInfo.absorptionBonus;
-        
-        if (viryaInfo.scenario === SCENARIO_NO_VIRYA) {
-            const hadViryaLastRealm = this.playerData.hadViryaLastRealm || 'No';
-            const hadViryaBonus = OvermortalCalculator.getHadViryaAbsorptionBonus(hadViryaLastRealm);
-            
-            const isMainPathBonusActive = OvermortalCalculator.isHadViryaBonusActive(hadViryaLastRealm, this.playerData.mainPathRealmMinor);
-            if (isMainPathBonusActive && hadViryaBonus > 0) {
-                mainPathAbsorptionBonus = hadViryaBonus;
-            } else {
-                mainPathAbsorptionBonus = 0;
-            }
-            
-            const isSecondaryPathBonusActive = OvermortalCalculator.isHadViryaBonusActive(hadViryaLastRealm, this.playerData.secondaryPathRealmMinor);
-            if (isSecondaryPathBonusActive && hadViryaBonus > 0) {
-                secondaryPathAbsorptionBonus = hadViryaBonus;
-            } else {
-                secondaryPathAbsorptionBonus = 0;
-            }
+        if (viryaInfo.scenario !== SCENARIO_NO_VIRYA) {
+            return {
+                mainPathAbsorptionBonus: viryaInfo.absorptionBonus,
+                secondaryPathAbsorptionBonus: viryaInfo.absorptionBonus
+            };
         }
-        
-        return { mainPathAbsorptionBonus, secondaryPathAbsorptionBonus };
+
+        const carriedTier = ViryaRules.tierFromHadViryaOption(this.playerData.hadViryaLastRealm);
+
+        return {
+            mainPathAbsorptionBonus: ViryaRules.carriedBonusAt(carriedTier, this.playerData.mainPathRealmMinor),
+            secondaryPathAbsorptionBonus: ViryaRules.carriedBonusAt(carriedTier, this.playerData.secondaryPathRealmMinor)
+        };
     }
 
     calculateFruitData() {
@@ -458,23 +366,15 @@ class OvermortalCalculator {
         let benedictionXPWithMultiplier = 0;
         let secondaryPathDailyXPBase = 0;
         
-        if (this.playerData.secondaryPathRealm && this.playerData.secondaryPathRealmMajor) {
-            const realmXPKey = this.playerData.secondaryPathRealmMajor + "XP";
-            if (XPData[realmXPKey]) {
-                const secondaryPathPlayerData = {
-                    ...this.playerData,
-                    mainPathRealm: this.playerData.secondaryPathRealm,
-                    mainPathRealmMajor: this.playerData.secondaryPathRealmMajor,
-                    mainPathRealmMinor: this.playerData.secondaryPathRealmMinor
-                };
-                // Calculate focus XP for secondary path (excluding benediction)
-                secondaryPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
-                // Calculate benediction XP (path-specific for secondary)
-                const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
-                benedictionXPWithMultiplier = benedictionXP * multiplier;
-                // Calculate base value (for analytics/Virya table) - full XP including benediction
-                secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
-            }
+        const secondaryPathPlayerData = Progression.asPathPlayerData(this.playerData, 'secondary');
+        if (secondaryPathPlayerData) {
+            // Calculate focus XP for secondary path (excluding benediction)
+            secondaryPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
+            // Calculate benediction XP (path-specific for secondary)
+            const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
+            benedictionXPWithMultiplier = benedictionXP * multiplier;
+            // Calculate base value (for analytics/Virya table) - full XP including benediction
+            secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
         }
         
         // Calculate focus-dependent values (for Player Time to Cultivate)
@@ -556,7 +456,6 @@ class OvermortalCalculator {
             recommendedFruits: scenarioFruitResults[nextScenario] ? scenarioFruitResults[nextScenario].recommendedSolution : null
         };
     }
-
 
     loadSavedData() {
         return this.dataManager.loadFromLocalStorage();

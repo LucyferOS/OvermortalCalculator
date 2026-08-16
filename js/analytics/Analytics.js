@@ -1,73 +1,17 @@
 import { XPCalculator } from '../dashboard/XPCalculator.js';
 import { FruitCalculator } from '../dashboard/FruitCalculator.js';
 import { Recommendations } from '../dashboard/Recommendations.js';
-import { GameConstants, XPData, MAX_EXTRACTOR_LEVEL, Realms } from '../utilities/gameData.js';
+import { GameConstants, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE } from '../utilities/gameData.js';
+import { xpBetween } from '../domain/realms.js';
 import { CalculatorUtils } from '../utilities/utils.js';
 
 class Analytics {
     /**
-     * Calculate individual pill XP breakdown
-     * @param {Object} playerData - Player data object
-     * @returns {Object} Object with individual pill XP values
+     * Individual pill XP breakdown. The maths lives in XPCalculator so that the
+     * chart and the daily XP total can never disagree.
      */
     static calculatePillXPBreakdown(playerData) {
-        const realmXPKey = playerData.mainPathRealmMajor + "XP";
-        const realmXP = XPData[realmXPKey];
-        
-        if (!realmXP) {
-            return {
-                goldPills: 0,
-                purplePills: 0,
-                bluePills: 0,
-                elixir: 0,
-                benediction: 0,
-                redPills: 0
-            };
-        }
-
-        const goldPillXP = realmXP.gold 
-            * (1 + (playerData.pillBonusNirvanaChariotMansion / 100)) 
-            * playerData.goldPill;
-        
-        const purplePillXP = realmXP.purple 
-            * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100)) 
-            * playerData.purplePill;
-        
-        const bluePillXP = realmXP.blue 
-            * (1 + (playerData.pillBonusNirvanaGhostMansion / 100)) 
-            * playerData.bluePill;
-        
-        const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
-        
-        // Benediction pills only apply to secondary path, not main path - if we change our mind, we can add this back in.
-        // const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
-        
-        const numRedPills = XPCalculator.calculateRedPills(playerData);
-        
-        // Apply pill bonus multiplier (pillBonus is already a multiplier like 1.XX)
-        // The total is multiplied by pillBonus * 1000, so apply the same to each component
-        const pillBonus = playerData.pillBonus || 1;
-        const multiplier = pillBonus * 1000;
-        
-        // Calculate red pill XP with separate vase bonus
-        // Base XP per pill: realmXP.red
-        // Vase bonus per pill (separate, additive): realmXP.red * vaseBonus
-        // Then multiply by number of red pills per day
-        // Then apply pill bonus multiplier (same as other pills)
-        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars];
-        const baseRedPillXPPerPill = realmXP.red;
-        const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
-        const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
-        const redPillXP = redPillXPPerPill * numRedPills;
-
-        return {
-            goldPills: goldPillXP * multiplier,
-            purplePills: purplePillXP * multiplier,
-            bluePills: bluePillXP * multiplier,
-            elixir: elixirXP * multiplier,
-            benediction: 0, // Benediction only applies to secondary path
-            redPills: redPillXP * multiplier
-        };
+        return XPCalculator.calculatePillXPBreakdown(playerData);
     }
 
     /**
@@ -358,89 +302,33 @@ class Analytics {
      * @returns {Object} Object with calculation results
      */
     static calculateRedPillsForBreakthrough(playerData, baseTimeToNextMajor, adjustedTime, absorptionBonus) {
-        // Calculate XP needed to reach next major realm
+        // XP still needed to finish the current major realm.
         const currentRealm = playerData.mainPathRealm;
-        const currentExp = playerData.mainPathExp;
         const majorRealm = playerData.mainPathRealmMajor;
-        const realmMinor = currentRealm.split(' ')[1];
-        
-        let xpNeededForMajor = 0;
-        
-        if (realmMinor === 'Late') {
-            // Already at Late, just need remaining XP
-            const realmXP = Realms[currentRealm].xp;
-            xpNeededForMajor = realmXP - currentExp;
-        } else if (realmMinor === 'Mid') {
-            const realmXP = Realms[currentRealm].xp;
-            const nextRealm = majorRealm + ' Late';
-            xpNeededForMajor = (realmXP - currentExp) + Realms[nextRealm].xp;
-        } else {
-            // Early realm: remaining XP in Early + full XP for Mid + full XP for Late
-            const realmXP = Realms[currentRealm].xp;
-            const midRealm = majorRealm + ' Mid';
-            const lateRealm = majorRealm + ' Late';
-            xpNeededForMajor = (realmXP - currentExp) + Realms[midRealm].xp + Realms[lateRealm].xp;
-        }
-        
+
+        const xpNeededForMajor = xpBetween(
+            currentRealm, playerData.mainPathProgress,
+            `${majorRealm} Late`, PERCENTAGE_COMPLETE
+        );
+
         // Calculate daily XP without red pills
         const abodeAura = XPCalculator.calculateAbodeAuraXP(playerData, absorptionBonus);
         const gemBonus = abodeAura * (GameConstants.gemQuality[playerData.gemQuality] || 0);
         
-        // Get pill breakdown without red pills
-        const realmXPKey = playerData.mainPathRealmMajor + "XP";
-        const realmXP = XPData[realmXPKey];
-        
-        if (!realmXP) {
-            return {
-                xpNeeded: xpNeededForMajor,
-                xpGained: 0,
-                xpDeficit: xpNeededForMajor,
-                redPillXPPerPill: 0,
-                redPillsNeeded: 0
-            };
-        }
-        
-        const goldPillXP = realmXP.gold 
-            * (1 + (playerData.pillBonusNirvanaChariotMansion / 100)) 
-            * playerData.goldPill;
-        
-        const purplePillXP = realmXP.purple 
-            * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100)) 
-            * playerData.purplePill;
-        
-        const bluePillXP = realmXP.blue 
-            * (1 + (playerData.pillBonusNirvanaGhostMansion / 100)) 
-            * playerData.bluePill;
-        
-        const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
-        // Benediction pills only apply to secondary path, not main path
-        // const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
-        
-        const pillBonus = playerData.pillBonus || 1;
-        const multiplier = pillBonus * 1000;
-        
-        const totalPillXP = (goldPillXP + purplePillXP + bluePillXP + elixirXP) * multiplier;
+        // Daily XP with every source except red pills, since red pills are what
+        // we are solving for.
+        const pills = XPCalculator.calculatePillXPBreakdown(playerData);
+        const pillXPWithoutRedPills = pills.total - pills.redPills;
         const respiraXP = XPCalculator.calculateRespiraXP(playerData);
         const pearlXP = XPCalculator.calculatePearlXP(playerData, absorptionBonus);
-        
-        const dailyXPWithoutRedPills = abodeAura + gemBonus + totalPillXP + respiraXP + pearlXP;
-        
-        // Calculate XP that will be gained in adjusted time
+
+        const dailyXPWithoutRedPills = abodeAura + gemBonus + pillXPWithoutRedPills + respiraXP + pearlXP;
+
         const xpGained = dailyXPWithoutRedPills * adjustedTime;
-        
-        // Calculate deficit
         const xpDeficit = Math.max(0, xpNeededForMajor - xpGained);
-        
-        // Calculate red pill XP per pill
-        // Separate calculations: pill bonus multiplier and vase bonus (from stars)
-        // Base XP with pill bonus: realmXP.red * multiplier
-        // Vase bonus (separate, additive): realmXP.red * vaseBonus * 1000 (base multiplier, not pill bonus)
-        // Total: base with pill bonus + vase bonus
-        const baseRedPillXP = realmXP.red * multiplier;
-        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars] || 0;
-        const vaseBonusXP = realmXP.red * vaseBonusMultiplier * 1000;
-        const redPillXPPerPill = Number(baseRedPillXP) + Number(vaseBonusXP);
-        
+
+        const redPillXPPerPill = XPCalculator.redPillXPPerPill(playerData);
+
         // Get current red pills from player data (default to 0)
         const currentRedPills = playerData.currentRedPills || 0;
         

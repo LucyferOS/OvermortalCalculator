@@ -1,8 +1,6 @@
 import { FruitCalculator } from './FruitCalculator.js';
-import { ViryaCalculator } from './ViryaCalculator.js';
-import { XPCalculator } from './XPCalculator.js';
-import { timegateLength, Realms, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE } from '../utilities/gameData.js';
-import { ViryaScenarioComparator } from './ViryaScenarioComparator.js';
+
+import { MAX_EXTRACTOR_LEVEL } from '../utilities/gameData.js';
 
 class Recommendations {
     // FRUIT eat timing compare-inator
@@ -278,7 +276,6 @@ class Recommendations {
         
         return comparison;
     }
-
 
 }
 
