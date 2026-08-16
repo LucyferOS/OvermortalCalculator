@@ -32,21 +32,12 @@ lucyfer_os
 
 # Release Notes
 
+
 #### Version 0.4.4.1 (BETA)
-  * **The Virya scenario table now credits Wisdom Confluence.** Every tier that needs secondary path progress — Eminence, Perfect, Half-Step — is timed at the rate the secondary path actually fills at, which is your cultivation rate *plus* the Confluence. Those rows used to be quoted at your main path rate alone, so they read as further off than they were for anyone holding the curio.
-    * The days you spend finishing your main path realm now count too. The Confluence pays out whichever path you are focusing, so by the time you switch focus the secondary path is already part of the way to the requirement — and if it has banked enough, the tier costs you no extra days at all.
-    * Completion is unchanged, and so is everything else: it is main path progress, which the Confluence does not feed.
-    * If you do not have the curio, nothing about your numbers moves.
-
-#### Version 0.4.4.0 (BETA)
-  * **New curio input: Wisdom Confluence.** Enter the percentage your curio gives you. It pays that share of the Abode Aura XP you earn in a day into your **secondary path**, on top of everything else. Your Aura Gem's share is not counted, so gem quality and Auraseep do not change it.
-    * You get it whichever path you are focusing, so it is the one other way besides fruits to buy secondary path progress without stalling your main path.
-    * It does not speed your main path up, and it does not change the rate either path cultivates at — it is extra XP in the secondary bucket, nothing more.
-    * It works in Abode Aura / Absorption easy mode too: it takes its cut of whatever Abode Aura you typed in.
-    * Where you will see it: "Time to Cultivate" for the secondary path, and the secondary path rows of the fruit tables. (The Virya scenario table did not credit it in this version — see 0.4.4.1.)
+  * **New curio input: Wisdom Confluence.** Enter the percentage your curio gives you. It pays that share of the Abode Aura XP you earn in a day into your **secondary path**, on top of everything else.
+    * You get it whichever path you are focusing.
   * **"Temper Abode Aura" is now called Auraseep, and it now actually does something.** It is extra XP from your Aura Gem: put in 50% and the gem's share of your Abode Aura XP is worth 1.5x. It boosts the gem only, not the Abode Aura itself, and it keeps working in easy mode because it is a gem bonus rather than an Abode Aura one.
-    * **Check this box before you trust your numbers.** The field existed before but was never read by any calculation, so if you had a value saved in it, your daily XP will go up now that it counts.
-
+    
 #### Version 0.4.3.1 (BETA)
   * **Fruit counts are now measured to the end of your current timegate, not to a breakthrough.** A 41 day timegate looks 40 days ahead, so the fruits counted are the ones you will hold while they are still worth 1.5x.
   * This fixes "Total Days Saved" reading absurdly high when focusing the secondary path. The old horizon was each path's own time to breakthrough, taken from the focus-dependent rate — so an unfocused main path sat years away and got credited with years of weekly fruit payouts. One test taoist saw 150 fruits on Main Path focus and 3720 on Secondary, and the headline moved from 8d 19h to 218d 11h purely from toggling focus. It now reads 12d 8h either way.
