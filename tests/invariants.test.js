@@ -14,14 +14,12 @@ import assert from 'node:assert/strict';
 import { PLAYERS, makePlayer } from './fixtures.js';
 import { XPCalculator } from '../js/calculators/XPCalculator.js';
 import { FruitCalculator } from '../js/calculators/FruitCalculator.js';
-import { FruitTimingCalculator } from '../js/calculators/FruitTimingCalculator.js';
 import { ViryaCalculator } from '../js/calculators/ViryaCalculator.js';
 import { ViryaRules } from '../js/engine/ViryaRules.js';
 import { Progression } from '../js/engine/Progression.js';
-import { advanceBy, absoluteXP, realmXP, xpBetween } from '../js/domain/realms.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
-    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, GameConstants
+    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms
 } from '../js/utilities/gameData.js';
 
 const entries = Object.entries(PLAYERS);
@@ -462,192 +460,15 @@ describe('fruit projection', () => {
     });
 });
 
-describe('realm ladder: advanceBy', () => {
-    // advanceBy is the inverse of absoluteXP, and the whole fruit timing feature
-    // rests on it: a lump of fruit XP is only ever expressed as a move along the
-    // ladder. If this drifts, every plan is costed against the wrong realm.
-    const positions = [
-        ['Nascent Early', 0], ['Incarnation Mid', 42], ['Voidbreak Late', 99],
-        ['Wholeness Early', 0], ['Nirvana Late', 100], ['Celestial Mid', 12]
-    ];
+describe('XP rates are a main path property', () => {
+    // XP generation belongs to the character, set by the main path's realm, not
+    // to the path the XP lands in. asPathPlayerData used to re-point the realm
+    // fields, which priced every secondary path estimate off the secondary
+    // path's (lower) realm - understating completionWholeness by 2.65x.
 
-    for (const [realm, progress] of positions) {
-        test(`${realm} @ ${progress}%: gaining nothing changes nothing`, () => {
-            const landed = advanceBy(realm, progress, 0);
-            assert.equal(landed.realm, realm);
-            assert.ok(Math.abs(landed.progress - progress) < 1e-6);
-        });
-
-        test(`${realm} @ ${progress}%: advancing by xpBetween reaches the target`, () => {
-            // Compared in absolute XP: a boundary position may be reported as
-            // 100% of the realm below rather than 0% of the target, which is the
-            // same point on the ladder.
-            for (const target of ['Wholeness Mid', 'Nirvana Early', 'Supreme Early']) {
-                const needed = xpBetween(realm, progress, target, 0);
-                if (needed <= 0) continue;
-                const landed = advanceBy(realm, progress, needed);
-                assert.ok(
-                    Math.abs(absoluteXP(landed.realm, landed.progress) - absoluteXP(target, 0)) < 1,
-                    `${realm} + ${needed} should land on ${target}, landed on ${landed.realm} @ ${landed.progress}%`
-                );
-            }
-        });
-
-        test(`${realm} @ ${progress}%: more XP never lands further back`, () => {
-            let previous = -Infinity;
-            for (const xp of [0, 1e6, 1e8, 1e9, 5e9, 1e11]) {
-                const landed = advanceBy(realm, progress, xp);
-                const absolute = absoluteXP(landed.realm, landed.progress);
-                assert.ok(absolute >= previous, `advancing by ${xp} went backwards`);
-                previous = absolute;
-            }
-        });
-    }
-
-    test('a filled realm stays at 100% instead of becoming 0% of the next', () => {
-        // Virya reads "100% Late" as a state, so normalising it into the next
-        // major's Early would silently strip the player of Completion.
-        for (const realm of ['Wholeness Late', 'Nirvana Late', 'Incarnation Mid']) {
-            const landed = advanceBy(realm, 0, realmXP(realm));
-            assert.equal(landed.realm, realm, `${realm} was normalised into ${landed.realm}`);
-            assert.ok(Math.abs(landed.progress - 100) < 1e-6, `expected 100%, got ${landed.progress}`);
-        }
-    });
-
-    test('advancing past the top of the ladder overflows rather than falling off', () => {
-        const landed = advanceBy('Supreme Late', 50, 1e15);
-        assert.equal(landed.realm, 'Supreme Late');
-        assert.ok(landed.progress > 100, `expected overflow progress, got ${landed.progress}`);
-    });
-});
-
-describe('fruit timing', () => {
-    const gated = (p) => ({ ...p, timegate: 30, timegateDays: 30 });
-    const ungated = (p) => ({ ...p, timegate: 0, timegateDays: 0 });
-
-    test('the timegate multiplier is exactly 1.5, on both paths', () => {
-        // The 1.5x window is the single biggest timing lever, and it applies to
-        // whichever path is being fed.
-        for (const [name, p] of entries) {
-            for (const path of ['main', 'secondary']) {
-                const off = FruitTimingCalculator.fruitXPPerFruit(ungated(p), path, false);
-                const on = FruitTimingCalculator.fruitXPPerFruit(ungated(p), path, true);
-                if (off <= 0) continue;
-                assert.ok(
-                    Math.abs(on / off - 1.5) < 1e-9,
-                    `${name}/${path}: timegate multiplier was ${on / off}, expected 1.5`
-                );
-            }
-        }
-    });
-
-    test('a fruit is priced off the main path realm, whichever path eats it', () => {
-        // XP generation is a property of the character, set by the main path's
-        // realm. geared has its two paths in different majors, so pricing a
-        // secondary path fruit against the secondary realm would show up here.
-        const p = PLAYERS.geared;
-        assert.notEqual(p.mainPathRealmMajor, p.secondaryPathRealmMajor);
-
-        const main = FruitTimingCalculator.fruitXPPerFruit(p, 'main', false);
-        const secondary = FruitTimingCalculator.fruitXPPerFruit(p, 'secondary', false);
-        assert.ok(main > 0);
-        assert.equal(secondary, main, 'a fruit changed value depending on which path ate it');
-
-        // And it really is the main path's table being read.
-        const expected = FruitCalculator.fruitXP({ ...p, timegate: 0 });
-        assert.ok(Math.abs(main - expected) < 1e-9);
-    });
-
-    test('fruits never carry the main path out of its major realm', () => {
-        // The timegate blocks the breakthrough however much XP is poured in, so a
-        // fruit lump must show up as overflow at Late, not as a new major.
-        for (const [name, p] of entries) {
-            const fed = FruitTimingCalculator.applyFruits(p, { toMain: 100000, duringTimegate: true });
-            assert.equal(
-                fed.mainPathRealmMajor, p.mainPathRealmMajor,
-                `${name}: main path escaped ${p.mainPathRealmMajor} into ${fed.mainPathRealmMajor}`
-            );
-            assert.ok(fed.mainPathProgress >= p.mainPathProgress, `${name}: main path went backwards`);
-        }
-    });
-
-    test('eating no fruits leaves both paths exactly where they were', () => {
-        for (const [name, p] of entries) {
-            const fed = FruitTimingCalculator.applyFruits(p, { toMain: 0, toSecondary: 0, duringTimegate: true });
-            assert.equal(fed.mainPathRealm, p.mainPathRealm, `${name}: main realm moved`);
-            assert.equal(fed.secondaryPathRealm, p.secondaryPathRealm, `${name}: secondary realm moved`);
-            assert.equal(fed.mainPathProgress, p.mainPathProgress, `${name}: main progress moved`);
-            assert.equal(fed.secondaryPathProgress, p.secondaryPathProgress, `${name}: secondary progress moved`);
-        }
-    });
-
-    test('the quoted fruit count really does unlock the tier', () => {
-        // This is the number the "just enough to reach Virya" plan is built on.
-        // If it undershoots, the plan silently recommends missing the threshold.
-        const atCompletion = entries.filter(
-            ([, p]) => ViryaRules.isMainPathComplete(p.mainPathRealmMinor, p.mainPathProgress)
-        );
-        assert.ok(atCompletion.length > 0, 'expected fixtures sitting at 100% Late');
-
-        for (const [name, base] of atCompletion) {
-            const p = gated(base);
-            for (const tier of [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
-                const needed = FruitTimingCalculator.fruitsToReachTier(p, tier, true).secondary;
-                if (!Number.isFinite(needed) || needed <= 0) continue;
-
-                const fed = FruitTimingCalculator.applyFruits(p, { toSecondary: needed, duringTimegate: true });
-                const reached = ViryaRules.detectTierForPlayer(fed);
-                assert.ok(
-                    ViryaRules.tierRank(reached) >= ViryaRules.tierRank(tier),
-                    `${name}: ${needed} fruits was meant to reach ${tier}, reached ${reached}`
-                );
-            }
-        }
-    });
-
-    test('one fruit fewer than quoted does not reach the tier', () => {
-        // Guards the other side: a count rounded generously would make the
-        // threshold plan waste fruits on every tier.
-        const p = gated(PLAYERS.completionWholeness);
-        for (const tier of [SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP]) {
-            const needed = FruitTimingCalculator.fruitsToReachTier(p, tier, true).secondary;
-            if (!Number.isFinite(needed) || needed <= 1) continue;
-
-            const fed = FruitTimingCalculator.applyFruits(p, { toSecondary: needed - 1, duringTimegate: true });
-            assert.ok(
-                ViryaRules.tierRank(ViryaRules.detectTierForPlayer(fed)) < ViryaRules.tierRank(tier),
-                `${tier}: ${needed - 1} fruits already reached it, so ${needed} is overshooting`
-            );
-        }
-    });
-
-    test('no plan spends more on the secondary path than it can absorb', () => {
-        // Past the main path's Late stage no tier asks for more, so fruits sent
-        // there would vanish. They must fall through to the main path instead.
-        for (const [name, base] of entries) {
-            const p = { ...gated(base), fruitsCount: 5000 };
-            const analysis = FruitTimingCalculator.analyze(p, 1e9, 1e9);
-
-            for (const [tier, tierAnalysis] of Object.entries(analysis.tiers)) {
-                for (const plan of tierAnalysis.plans ?? []) {
-                    if (plan.eatenAt !== 'now' || plan.id === 'none') continue;
-                    assert.ok(
-                        plan.toSecondary <= tierAnalysis.secondaryCapacity,
-                        `${name}/${tier}/${plan.id}: sent ${plan.toSecondary} to a path that can take ${tierAnalysis.secondaryCapacity}`
-                    );
-                    assert.equal(
-                        plan.toMain + plan.toSecondary, analysis.fruitsAvailable,
-                        `${name}/${tier}/${plan.id}: dropped fruits on the floor`
-                    );
-                }
-            }
-        }
-    });
-
-    test('XP rates come from the main path realm, not the fed path', () => {
-        // The rate the secondary path fills at is the character's rate. Moving
-        // the secondary path to a different realm changes the size of the bar,
-        // never the speed it fills - so the daily rate must not move with it.
+    test('the secondary rate does not move with the secondary realm', () => {
+        // Moving the secondary path changes the size of the bar being filled,
+        // never the speed it fills at.
         for (const [name, p] of entries) {
             if (!p.secondaryPathRealm) continue;
 
@@ -677,86 +498,15 @@ describe('fruit timing', () => {
         }
     });
 
-    test('analyze survives every fixture', () => {
-        for (const [name, p] of entries) {
-            const bonus = ViryaCalculator.detectScenario(p).absorptionBonus;
-            const main = Progression.dailyXPForPath(p, 'main', bonus);
-            const secondary = Progression.dailyXPForPath(p, 'secondary', bonus);
+    test('a fruit is priced off the main path realm', () => {
+        // geared has its two paths in different majors, so pricing a fruit
+        // against anything but the main path realm would show up here.
+        const p = PLAYERS.geared;
+        assert.notEqual(p.mainPathRealmMajor, p.secondaryPathRealmMajor);
 
-            const analysis = FruitTimingCalculator.analyze({ ...p, fruitsCount: 120 }, main, secondary);
-            assert.ok(analysis.tiers, `${name}: no tiers returned`);
-            for (const [tier, t] of Object.entries(analysis.tiers)) {
-                assert.ok(!t.error, `${name}/${tier}: ${t.error}`);
-                assert.ok(t.plans.length > 0, `${name}/${tier}: no plans`);
-            }
-        }
-    });
-
-    test('the recommended plan is never worse than eating nothing', () => {
-        for (const [name, base] of entries) {
-            const p = { ...gated(base), fruitsCount: 150 };
-            const bonus = ViryaCalculator.detectScenario(p).absorptionBonus;
-            const analysis = FruitTimingCalculator.analyze(
-                p,
-                Progression.dailyXPForPath(p, 'main', bonus),
-                Progression.dailyXPForPath(p, 'secondary', bonus)
-            );
-
-            for (const [tier, t] of Object.entries(analysis.tiers)) {
-                assert.ok(
-                    t.gainOverBaseline >= -1e-6,
-                    `${name}/${tier}: best plan ${t.bestPlanId} lost ${-t.gainOverBaseline} XP against doing nothing`
-                );
-            }
-        }
-    });
-
-    test('more fruits never bank less XP', () => {
-        // Monotonicity of the score. A plan that got worse with more resources
-        // would mean the allocation logic is dropping or mis-pricing them.
-        const base = gated(PLAYERS.geared);
-        let previous = -Infinity;
-
-        for (const fruitsCount of [0, 10, 40, 100, 250, 600]) {
-            const p = { ...base, fruitsCount };
-            const bonus = ViryaCalculator.detectScenario(p).absorptionBonus;
-            const analysis = FruitTimingCalculator.analyze(
-                p,
-                Progression.dailyXPForPath(p, 'main', bonus),
-                Progression.dailyXPForPath(p, 'secondary', bonus)
-            );
-            const best = analysis.tiers[SCENARIO_PERFECT];
-            const banked = Math.max(...best.plans.map((plan) => plan.bankedXP));
-
-            assert.ok(banked >= previous - 1e-6, `banked XP fell from ${previous} to ${banked} at ${fruitsCount} fruits`);
-            previous = banked;
-        }
-    });
-
-    test('the analysis ignores the fields the app writes back onto playerData', () => {
-        // Calculator.calculateAll() stamps cosmoapsisValue and viryaScenario onto
-        // playerData before anything else runs. Reading either back would make a
-        // hypothetical fruit-fed state report the tier it started from.
-        const p = { ...gated(PLAYERS.completionWholeness), fruitsCount: 200 };
-        const bonus = ViryaCalculator.detectScenario(p).absorptionBonus;
-        const main = Progression.dailyXPForPath(p, 'main', bonus);
-        const secondary = Progression.dailyXPForPath(p, 'secondary', bonus);
-
-        const clean = FruitTimingCalculator.analyze(p, main, secondary);
-        const stamped = FruitTimingCalculator.analyze(
-            {
-                ...p,
-                cosmoapsisValue: 999999,
-                viryaScenario: SCENARIO_HALF_STEP,
-                viryaAbsorptionBonus: 0.4,
-                dailyXP: 1
-            },
-            main, secondary
-        );
-
-        assert.deepEqual(
-            stamped.tiers[SCENARIO_PERFECT].plans.map((plan) => Math.round(plan.bankedXP)),
-            clean.tiers[SCENARIO_PERFECT].plans.map((plan) => Math.round(plan.bankedXP))
-        );
+        const viaMain = FruitCalculator.fruitXP(p);
+        const viaHelper = FruitCalculator.fruitXP(Progression.asPathPlayerData(p, 'secondary'));
+        assert.ok(viaMain > 0);
+        assert.equal(viaHelper, viaMain, 'a fruit changed value depending on which path ate it');
     });
 });

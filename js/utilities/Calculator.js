@@ -7,7 +7,6 @@ import { DataManager } 		from './DataManager.js';
 import { FruitCalculator } 	from '../calculators/FruitCalculator.js'; 
 import { Recommendations } 	from '../calculators/Recommendations.js';
 import { ViryaScenarioComparator } from '../calculators/ViryaScenarioComparator.js';
-import { FruitTimingCalculator } from '../calculators/FruitTimingCalculator.js';
 import { Progression } from '../engine/Progression.js';
 import { ViryaRules } from '../engine/ViryaRules.js';
 
@@ -318,15 +317,10 @@ class OvermortalCalculator {
         // Needs the progression: every fruit projection is measured against one of its breakthrough times.
         const fruitData = this.calculateFruitData(realmProgression);
         const scenarioComparisons = this.calculateScenarioComparisons(mainPathDailyXPBase, secondaryPathDailyXPBase);
-        // Where a lump of fruit XP buys the most, given that daily XP feeds only
-        // one path. Uses the base (focus-independent) rates: the whole question is
-        // which path to point at, so a focus-weighted rate would beg it.
-        const fruitTiming = this.calculateFruitTiming(mainPathDailyXPBase, secondaryPathDailyXPBase);
 
         this.calculationResults = this.assembleResults(
             viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase,
-            realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus,
-            fruitTiming
+            realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus
         );
         
         
@@ -517,25 +511,8 @@ class OvermortalCalculator {
         return scenarioComparisons;
     }
 
-    /**
-     * Fruit timing: which path a lump of fruit XP should feed, and whether it is
-     * worth eating now or holding until the next timegate window re-opens.
-     *
-     * Returns null rather than throwing: this is an advisory panel, and a player
-     * state it cannot cost should not take the rest of the dashboard down.
-     */
-    calculateFruitTiming(mainPathDailyXPBase, secondaryPathDailyXPBase) {
-        try {
-            return FruitTimingCalculator.analyze(this.playerData, mainPathDailyXPBase, secondaryPathDailyXPBase);
-        } catch (error) {
-            console.error('Error analysing fruit timing:', error);
-            return null;
-        }
-    }
-
-    assembleResults(viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase, realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus, fruitTiming) {
+    assembleResults(viryaInfo, fruitData, mainPathDailyXPBase, secondaryPathDailyXPBase, realmProgression, scenarioXPNeeded, scenarioFruitResults, nextScenario, scenarioComparisons, mainPathAbsorptionBonus) {
         return {
-            fruitTiming,
             dailyXP: this.playerData.dailyXP,
             mainPathDailyXPBase,
             secondaryPathDailyXPBase,

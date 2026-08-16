@@ -32,6 +32,10 @@ lucyfer_os
 
 # Release Notes
 
+#### Version 0.4.3.0 (BETA)
+  * Removed the **Fruit Timing** card added in 0.4.2.0. It compared plans correctly but did not tell you anything you could act on, so it was more noise than help. The fruit cards and the Virya table are unchanged.
+  * The secondary path XP rate fix from 0.4.2.0 stays — that was a real bug and is unaffected by this removal.
+
 #### Version 0.4.2.0 (BETA)
   * **Fixed a long-standing secondary path XP bug.** XP rates are a property of your character, set by your *main* path's realm — if your main path is Nirvana and your secondary is Perfection, you gain XP at Nirvana rates while pushing the secondary path. The calculator was pricing secondary path progress off the secondary path's (lower) realm instead, which understated it badly: one test player was off by 2.65x. "Time to Cultivate" for the secondary path is now faster, and correct. The Virya table's own timings already used the main path rate, so those numbers have not moved.
   * New **Fruit Timing** card on the dashboard, for deciding whether a Virya tier is worth chasing and when to eat your fruits for it.
