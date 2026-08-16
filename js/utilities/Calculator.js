@@ -233,9 +233,12 @@ class OvermortalCalculator {
             abodeBonusNirvanaNeckMansion: getNumberValue('abode-nirvana-neck-mansion'),
             abodeBonusMiniWorld: getNumberValue('abode-mini-world'),
             abodeBonusFiveAsthenia: getNumberValue('abode-five-asthenia'),
-            // Not an Abode Aura bonus: a percentage of the abode XP the day
-            // produces, paid into the secondary path. Read here because it is
-            // priced off the abode total, easy mode included.
+            // Neither of these is an Abode Aura bonus, so easy mode's typed-in
+            // Abode Aura total does not subsume them. Auraseep multiplies the
+            // aura gem's share; Wisdom Confluence takes a cut of the Abode Aura
+            // XP for the secondary path. The element id still says "temper aura"
+            // because saved data is keyed by it.
+            abodeTemperAuraCurio: getNumberValue('abode-temper-aura-curio'),
             wisdomConfluenceCurio: getNumberValue('wisdom-confluence-curio'),
             baseAbodeAura: GameConstants.abodeBase
         };

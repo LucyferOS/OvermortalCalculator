@@ -512,6 +512,78 @@ describe('XP rates are a main path property', () => {
     });
 });
 
+describe('Auraseep', () => {
+    // A curio percentage that multiplies the aura gem's share of the Abode Aura
+    // XP, and nothing else: 50% makes the gem worth 1.5x. The field was inert
+    // for a while - stored and restored, but read by no calculation - so these
+    // check it is actually wired up.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 55,
+        gemQuality: 'Epic', goldPill: 5, purplePill: 10, bluePill: 30,
+        ...overrides
+    });
+
+    test('it multiplies the gem share by 1 + the percentage', () => {
+        const plain = XPCalculator.calculateAuraGemXP(at({}), 0);
+        assert.ok(plain > 0);
+
+        for (const [percent, factor] of [[50, 1.5], [100, 2], [12.5, 1.125]]) {
+            const boosted = XPCalculator.calculateAuraGemXP(at({ abodeTemperAuraCurio: percent }), 0);
+            assert.ok(
+                Math.abs(boosted - plain * factor) < 1e-6,
+                `${percent}%: expected ${plain * factor}, got ${boosted}`
+            );
+        }
+    });
+
+    test('it boosts the gem only, not the Abode Aura XP itself', () => {
+        const plain = at({});
+        const boosted = at({ abodeTemperAuraCurio: 50 });
+
+        assert.equal(
+            XPCalculator.calculateAbodeAuraXP(boosted, 0),
+            XPCalculator.calculateAbodeAuraXP(plain, 0),
+            'Auraseep leaked into the Abode Aura XP'
+        );
+        assert.equal(
+            XPCalculator.calculateAbodeXPTotal(boosted, 0) - XPCalculator.calculateAbodeXPTotal(plain, 0),
+            XPCalculator.calculateAuraGemXP(boosted, 0) - XPCalculator.calculateAuraGemXP(plain, 0),
+            'the abode total moved by more than the gem did'
+        );
+    });
+
+    test('it raises daily XP', () => {
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ abodeTemperAuraCurio: 0 }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ abodeTemperAuraCurio: 50 }), 0);
+        assert.ok(some > none, `Auraseep was ignored: ${some} === ${none}`);
+    });
+
+    test('it still applies in easy mode', () => {
+        // It is a gem bonus, not an Abode Aura one, so the typed-in Abode Aura
+        // total does not subsume it - same rule as the pill and Respira bonuses.
+        const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, abodeTemperAuraCurio: 50 }), 0);
+        assert.ok(some > none, `Auraseep was swallowed by easy mode: ${some} === ${none}`);
+    });
+
+    test('with no aura gem there is nothing to multiply', () => {
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ gemQuality: 'No Aura' }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+            at({ gemQuality: 'No Aura', abodeTemperAuraCurio: 50 }), 0
+        );
+        assert.equal(some, none, 'Auraseep paid out without a gem to boost');
+    });
+
+    test('zero or missing leaves the gem exactly as it was', () => {
+        const plain = XPCalculator.calculateAuraGemXP(at({ abodeTemperAuraCurio: 0 }), 0);
+
+        const missing = at({});
+        delete missing.abodeTemperAuraCurio;
+        assert.equal(XPCalculator.calculateAuraGemXP(missing, 0), plain);
+    });
+});
+
 describe('Wisdom Confluence', () => {
     // A share of the day's abode XP, paid into the secondary path. It is a
     // second bucket being filled, not a faster fill rate: folding it into the
@@ -534,12 +606,27 @@ describe('Wisdom Confluence', () => {
         );
     };
 
-    test('it pays the stated percentage of the day abode XP', () => {
+    test('it pays the stated percentage of the day Abode Aura XP', () => {
         const player = at({ wisdomConfluenceCurio: PERCENT });
-        const abodeXP = XPCalculator.calculateAbodeXPTotal(player, 0);
+        const abodeAuraXP = XPCalculator.calculateAbodeAuraXP(player, 0);
 
-        assert.ok(abodeXP > 0, 'the fixture must actually earn abode XP');
-        assert.equal(rates(player).wisdomConfluenceXP, abodeXP * (PERCENT / 100));
+        assert.ok(abodeAuraXP > 0, 'the fixture must actually earn Abode Aura XP');
+        assert.equal(rates(player).wisdomConfluenceXP, abodeAuraXP * (PERCENT / 100));
+    });
+
+    test('the aura gem is excluded from what it draws on', () => {
+        // The Confluence takes its cut of the aura itself, so neither the gem's
+        // quality nor Auraseep may move it.
+        const baseline = rates(at({ wisdomConfluenceCurio: PERCENT })).wisdomConfluenceXP;
+        assert.ok(baseline > 0);
+
+        for (const overrides of [{ gemQuality: 'Mythic' }, { gemQuality: 'No Aura' }, { abodeTemperAuraCurio: 80 }]) {
+            assert.equal(
+                rates(at({ wisdomConfluenceCurio: PERCENT, ...overrides })).wisdomConfluenceXP,
+                baseline,
+                `${JSON.stringify(overrides)} moved the Confluence, but the gem is not part of it`
+            );
+        }
     });
 
     test('it lands on the secondary path and nowhere else', () => {
