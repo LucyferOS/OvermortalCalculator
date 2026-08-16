@@ -10,9 +10,7 @@
 // path requirement is satisfied — requirements are thresholds, so a secondary
 // path that has moved past a rung still satisfies it.
 
-import {
-    SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP
-} from '../utilities/gameData.js';
+import { SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP } from '../utilities/gameData.js';
 
 /**
  * Ordered from lowest to highest. Each requirement names a position relative to
@@ -66,3 +64,16 @@ export const REQUIREMENT_SHIFT = {
 
 /** Tier names, lowest first. */
 export const VIRYA_TIER_ORDER = VIRYA_TIERS.map((tier) => tier.name);
+
+/**
+ * The "Did you have Virya last realm?" dropdown uses its own spellings, which
+ * predate the tier constants. Saved player data and exported JSON store the raw
+ * option values, so the option values stay as they are and are translated here
+ * at the boundary instead. Internally there is one vocabulary.
+ */
+export const HAD_VIRYA_OPTION_TO_TIER = {
+    'No': null,
+    'Eminence': SCENARIO_EMINENCE,
+    'Perfection': SCENARIO_PERFECT,
+    'Halfstep': SCENARIO_HALF_STEP
+};

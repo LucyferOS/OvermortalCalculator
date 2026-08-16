@@ -1,7 +1,7 @@
 import { XPCalculator } from '../dashboard/XPCalculator.js';
 import { FruitCalculator } from '../dashboard/FruitCalculator.js';
 import { Recommendations } from '../dashboard/Recommendations.js';
-import { GameConstants, XPData, MAX_EXTRACTOR_LEVEL, Realms, PERCENTAGE_COMPLETE } from '../utilities/gameData.js';
+import { GameConstants, MAX_EXTRACTOR_LEVEL, PERCENTAGE_COMPLETE } from '../utilities/gameData.js';
 import { xpBetween } from '../domain/realms.js';
 import { CalculatorUtils } from '../utilities/utils.js';
 

@@ -1,7 +1,7 @@
 import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
 import { ViryaCalculator } from './ViryaCalculator.js';
 import { XPCalculator } from './XPCalculator.js';
-import { XPData, timegateLength, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, REALM_ORDER_MINOR } from '../utilities/gameData.js';
+import { timegateLength, VIRYA_SCENARIO_ORDER, REALM_ORDER_MINOR } from '../utilities/gameData.js';
 import { ViryaRules } from '../engine/ViryaRules.js';
 import { Progression } from '../engine/Progression.js';
 import { nextMajor as nextMajorOf } from '../domain/realms.js';
@@ -279,60 +279,6 @@ class ViryaScenarioComparator {
         const result = this.simulator.simulateDays(days, absorptionBonus, bonusEndCondition, maxRealm);
         
         return result.totalXP;
-    }
-    
-    calculateDaysUntilBonusEnds(scenario, absorptionBonus, maxDays) {
-        
-        const endCondition = this.bonusEndConditions[scenario];
-        
-        if (endCondition.endsAt === 'Immediately') {
-            return 0;
-        }
-        
-        if (endCondition.endsAt === 'Next Major Early') {
-            // Find next major realm
-            const currentMajor = this.playerData.mainPathRealmMajor;
-            const nextMajor = this.getNextMajorRealm(currentMajor);
-            
-            if (!nextMajor) {
-                return maxDays;
-            }
-            
-            const targetRealm = `${nextMajor} Early`;
-            const daysToReach = this.simulator.calculateDaysToReachRealm(targetRealm, 100, absorptionBonus);
-            
-            return Math.min(daysToReach, maxDays);
-        }
-        
-        if (endCondition.endsAt === 'Next Major Mid') {
-            const currentMajor = this.playerData.mainPathRealmMajor;
-            const nextMajor = this.getNextMajorRealm(currentMajor);
-            
-            if (!nextMajor) {
-                return maxDays;
-            }
-            
-            const targetRealm = `${nextMajor} Mid`;
-            const daysToReach = this.simulator.calculateDaysToReachRealm(targetRealm, 100, absorptionBonus);
-            
-            return Math.min(daysToReach, maxDays);
-        }
-        
-        if (endCondition.endsAt === 'Next Major Late') {
-            const currentMajor = this.playerData.mainPathRealmMajor;
-            const nextMajor = this.getNextMajorRealm(currentMajor);
-            
-            if (!nextMajor) {
-                return maxDays;
-            }
-            
-            const targetRealm = `${nextMajor} Late`;
-            const daysToReach = this.simulator.calculateDaysToReachRealm(targetRealm, 100, absorptionBonus);
-            
-            return Math.min(daysToReach, maxDays);
-        }
-        
-        return maxDays;
     }
     
     getTotalDaysUntilNextTimegateEnd() {

@@ -1,9 +1,8 @@
-import { GameConstants, Realms, RealmMajorTotalXP, timegateLength, REALM_ORDER_MAJOR, VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, PERCENTAGE_COMPLETE, PATH_MAIN, PATH_SECONDARY, XPData } from '../utilities/gameData.js';
+import { VIRYA_SCENARIO_ORDER, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE, SCENARIO_PERFECT, SCENARIO_HALF_STEP, PERCENTAGE_COMPLETE, PATH_MAIN, PATH_SECONDARY } from '../utilities/gameData.js';
 import { ViryaRules } from '../engine/ViryaRules.js';
 import { Progression } from '../engine/Progression.js';
 import { xpBetween } from '../domain/realms.js';
-import { RealmCalculator } from './RealmCalculator.js';
-import { RealmProgressionSimulator } from './RealmProgressionSimulator.js';
+
 import { XPCalculator } from './XPCalculator.js';
 // Labels shown for "what comes next" once a tier is held. Display only.
 const NEXT_TIER_LABEL = {
@@ -38,7 +37,6 @@ class ViryaCalculator {
         const currentIndex = VIRYA_SCENARIO_ORDER.indexOf(currentScenario);
         const targetIndex = VIRYA_SCENARIO_ORDER.indexOf(targetScenario);
 
-
         // Check if target is already achieved or passed
         if (targetIndex <= currentIndex) {
             // Determine required path focus for the scenario
@@ -61,7 +59,6 @@ class ViryaCalculator {
             dailyXPToUse = mainPathDailyXP || 0;
         } else {
         }
-
 
         // Special handling for "No Virya" to "Completion" transition
         if (currentScenario === SCENARIO_NO_VIRYA && targetScenario === SCENARIO_COMPLETION) {
@@ -108,7 +105,6 @@ class ViryaCalculator {
                 default:
                     return { daysNeeded: Infinity, xpNeeded: Infinity, requiredPathFocus };
             }
-
 
             if (xpNeeded <= 0) {
                 return { daysNeeded: 0, xpNeeded: 0, requiredPathFocus };

@@ -1,7 +1,6 @@
 
 // Small DOM helpers shared by every view.
 
-
 class Dom {
     static updateElementText(elementId, text) {
         const element = document.getElementById(elementId);

@@ -3,14 +3,9 @@
 // Everything here is a pure function of a player position. No caching, no
 // reliance on fields written elsewhere.
 
-import { VIRYA_TIERS, VIRYA_TIER_ORDER, REQUIREMENT_SHIFT } from '../data/viryaRules.js';
-import {
-    realmIndex, realmAt, realmOf, majorIndex, isAtOrBeyond, splitRealm
-} from '../domain/realms.js';
-import {
-    REALM_ORDER_MAJOR, PERCENTAGE_COMPLETE,
-    SCENARIO_NO_VIRYA, SCENARIO_COMPLETION
-} from '../utilities/gameData.js';
+import { VIRYA_TIERS, VIRYA_TIER_ORDER, REQUIREMENT_SHIFT, HAD_VIRYA_OPTION_TO_TIER } from '../data/viryaRules.js';
+import { realmIndex, realmAt, realmOf, majorIndex, isAtOrBeyond, splitRealm } from '../domain/realms.js';
+import { REALM_ORDER_MAJOR, PERCENTAGE_COMPLETE, SCENARIO_NO_VIRYA, SCENARIO_COMPLETION } from '../utilities/gameData.js';
 
 const TIER_BY_NAME = new Map(VIRYA_TIERS.map((tier) => [tier.name, tier]));
 
@@ -64,6 +59,14 @@ export function requirementFor(tierName, mainMajor) {
     if (!realm) return null;
 
     return { realm, progress: minProgress };
+}
+
+/**
+ * Translate a "Did you have Virya last realm?" dropdown value into a tier name,
+ * or null for "No". The dropdown's spellings differ from the tier constants.
+ */
+export function tierFromHadViryaOption(optionValue) {
+    return HAD_VIRYA_OPTION_TO_TIER[optionValue] ?? null;
 }
 
 /** True when the main path is at 100% of its major realm's Late stage. */
@@ -140,6 +143,7 @@ export const ViryaRules = {
     isCarriedBonusActive,
     carriedBonusAt,
     requirementFor,
+    tierFromHadViryaOption,
     isMainPathComplete,
     detectTier,
     detectTierForPlayer,

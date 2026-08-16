@@ -1,5 +1,4 @@
 import { XPData, GameConstants, Realms } from '../utilities/gameData.js';
-import { CalculatorUtils } from '../utilities/utils.js';
 
 class XPCalculator {
     static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {

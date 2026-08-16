@@ -1,9 +1,9 @@
 // Invariants the calculator must satisfy.
 //
-// These encode the rules the code is *supposed* to follow. Several of them fail
-// against the pre-refactor code — that is deliberate: each failure corresponds
-// to a defect identified in REFACTOR_PLAN.md, and the phase that fixes the
-// defect turns the test green.
+// Each group here corresponds to a defect from REFACTOR_PLAN.md. They were
+// written before the fixes, failed against the original code, and now pass —
+// so they are the regression tests for those defects specifically, not just
+// general coverage.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { PLAYERS, makePlayer } from './fixtures.js';
 import { XPCalculator } from '../js/dashboard/XPCalculator.js';
 import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
+import { ViryaRules } from '../js/engine/ViryaRules.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
     SCENARIO_PERFECT, SCENARIO_HALF_STEP
@@ -215,12 +216,7 @@ describe('carried Virya bonus', () => {
 
     for (const [tier, stages] of Object.entries(expected)) {
         for (const [stage, active] of Object.entries(stages)) {
-            test(`${tier} carried into ${stage} is ${active ? 'active' : 'expired'}`, async () => {
-                const { ViryaRules } = await import('../js/engine/ViryaRules.js').catch(() => ({}));
-                if (!ViryaRules) {
-                    // Rule table not extracted yet (arrives in Phase 3).
-                    return;
-                }
+            test(`${tier} carried into ${stage} is ${active ? 'active' : 'expired'}`, () => {
                 assert.equal(ViryaRules.isCarriedBonusActive(tier, stage), active);
             });
         }

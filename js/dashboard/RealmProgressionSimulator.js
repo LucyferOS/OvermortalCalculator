@@ -1,4 +1,4 @@
-import { Realms, RealmMajorTotalXP, timegateLength, REALM_ORDER_MAJOR, REALM_ORDER_MINOR } from '../utilities/gameData.js';
+import { Realms, REALM_ORDER_MAJOR, REALM_ORDER_MINOR } from '../utilities/gameData.js';
 import { XPCalculator } from './XPCalculator.js';
 
 class RealmProgressionSimulator {
