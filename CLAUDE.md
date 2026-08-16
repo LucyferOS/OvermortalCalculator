@@ -57,10 +57,12 @@ index.html
      │    ├─ calculators/ViryaScenarioComparator.js  tier A vs tier B over a timegate window
      │    ├─ calculators/RealmProgressionSimulator.js  day-by-day realm walk
      │    ├─ calculators/FruitCalculator.js        fruit XP + weekly projection
+     │    ├─ calculators/FruitTimingCalculator.js  where/when to spend fruits
      │    ├─ calculators/Recommendations.js        minimum extractor levels for a target
      │    └─ DataManager.js                      localStorage / export / import
      └─ UIManager.js              thin facade → js/ui/*
-          └─ ui/dashboard.js → ui/viryaTable.js, ui/analyticsView.js → analytics/Analytics.js
+          └─ ui/dashboard.js → ui/viryaTable.js, ui/fruitTimingView.js,
+                               ui/analyticsView.js → analytics/Analytics.js
 ```
 
 One render pass: `calculateAndUpdateUI()` → `calculator.calculateAll()` →
@@ -82,6 +84,7 @@ every calculate.
 | Realm ordering, XP between two positions, "am I past X" | `js/domain/realms.js` |
 | Time to next minor/major realm | `js/calculators/RealmCalculator.js` |
 | Fruit counts, weekly income, token conversion | `js/calculators/FruitCalculator.js` + `Calculator.calculateFruitData()` |
+| Where/when to spend fruits, fruit-vs-Virya trade-off | `js/calculators/FruitTimingCalculator.js` (maths), `js/ui/fruitTimingView.js` (the card) |
 | Extractor level recommendations | `js/calculators/Recommendations.js` |
 | Charts, red-pill analytic | `js/analytics/Analytics.js` (maths+render), `js/ui/analyticsView.js` (wiring) |
 | Dashboard cards, fruit cards, timegate card, focus highlighting | `js/ui/dashboard.js` |
@@ -116,7 +119,7 @@ the canonical list. Key shape:
 `mainPathAbsorptionBonus`, `realmProgression{mainPath,secondaryPath}`,
 `fruitProjection{rows,…}`, `virya{scenario,absorptionBonus,isActive,bonusEndsAt}`,
 `scenarioXPNeeded`, `scenarioFruitResults`, `scenarioComparisons`,
-`nextScenario`, `fruitResult`, `recommendedFruits`.
+`nextScenario`, `fruitResult`, `recommendedFruits`, `fruitTiming`.
 
 ## Domain rules worth knowing before you touch the maths
 
@@ -125,10 +128,13 @@ the canonical list. Key shape:
   progress > 100% (overflow) is meaningful and carries forward.
 - **Two paths.** The main path is what the player is breaking through on; the
   secondary path only exists to unlock Virya tiers. Path focus decides which one
-  gets the bulk of daily XP; elixir feeds the main path, benediction the
-  secondary. The XP calculators only understand `mainPath*` fields, so
-  `Progression.asPathPlayerData(playerData, 'secondary')` re-points a copy —
-  **use that helper, never hand-roll the spread**.
+  gets the daily XP — it is all-or-nothing, not a split, so a day spent on the
+  secondary path earns the main path *nothing*. Elixir feeds the main path,
+  benediction the secondary. `Progression.asPathPlayerData(playerData, 'secondary')`
+  is the helper for costing a path; it deliberately does **not** re-point the
+  realm (see the XP-rate rule below) and exists to guard the unset/uncostable
+  case. **Never hand-roll the spread** — `tests/snapshot.mjs` once did, which hid
+  a real rate change from the snapshot entirely.
 - **Virya tiers**, lowest to highest: `No Virya` → `Completion` → `Eminence` →
   `Perfect` → `Half-Step`. All require the main path at 100% of its major's
   Late. Requirements are *thresholds* on the secondary path's ladder position,
@@ -150,6 +156,38 @@ the canonical list. Key shape:
 - **Fruit projection** counts Wednesdays between now and each breakthrough, and
   each dashboard row gets its own horizon. It deliberately does not model the
   feedback of eating fruits shortening the horizon.
+- **Path focus is all-or-nothing.** `XPCalculator` computes one full daily total
+  for whichever path the `mainPath*` fields point at, and the comparator books
+  *zero* main path XP for days spent chasing a tier on the secondary path. That
+  is the opportunity cost of Virya, and it is why fruits matter: eating them
+  costs no days of focus, so they are the only way to buy secondary path
+  progress without stalling the main path.
+- **XP rates are a main-path property.** Every XP *source* — abode aura,
+  absorption, pills, respira, red pills, elixir/benediction, fruits — is priced
+  off the **main path's** major realm, even when the XP is going into the
+  secondary path. A player with a Nirvana main path and a Perfection secondary
+  path earns at *Nirvana* rates while pushing the secondary path. The secondary
+  path sets the size of the bar being filled, never the rate it fills at. Daily
+  XP never reads progress at all, so the two paths' totals differ by exactly one
+  thing: elixir feeds the main path, benediction the secondary. Guarded by
+  `tests/invariants.test.js` ("XP rates come from the main path realm").
+- **Fruit value moves with one thing.** `FruitCalculator.fruitXP` scales off the
+  main path's major realm whichever path eats the fruit, so the only variable is
+  the 1.5x multiplier that applies while a timegate runs (`playerData.timegate >
+  0`). There is no "better path" for a fruit — the choice is about what the XP
+  unlocks, not what it is worth.
+- **`FruitTimingCalculator` works by moving positions, not by injecting XP.** A
+  lump of fruit XP becomes a move along the ladder (`domain/realms.js advanceBy`),
+  and the resulting `playerData` is handed to the existing calculators unchanged.
+  Nothing downstream knows fruits were involved. Main path advancement is clamped
+  to its major's Late with overflow, because the timegate blocks the breakthrough;
+  the secondary path is clamped at the main path's Late with *no* overflow,
+  because no tier asks for more than that.
+- **`advanceBy` never crosses a realm boundary on its own.** A position landing
+  exactly on a boundary stays at 100% of the realm it filled rather than becoming
+  0% of the next. The two are the same absolute XP, but `isMainPathComplete`
+  reads the minor stage and progress directly, so normalising would strip a
+  player of Completion.
 
 ## Gotchas
 
@@ -171,7 +209,7 @@ the canonical list. Key shape:
 
 ## Testing
 
-- `npm test` — `tests/invariants.test.js`, 156 assertions. Each `describe` block
+- `npm test` — `tests/invariants.test.js`, 189 assertions. Each `describe` block
   guards a bug the codebase has already had once: the absorption bonus must
   actually change daily XP, the secondary path must not inherit main-path state,
   results must not depend on stale written-back fields, the analytics breakdown

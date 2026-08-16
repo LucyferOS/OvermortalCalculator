@@ -32,6 +32,15 @@ lucyfer_os
 
 # Release Notes
 
+#### Version 0.4.2.0 (BETA)
+  * **Fixed a long-standing secondary path XP bug.** XP rates are a property of your character, set by your *main* path's realm — if your main path is Nirvana and your secondary is Perfection, you gain XP at Nirvana rates while pushing the secondary path. The calculator was pricing secondary path progress off the secondary path's (lower) realm instead, which understated it badly: one test player was off by 2.65x. "Time to Cultivate" for the secondary path is now faster, and correct. The Virya table's own timings already used the main path rate, so those numbers have not moved.
+  * New **Fruit Timing** card on the dashboard, for deciding whether a Virya tier is worth chasing and when to eat your fruits for it.
+    * Tells you exactly how many fruits it takes to cross each tier's secondary path requirement.
+    * Compares the plans side by side for every tier — eat nothing, just enough to unlock the tier, all to one path, or hold everything until after the breakthrough — scored on main path XP banked over this timegate plus the next realm's.
+    * Shows what one fruit is worth, and what the timegate does to it. A fruit is worth the same whichever path eats it, so the choice is about what the XP unlocks, not what it is worth.
+    * Flags whether the timegate's 1.5x fruit window is currently open, and whether a plan lands the tier before the timegate expires.
+  * Fixed a realm ladder bug where a path sitting exactly at 100% of a Late stage could be read as 0% of the next major realm instead, which silently stripped the player of Completion.
+
 #### Version 0.4.1.1 (BETA)
   * Solved Virya table miscalculation.
   	* Overflow is still broken. Investigation will continue later. 
