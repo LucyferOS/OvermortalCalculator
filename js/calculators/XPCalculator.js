@@ -12,20 +12,50 @@ const BLUE_PILL_BONUSES = ['pillBonusNirvanaGhostMansion'];
 
 class XPCalculator {
     static calculateDailyXPWithAbsorptionBonus(playerData, absorptionBonus) {
-        
-        const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
-        
-        const gemBonusXP = abodeAuraXP * GameConstants.gemQuality[playerData.gemQuality];
-        
+
+        const abodeXP = this.calculateAbodeXPTotal(playerData, absorptionBonus);
+
         const pillXP = this.calculatePillXP(playerData);
         
         const respiraXP = this.calculateRespiraXP(playerData);
         
         const pearlXP = this.calculatePearlXP(playerData, absorptionBonus);
-        
-        const total = abodeAuraXP + gemBonusXP + pillXP + respiraXP + pearlXP;
-		
+
+        const total = abodeXP + pillXP + respiraXP + pearlXP;
+
         return total;
+    }
+
+    /**
+     * The XP the abode yields in a day: the Abode Aura XP plus the aura gem's
+     * share of it. This is what the game calls the day's total abode XP, and it
+     * is the figure Wisdom Confluence takes its cut of - shared so the daily
+     * total and the Confluence can never disagree about it.
+     *
+     * The Pearl is deliberately not part of it: that is an artifact being spent,
+     * not the abode ticking over.
+     */
+    static calculateAbodeXPTotal(playerData, absorptionBonus) {
+        const abodeAuraXP = this.calculateAbodeAuraXP(playerData, absorptionBonus);
+        const gemBonusXP = abodeAuraXP * (GameConstants.gemQuality[playerData.gemQuality] || 0);
+        return abodeAuraXP + gemBonusXP;
+    }
+
+    /**
+     * Wisdom Confluence: a percentage of the day's abode XP, paid into the
+     * **secondary path** on top of everything else.
+     *
+     * It is a second bucket being filled, not a faster fill rate, so it must not
+     * be folded into the daily total above - both paths generate XP at the same
+     * base rate, and only the path-specific sources (elixir for the main path,
+     * benediction and this for the secondary) may differ. The caller adds it
+     * where it books benediction.
+     */
+    static calculateWisdomConfluenceXP(playerData, absorptionBonus) {
+        const percent = playerData.wisdomConfluenceCurio || 0;
+        if (percent <= 0) return 0;
+
+        return this.calculateAbodeXPTotal(playerData, absorptionBonus) * (percent / 100);
     }
 
     static calculateTotalAbodeBonus(playerData) {

@@ -8,6 +8,13 @@
     "mainDailyXP": 1690466.9,
     "mainDailyXPNoBonus": 1690466.9,
     "secondaryDailyXP": 1690466.9,
+    "pathDailyXP": {
+      "mainBase": 1690466.9,
+      "secondaryBase": 1690466.9,
+      "mainWhenFocused": 1690466.9,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 101362.5,
     "pillXP": 1099529.6,
     "pearlXP": 0,
@@ -74,6 +81,13 @@
     "mainDailyXP": 1753787.3,
     "mainDailyXPNoBonus": 1753787.3,
     "secondaryDailyXP": 1753787.3,
+    "pathDailyXP": {
+      "mainBase": 1753787.3,
+      "secondaryBase": 1753787.3,
+      "mainWhenFocused": 1753787.3,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 101362.5,
     "pillXP": 1099529.6,
     "pearlXP": 0,
@@ -140,6 +154,13 @@
     "mainDailyXP": 4485537.1,
     "mainDailyXPNoBonus": 4485537.1,
     "secondaryDailyXP": 4485537.1,
+    "pathDailyXP": {
+      "mainBase": 4485537.1,
+      "secondaryBase": 4485537.1,
+      "mainWhenFocused": 4485537.1,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -206,6 +227,13 @@
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
     "secondaryDailyXP": 4794417.1,
+    "pathDailyXP": {
+      "mainBase": 4794417.1,
+      "secondaryBase": 4794417.1,
+      "mainWhenFocused": 4794417.1,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -272,6 +300,13 @@
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
     "secondaryDailyXP": 4794417.1,
+    "pathDailyXP": {
+      "mainBase": 4794417.1,
+      "secondaryBase": 4794417.1,
+      "mainWhenFocused": 4794417.1,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -338,6 +373,13 @@
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
     "secondaryDailyXP": 4794417.1,
+    "pathDailyXP": {
+      "mainBase": 4794417.1,
+      "secondaryBase": 4794417.1,
+      "mainWhenFocused": 4794417.1,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -404,6 +446,13 @@
     "mainDailyXP": 4794417.1,
     "mainDailyXPNoBonus": 4485537.1,
     "secondaryDailyXP": 4794417.1,
+    "pathDailyXP": {
+      "mainBase": 4794417.1,
+      "secondaryBase": 4794417.1,
+      "mainWhenFocused": 4794417.1,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -470,6 +519,13 @@
     "mainDailyXP": 5103297.1,
     "mainDailyXPNoBonus": 4485537.1,
     "secondaryDailyXP": 5103297.1,
+    "pathDailyXP": {
+      "mainBase": 5103297.1,
+      "secondaryBase": 5103297.1,
+      "mainWhenFocused": 5103297.1,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 200812.5,
     "pillXP": 2817544.6,
     "pearlXP": 0,
@@ -536,6 +592,13 @@
     "mainDailyXP": 3342869.4,
     "mainDailyXPNoBonus": 3033989.4,
     "secondaryDailyXP": 3342869.4,
+    "pathDailyXP": {
+      "mainBase": 3342869.4,
+      "secondaryBase": 3342869.4,
+      "mainWhenFocused": 3342869.4,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 149175,
     "pillXP": 1649294.4,
     "pearlXP": 0,
@@ -602,6 +665,13 @@
     "mainDailyXP": 3342869.4,
     "mainDailyXPNoBonus": 3033989.4,
     "secondaryDailyXP": 3342869.4,
+    "pathDailyXP": {
+      "mainBase": 3342869.4,
+      "secondaryBase": 3342869.4,
+      "mainWhenFocused": 3342869.4,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 149175,
     "pillXP": 1649294.4,
     "pearlXP": 0,
@@ -668,6 +738,13 @@
     "mainDailyXP": 3342869.4,
     "mainDailyXPNoBonus": 3033989.4,
     "secondaryDailyXP": 3342869.4,
+    "pathDailyXP": {
+      "mainBase": 3342869.4,
+      "secondaryBase": 3342869.4,
+      "mainWhenFocused": 3342869.4,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 149175,
     "pillXP": 1649294.4,
     "pearlXP": 0,
@@ -734,6 +811,13 @@
     "mainDailyXP": 41221499.07,
     "mainDailyXPNoBonus": 41221499.07,
     "secondaryDailyXP": 41221499.07,
+    "pathDailyXP": {
+      "mainBase": 41999099.07,
+      "secondaryBase": 42349499.07,
+      "mainWhenFocused": 41999099.07,
+      "secondaryWhenFocused": 1128000,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 803250,
     "pillXP": 31260574.83,
     "pearlXP": 2041079.04,
@@ -800,6 +884,13 @@
     "mainDailyXP": 43869353.01,
     "mainDailyXPNoBonus": 40313801.01,
     "secondaryDailyXP": 43869353.01,
+    "pathDailyXP": {
+      "mainBase": 44782853.01,
+      "secondaryBase": 43869353.01,
+      "mainWhenFocused": 44782853.01,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 506047.5,
     "pillXP": 31363317.51,
     "pearlXP": 3023373.6,
@@ -857,6 +948,79 @@
       "bonusIsHonoured": true
     }
   },
+  "wisdomConfluence": {
+    "tier": "No Virya",
+    "absorptionBonus": 0,
+    "bonusEndsAt": "N/A",
+    "totalAbode": 214.5,
+    "cosmoapsis": 471.9,
+    "mainDailyXP": 23092097.4,
+    "mainDailyXPNoBonus": 23092097.4,
+    "secondaryDailyXP": 23092097.4,
+    "pathDailyXP": {
+      "mainBase": 23092097.4,
+      "secondaryBase": 25561053.4,
+      "mainWhenFocused": 23092097.4,
+      "secondaryWhenFocused": 2468956,
+      "wisdomConfluenceXP": 1528956
+    },
+    "respiraXP": 478125,
+    "pillXP": 16498148.4,
+    "pearlXP": 0,
+    "redPillsPerDay": 3.06,
+    "fruitXP": 697227.39,
+    "xpToTier": {
+      "Completion": 2438745598.4,
+      "Eminence": 2438745598.4,
+      "Perfect": 2621837707.2,
+      "Half-Step": 6966362467.2
+    },
+    "daysToTier": {
+      "Completion": 105.61,
+      "Eminence": 105.61,
+      "Perfect": 111.06,
+      "Half-Step": 299.19
+    },
+    "maxNextRealm": {
+      "Completion": "Cannot reach Completion",
+      "Eminence": "Cannot reach Completion",
+      "Perfect": "Cannot reach Completion",
+      "Half-Step": "Cannot reach Completion"
+    },
+    "mainTimeToNextMinor": 27.87,
+    "mainTimeToNextMajor": 105.61,
+    "secondaryTimeToNextMinor": 7.93,
+    "secondaryTimeToNextMajor": 7.93,
+    "comparisons": {
+      "Eminence": {
+        "totalXP": 2509868338.01,
+        "overflowXP": 4748930419.09,
+        "daysToReach": 105.61,
+        "better": "Completion",
+        "percentage": "-49.14%"
+      },
+      "Perfect": {
+        "totalXP": 2339851113.21,
+        "overflowXP": 4535214889.16,
+        "daysToReach": 111.06,
+        "better": "Completion",
+        "percentage": "-52.59%"
+      },
+      "Half-Step": {
+        "totalXP": 4950599505.15,
+        "overflowXP": 0,
+        "daysToReach": 299.19,
+        "better": "Half-Step",
+        "percentage": "+0.31%"
+      }
+    },
+    "asAppComputesIt": {
+      "mainDailyXP": 23092097.4,
+      "mainDailyXPNoBonus": 23092097.4,
+      "secondaryDailyXP": 23092097.4,
+      "bonusIsHonoured": false
+    }
+  },
   "easyMode": {
     "tier": "No Virya",
     "absorptionBonus": 0,
@@ -866,6 +1030,13 @@
     "mainDailyXP": 34982062.3,
     "mainDailyXPNoBonus": 34982062.3,
     "secondaryDailyXP": 34982062.3,
+    "pathDailyXP": {
+      "mainBase": 34982062.3,
+      "secondaryBase": 34982062.3,
+      "mainWhenFocused": 34982062.3,
+      "secondaryWhenFocused": 0,
+      "wisdomConfluenceXP": 0
+    },
     "respiraXP": 717187.5,
     "pillXP": 17727914.8,
     "pearlXP": 0,

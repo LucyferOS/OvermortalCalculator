@@ -24,6 +24,7 @@ lucyfer_os
 * This is a hobby project, and as such do not expect regular updates or support. It is not 100% accurate, but rather a snapshot of your stats. It will provide a "worst case" scenario based on what has been inputted, assuming you have inputted everything correctly.
 * The MonsterScape Absorption Bonus is applied exactly as you enter it and does not grow over the course of a breakthrough - the calculator has no model for how quickly you gain it. Because of that, it is recommended to leave it at its minimum (0%) for a worst case, or set it to its maximum (70%) for a best case, rather than picking a value in between and treating the result as precise.
 * Abode Aura / Absorption easy mode only replaces Abode Aura and Absorption.There is not an easy way to replace other bonuses.
+* Wisdom Confluence feeds your secondary path's "Time to Cultivate", but the Virya scenario table does not credit it — that table walks the secondary path at your main path rate, as it always has. Tier timings there are therefore a worst case if you have Wisdom Confluence.
 * In Abode Aura / Absorption easy mode, the absorption you type in is used exactly as entered. That is right for your current state, but it means the Virya scenario table cannot model absorption changing as you gain a tier - so the scenario comparison is less meaningful in easy mode than in the detailed mode.
 * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browse related bug, feel free to report it, but it may be downprioritized.
 * The page loads Chart.js and the markdown renderer from public CDNs. If those are blocked or unreachable the calculator will not start at all.
@@ -31,6 +32,14 @@ lucyfer_os
 
 
 # Release Notes
+
+#### Version 0.4.4.0 (BETA)
+  * **New curio input: Wisdom Confluence.** Enter the percentage your curio gives you. It pays that share of the abode XP you earn in a day — your Abode Aura XP plus the aura gem's share of it — into your **secondary path**, on top of everything else.
+    * You get it whichever path you are focusing, so it is the one other way besides fruits to buy secondary path progress without stalling your main path.
+    * It does not speed your main path up, and it does not change the rate either path cultivates at — it is extra XP in the secondary bucket, nothing more.
+    * It works in Abode Aura / Absorption easy mode too: it takes its cut of whatever abode total you typed in.
+    * Where you will see it: "Time to Cultivate" for the secondary path, and the secondary path rows of the fruit tables. The Virya scenario table still times tiers at your main path rate, exactly as it did before, so it does not yet credit Wisdom Confluence — those timings are a worst case.
+  * **"Temper Abode Aura" is now called Auraseep.** Name only — anything you had typed in that box is still there.
 
 #### Version 0.4.3.1 (BETA)
   * **Fruit counts are now measured to the end of your current timegate, not to a breakthrough.** A 41 day timegate looks 40 days ahead, so the fruits counted are the ones you will hold while they are still worth 1.5x.

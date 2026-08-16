@@ -75,6 +75,7 @@ every calculate.
 | New/changed game number (realm XP, absorption, pill XP, timegate, extractor, fruit tables) | `js/utilities/gameData.js` |
 | New player input field | `index.html` (markup) → `Calculator.update*Inputs()` (read) → `main.js syncInputsToCalculator()` (reset/restore) → the calculator that consumes it |
 | Daily XP formula, abode aura, pills, respira, pearl, elixir/benediction falloff | `js/calculators/XPCalculator.js` |
+| A path-specific XP source (benediction, Wisdom Confluence) — how much, and which path books it | `js/calculators/XPCalculator.js` (the amount) → `Calculator.calculatePathDailyXP()` (the booking) |
 | Virya tier requirements, bonus values, how far a bonus carries | `js/data/viryaRules.js` (the table) — reading logic is `js/engine/ViryaRules.js` |
 | "Which tier am I / how long to reach a tier" | `js/calculators/ViryaCalculator.js` |
 | "Is tier X worth it vs just breaking through" (the comparison columns) | `js/calculators/ViryaScenarioComparator.js` |
@@ -113,7 +114,8 @@ the canonical list. Key shape:
 
 **`results`** — assembled by `Calculator.assembleResults()`. Fields:
 `dailyXP`, `mainPathDailyXPBase`, `secondaryPathDailyXPBase`,
-`mainPathAbsorptionBonus`, `realmProgression{mainPath,secondaryPath}`,
+`wisdomConfluenceXP`, `mainPathAbsorptionBonus`,
+`realmProgression{mainPath,secondaryPath}`,
 `fruitProjection{fruitXPSingle,fruitXPTotal,projectedFruits,horizonDays,…}`,
 `virya{scenario,absorptionBonus,isActive,bonusEndsAt}`,
 `scenarioXPNeeded`, `scenarioFruitResults`, `scenarioComparisons`,
@@ -166,7 +168,23 @@ the canonical list. Key shape:
   *zero* main path XP for days spent chasing a tier on the secondary path. That
   is the opportunity cost of Virya, and it is why fruits matter: eating them
   costs no days of focus, so they are the only way to buy secondary path
-  progress without stalling the main path.
+  progress without stalling the main path. Wisdom Confluence is the other:
+  it pays out whichever path is focused.
+- **Path-specific XP sources are booked by `Calculator`, not `XPCalculator`.**
+  `calculateDailyXPWithAbsorptionBonus()` is the character's *rate*, identical
+  for both paths — anything that lands on one path only is added afterwards, in
+  `Calculator.calculatePathDailyXP()`, alongside elixir and benediction. Folding
+  such a source into the daily total would credit the main path with it too and
+  break the "both paths generate XP at the same base rate" invariant.
+  **Wisdom Confluence** is one: a curio percentage
+  (`playerData.wisdomConfluenceCurio`) of the day's abode XP — Abode Aura XP plus
+  the aura gem's share of it, which is `XPCalculator.calculateAbodeXPTotal()` —
+  paid into the **secondary path**, on top of everything else and regardless of
+  path focus. Easy mode does not swallow it: it takes its cut of whatever the
+  abode total is, typed in or broken down. Guarded by `tests/invariants.test.js`
+  ("Wisdom Confluence"). Note the Virya table's time-to-tier still walks the
+  secondary path at the main path rate (see `ViryaCalculator.calculateDaysForStage`),
+  so it does not yet credit the Confluence.
 - **XP rates are a main-path property.** Every XP *source* — abode aura,
   absorption, pills, respira, red pills, elixir/benediction, fruits — is priced
   off the **main path's** major realm, even when the XP is going into the
@@ -184,6 +202,13 @@ the canonical list. Key shape:
 
 ## Gotchas
 
+- **Auraseep's element id is `abode-temper-aura-curio`.** The label was renamed
+  from "Temper Abode Aura"; the id (and `playerData.abodeTemperAuraCurio`) was
+  deliberately left alone, because `DataManager` keys saved data by element id
+  and renaming it would silently blank the field for everyone with saved data.
+  That field is also *inert*: nothing reads `abode-temper-aura-curio` in
+  `Calculator.update*Inputs()`, so it is stored and restored but feeds no
+  calculation.
 - `playerData.timegate` (used by `FruitCalculator.fruitXP` to apply a 1.5×
   during-timegate bonus) and `playerData.timegateDays` (days remaining) are
   different fields, both read from the `timegate-days` input.

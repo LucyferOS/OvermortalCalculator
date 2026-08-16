@@ -60,6 +60,7 @@ const BASE = {
     abodeBonusMiniWorld: 0,
     abodeBonusFiveAsthenia: 0,
     abodeTemperAuraCurio: 0,
+    wisdomConfluenceCurio: 0,
 
     respiraAttemptsImmortalFriend: 0,
     respiraAttemptsTechnique: 0,
@@ -219,6 +220,18 @@ export const PLAYERS = {
         respiraAttemptsCurio: 8, respiraBonusTechnique: 40,
         pillBonusCurio: 25, pillBonusTechnique: 20,
         timegateDays: 10
+    }),
+
+    // Wisdom Confluence feeding the secondary path, with the two paths in
+    // different majors so a rate priced off the wrong path would show up.
+    wisdomConfluence: makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 55,
+        secondaryPathRealm: 'Perfection Late', secondaryPathProgress: 80,
+        gemQuality: 'Epic',
+        goldPill: 5, purplePill: 10, bluePill: 30,
+        benediction: 2, benedictionConsumed: 30,
+        abodeBonusSectLevel: 40, abodeBonusCelestialSpring: 25,
+        wisdomConfluenceCurio: 25
     }),
 
     easyMode: makePlayer({
