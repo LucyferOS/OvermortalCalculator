@@ -342,19 +342,39 @@ that, with the difference being duplication and dead branches.
 
 ---
 
-## 8. Open questions for you
+## 8. Rules, as confirmed by the maintainer
 
-These are game-rule facts I can't recover from the code, and each one is
-currently encoded inconsistently in two places:
+**Eminence does not carry into the next realm at all.** It applies to the realm
+it was earned in only. This makes the carry-over ladder regular — each tier
+carries one minor stage further than the one below it:
 
-1. **Does the Eminence carry-over bonus apply during the next realm's Early
-   stage?** The code says both yes and no in different files (defect 4).
-2. **What is the correct tier when the secondary path sits between the named
-   rungs** — e.g. main at Wholeness Late 100%, secondary at Wholeness Mid?
-   Today that returns Completion with no bonus. Should it be Perfect?
-3. **Is the Voidbreak offset really specific to Voidbreak**, or is it "the
-   first major realm that has Virya", which would generalise the rule instead
-   of special-casing it?
+| Tier | Bonus | Carries into next realm through |
+|---|---|---|
+| Completion | 0 | — |
+| Eminence | 0.2 | nothing |
+| Perfect | 0.2 | Early |
+| Half-Step | 0.4 | Early, Mid |
 
-Answers to 1 and 2 change output values; answer to 3 only changes how tidy the
-rule table is.
+**Tier requirements are thresholds, not exact stage matches.** A secondary path
+at the same major's Mid is Perfect, because it is past the Perfect requirement.
+The tier is the highest one whose requirement is satisfied.
+
+| Tier | Secondary path must be at least | Voidbreak |
+|---|---|---|
+| Eminence | previous major Mid | previous major Late |
+| Perfect | current major Early | current major Mid |
+| Half-Step | current major Late at 100% | same |
+
+Still open, and cosmetic only: whether the Voidbreak offset is genuinely
+specific to Voidbreak or is really "the first major realm that has Virya". It
+is encoded as a data field either way, so changing it is a one-line edit.
+
+### One consequence worth knowing about
+
+In easy mode the player types their absorption total straight from the game, so
+the Virya bonus is not layered on top of it — it is assumed to already be
+included. That is correct for the *current* state, but it means the Virya
+projection table in easy mode models futures where absorption never changes,
+so the scenario comparison is less meaningful there. Worth either flagging in
+the UI or having easy mode capture the base absorption separately. Not changed
+here, because it's a product decision rather than a bug.

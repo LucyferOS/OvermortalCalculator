@@ -59,11 +59,11 @@ class XPCalculator {
     }
 
     static calculateAbodeAuraXP(playerData, absorptionBonus) {
-        // Use stored value if available, otherwise calculate it
-        const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
-            ? playerData.cosmoapsisValue 
-            : this.calculateCosmoapsisValue(playerData, absorptionBonus);
-        
+        // Always derive from the realm and the bonus. Reading a cached
+        // playerData.cosmoapsisValue here used to override the absorptionBonus
+        // argument entirely, which silently discarded every Virya bonus.
+        const cosmoapsisValue = this.calculateCosmoapsisValue(playerData, absorptionBonus);
+
         const dailyAuraXP = cosmoapsisValue * 10800;
         return dailyAuraXP;
     }
@@ -185,11 +185,8 @@ class XPCalculator {
             return 0;
         }
         
-        // Use stored value if available, otherwise calculate it
-        const cosmoapsisValue = playerData.cosmoapsisValue !== undefined 
-            ? playerData.cosmoapsisValue 
-            : this.calculateCosmoapsisValue(playerData, absorptionBonus);
-        
+        const cosmoapsisValue = this.calculateCosmoapsisValue(playerData, absorptionBonus);
+
         // Calculate energy available per day (same logic as other artifacts)
         const energyReplenished = GameConstants.artifactEnergyReplenishment[playerData.pearlStars] * GameConstants.taoistYearsPerDay;
         

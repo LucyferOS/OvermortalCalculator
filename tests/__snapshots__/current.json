@@ -16,19 +16,19 @@
     "xpToTier": {
       "Completion": 100273900,
       "Eminence": 100273900,
-      "Perfect": 0,
-      "Half-Step": 100273900
+      "Perfect": 100273900,
+      "Half-Step": 188221500
     },
     "daysToTier": {
       "Completion": 59.32,
       "Eminence": 59.32,
-      "Perfect": 0,
+      "Perfect": 59.32,
       "Half-Step": 111.84
     },
     "maxNextRealm": {
       "Completion": "Cannot reach Completion",
       "Eminence": "Cannot reach Completion",
-      "Perfect": "Cannot reach scenario",
+      "Perfect": "Cannot reach Completion",
       "Half-Step": "Cannot reach Completion"
     },
     "mainTimeToNextMinor": 7.29,
@@ -59,19 +59,19 @@
     "xpToTier": {
       "Completion": 76962332,
       "Eminence": 76962332,
-      "Perfect": 0,
-      "Half-Step": 99041270
+      "Perfect": 76962332,
+      "Half-Step": 164909932
     },
     "daysToTier": {
       "Completion": 43.88,
       "Eminence": 43.88,
-      "Perfect": 0,
+      "Perfect": 43.88,
       "Half-Step": 96.13
     },
     "maxNextRealm": {
       "Completion": "Cannot reach Completion",
       "Eminence": "Cannot reach Completion",
-      "Perfect": "Cannot reach scenario",
+      "Perfect": "Cannot reach Completion",
       "Half-Step": "Cannot reach Completion"
     },
     "mainTimeToNextMinor": 8.65,
@@ -81,7 +81,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 1753787.3,
       "mainDailyXPNoBonus": 1753787.3,
-      "secondaryDailyXP": 1753787.3,
+      "secondaryDailyXP": 1690466.9,
       "bonusIsHonoured": false
     }
   },
@@ -102,8 +102,8 @@
     "xpToTier": {
       "Completion": 0,
       "Eminence": 168288636,
-      "Perfect": 618097583,
-      "Half-Step": 1373312948
+      "Perfect": 786386219,
+      "Half-Step": 1354788015
     },
     "daysToTier": {
       "Completion": 0,
@@ -124,7 +124,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 4485537.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 2668072.1,
+      "secondaryDailyXP": 1690466.9,
       "bonusIsHonoured": false
     }
   },
@@ -146,7 +146,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 449808947,
-      "Half-Step": 1205024312
+      "Half-Step": 1018210743
     },
     "daysToTier": {
       "Completion": 0,
@@ -166,9 +166,9 @@
     "secondaryTimeToNextMajor": 144.58,
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
-      "mainDailyXPNoBonus": 4794417.1,
-      "secondaryDailyXP": 3574529.4,
-      "bonusIsHonoured": false
+      "mainDailyXPNoBonus": 4485537.1,
+      "secondaryDailyXP": 3111209.4,
+      "bonusIsHonoured": true
     }
   },
   "perfectWholeness": {
@@ -209,9 +209,9 @@
     "secondaryTimeToNextMajor": 162.76,
     "asAppComputesIt": {
       "mainDailyXP": 4794417.1,
-      "mainDailyXPNoBonus": 4794417.1,
-      "secondaryDailyXP": 4794417.1,
-      "bonusIsHonoured": false
+      "mainDailyXPNoBonus": 4485537.1,
+      "secondaryDailyXP": 4639977.1,
+      "bonusIsHonoured": true
     }
   },
   "sameMajorMid": {
@@ -232,7 +232,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 0,
-      "Half-Step": 489216425.2
+      "Half-Step": 568401796
     },
     "daysToTier": {
       "Completion": 0,
@@ -253,7 +253,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 4485537.1,
       "mainDailyXPNoBonus": 4485537.1,
-      "secondaryDailyXP": 4485537.1,
+      "secondaryDailyXP": 4408317.1,
       "bonusIsHonoured": false
     }
   },
@@ -275,7 +275,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 0,
-      "Half-Step": 121780224
+      "Half-Step": 568401796
     },
     "daysToTier": {
       "Completion": 0,
@@ -338,9 +338,9 @@
     "secondaryTimeToNextMajor": 0,
     "asAppComputesIt": {
       "mainDailyXP": 5103297.1,
-      "mainDailyXPNoBonus": 5103297.1,
+      "mainDailyXPNoBonus": 4485537.1,
       "secondaryDailyXP": 5103297.1,
-      "bonusIsHonoured": false
+      "bonusIsHonoured": true
     }
   },
   "voidbreakEminence": {
@@ -361,7 +361,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 129806936,
-      "Half-Step": 579615883
+      "Half-Step": 437521963
     },
     "daysToTier": {
       "Completion": 0,
@@ -381,9 +381,9 @@
     "secondaryTimeToNextMajor": 29.04,
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
-      "mainDailyXPNoBonus": 3342869.4,
-      "secondaryDailyXP": 2745292.1,
-      "bonusIsHonoured": false
+      "mainDailyXPNoBonus": 3033989.4,
+      "secondaryDailyXP": 2127532.1,
+      "bonusIsHonoured": true
     }
   },
   "voidbreakPerfect": {
@@ -424,9 +424,9 @@
     "secondaryTimeToNextMajor": 144.58,
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
-      "mainDailyXPNoBonus": 3342869.4,
-      "secondaryDailyXP": 3342869.4,
-      "bonusIsHonoured": false
+      "mainDailyXPNoBonus": 3033989.4,
+      "secondaryDailyXP": 3111209.4,
+      "bonusIsHonoured": true
     }
   },
   "voidbreakEarlySecondary": {
@@ -447,7 +447,7 @@
       "Completion": 0,
       "Eminence": 0,
       "Perfect": 34007368,
-      "Half-Step": 483816315
+      "Half-Step": 341722395
     },
     "daysToTier": {
       "Completion": 0,
@@ -467,9 +467,9 @@
     "secondaryTimeToNextMajor": 168.02,
     "asAppComputesIt": {
       "mainDailyXP": 3342869.4,
-      "mainDailyXPNoBonus": 3342869.4,
-      "secondaryDailyXP": 3342869.4,
-      "bonusIsHonoured": false
+      "mainDailyXPNoBonus": 3033989.4,
+      "secondaryDailyXP": 2879549.4,
+      "bonusIsHonoured": true
     }
   },
   "geared": {
@@ -489,8 +489,8 @@
     "xpToTier": {
       "Completion": 2438745598.4,
       "Eminence": 2438745598.4,
-      "Perfect": 183092108.8,
-      "Half-Step": 4527616868.8
+      "Perfect": 2621837707.2,
+      "Half-Step": 5847294622.2
     },
     "daysToTier": {
       "Completion": 59.16,
@@ -502,7 +502,7 @@
       "Completion": "Completion",
       "Eminence": "Completion",
       "Perfect": "Eminence",
-      "Half-Step": "Eminence"
+      "Half-Step": "Perfect"
     },
     "mainTimeToNextMinor": 15.61,
     "mainTimeToNextMajor": 59.16,
@@ -511,7 +511,7 @@
     "asAppComputesIt": {
       "mainDailyXP": 41221499.07,
       "mainDailyXPNoBonus": 41221499.07,
-      "secondaryDailyXP": 26722849.24,
+      "secondaryDailyXP": 25057817.56,
       "bonusIsHonoured": false
     }
   },
@@ -532,8 +532,8 @@
     "xpToTier": {
       "Completion": 11410768414,
       "Eminence": 11410768414,
-      "Perfect": 179507270.3,
-      "Half-Step": 12174995526.3
+      "Perfect": 11590275684.3,
+      "Half-Step": 20662164730.3
     },
     "daysToTier": {
       "Completion": 326.19,

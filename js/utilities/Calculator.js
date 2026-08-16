@@ -128,50 +128,6 @@ class OvermortalCalculator {
         };
     }
 
-    /**
-     * Maps "had Virya last realm" value to absorption bonus
-     * @param {string} hadViryaLastRealm - Value from "had-Virya" field ("No", "Eminence", "Perfection", "Halfstep")
-     * @returns {number} Absorption bonus (0, 0.2, or 0.4)
-     */
-    static getHadViryaAbsorptionBonus(hadViryaLastRealm) {
-        const bonusMap = {
-            'No': 0,
-            [SCENARIO_EMINENCE]: 0.2,
-            'Perfection': 0.2,
-            'Halfstep': 0.4
-        };
-        return bonusMap[hadViryaLastRealm] || 0;
-    }
-
-    /**
-     * Determines if "had Virya last realm" bonus is still active based on current minor realm
-     * @param {string} hadViryaLastRealm - Value from "had-Virya" field
-     * @param {string} currentMinorRealm - Current minor realm ("Early", "Mid", or "Late")
-     * @returns {boolean} True if bonus is still active, false otherwise
-     */
-    static isHadViryaBonusActive(hadViryaLastRealm, currentMinorRealm) {
-        if (!hadViryaLastRealm || hadViryaLastRealm === 'No') {
-            return false;
-        }
-
-        // Bonus expiration logic:
-        // - Eminence: Expires at "Next Major Early" (active only in Early)
-        // - Perfection: Expires at "Next Major Mid" (active in Early and Mid)
-        // - Half-Step: Expires at start of "Next Major Late" (active in Early and Mid, expires at Late)
-        switch (hadViryaLastRealm) {
-            case 'Eminence':
-                // Expires at Next Major Early - only active in Early
-                return currentMinorRealm === 'Early';
-            case 'Perfection':
-                // Expires at Next Major Mid - active in Early and Mid
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            case 'Halfstep':
-                // Expires at start of Next Major Late - active in Early and Mid, expires at Late
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            default:
-                return false;
-        }
-    }
     // This used to be one big function, now it is split into smaller ones to make it easier to read and maintain.
     updatePathInputs() {
         const getNumberValue = CalculatorUtils.getNumberValue;
@@ -335,33 +291,26 @@ class OvermortalCalculator {
     }
 
     /**
-     * Determines if "had Virya last realm" bonus is still active based on current minor realm
+     * Determines if a Virya bonus carried from the previous realm is still
+     * active at the given minor stage of the current realm.
+     *
+     * Each tier carries for one more stage than the one below it:
+     *   Eminence   applies to the realm it was earned in only, and does not
+     *              carry into the next realm at all.
+     *   Perfection carries through Early, expiring at the start of Mid.
+     *   Halfstep   carries through Early and Mid, expiring at the start of Late.
+     *
      * @param {string} hadViryaLastRealm - Value from "had-Virya" field
      * @param {string} currentMinorRealm - Current minor realm ("Early", "Mid", or "Late")
      * @returns {boolean} True if bonus is still active, false otherwise
      */
     static isHadViryaBonusActive(hadViryaLastRealm, currentMinorRealm) {
-        if (!hadViryaLastRealm || hadViryaLastRealm === 'No') {
-            return false;
-        }
-
-        // Bonus expiration logic:
-        // - Eminence: Expires at "Next Major Early" (active only in Early)
-        // - Perfection: Expires at "Next Major Mid" (active in Early and Mid)
-        // - Half-Step: Expires at start of "Next Major Late" (active in Early and Mid, expires at Late)
-        switch (hadViryaLastRealm) {
-            case 'Eminence':
-                // Expires at Next Major Early - only active in Early
-                return currentMinorRealm === 'Early';
-            case 'Perfection':
-                // Expires at Next Major Mid - active in Early and Mid
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            case 'Halfstep':
-                // Expires at start of Next Major Late - active in Early and Mid, expires at Late
-                return currentMinorRealm === 'Early' || currentMinorRealm === 'Mid';
-            default:
-                return false;
-        }
+        const carriesThrough = {
+            'Eminence': [],
+            'Perfection': ['Early'],
+            'Halfstep': ['Early', 'Mid']
+        };
+        return (carriesThrough[hadViryaLastRealm] || []).includes(currentMinorRealm);
     }
 
     calculateAll() {

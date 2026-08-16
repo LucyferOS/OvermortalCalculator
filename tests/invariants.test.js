@@ -20,7 +20,9 @@ const entries = Object.entries(PLAYERS);
 
 describe('absorption bonus', () => {
     // Defect 1: a cached cosmoapsisValue made the bonus argument a no-op.
-    for (const [name, player] of entries) {
+    // Easy mode is excluded: it takes the player's absorption as a typed-in
+    // total, so by design no bonus is layered on top of it.
+    for (const [name, player] of entries.filter(([, p]) => !p.abodeEasyMode)) {
         test(`${name}: a higher bonus yields strictly more daily XP`, () => {
             const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
             const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0.4);

@@ -263,9 +263,13 @@ class ViryaCalculator {
 		const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
 		const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
 		const isMainPath100Late = playerData.mainPathRealmMinor === 'Late' && playerData.mainPathProgress >= PERCENTAGE_COMPLETE;
-		
-		
-		if (playerData.viryaScenario === SCENARIO_EMINENCE || playerData.viryaScenario === SCENARIO_PERFECT || playerData.viryaScenario === SCENARIO_HALF_STEP) {
+		// Derive the tier from the state passed in. Reading a stored
+		// playerData.viryaScenario made this return stale answers whenever the
+		// caller was asking about a hypothetical state, such as after a
+		// breakthrough, or had never set the field at all.
+		const scenario = this.detectScenario(playerData).scenario;
+
+		if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
 			return 0;
 		} else { 
 			let targetRealm;
@@ -302,9 +306,9 @@ class ViryaCalculator {
     static calculateXPForPerfect(playerData) {
 		const currentMajorIndex = REALM_ORDER_MAJOR.indexOf(playerData.mainPathRealmMajor);
 		const previousMajor = currentMajorIndex > 0 ? REALM_ORDER_MAJOR[currentMajorIndex - 1] : null;
+		const scenario = this.detectScenario(playerData).scenario;
 
-
-        if (playerData.viryaScenario === SCENARIO_PERFECT || playerData.viryaScenario === SCENARIO_HALF_STEP) {
+        if (scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
 			return 0;
 			} else { 
 				let targetRealm;
@@ -321,7 +325,7 @@ class ViryaCalculator {
 					 (playerData.mainPathRealmMajor === 'Voidbreak' && playerData.secondaryPathRealmMinor === 'Late' && playerData.secondaryPathProgress < PERCENTAGE_COMPLETE) ||
 					 (playerData.mainPathRealmMajor !== 'Voidbreak' && playerData.secondaryPathRealmMinor === 'Early'));
 				
-				if (playerData.viryaScenario === SCENARIO_NO_VIRYA || playerData.viryaScenario === SCENARIO_COMPLETION) {
+				if (scenario === SCENARIO_NO_VIRYA || scenario === SCENARIO_COMPLETION) {
 				const eminenceXP = this.calculateXPForEminence(playerData);
 				let perfectXP = 0;
 				if (!isPerfectRequirementMet) {
@@ -348,14 +352,15 @@ class ViryaCalculator {
 		}
     static calculateXPForHalfStep(playerData) {
         const targetRealm = `${playerData.mainPathRealmMajor} Late`;
-        
+		const scenario = this.detectScenario(playerData).scenario;
+
 		// Check if Half-Step requirement is already met
 		// Half-Step requires secondary at mainPathRealmMajor Late at 100%
 		const isHalfStepRequirementMet = playerData.secondaryPathRealmMajor === playerData.mainPathRealmMajor &&
 			playerData.secondaryPathRealmMinor === 'Late' &&
 			playerData.secondaryPathProgress >= PERCENTAGE_COMPLETE;
         
-		if (playerData.viryaScenario === SCENARIO_NO_VIRYA || playerData.viryaScenario === SCENARIO_COMPLETION || playerData.viryaScenario === SCENARIO_EMINENCE ) {
+		if (scenario === SCENARIO_NO_VIRYA || scenario === SCENARIO_COMPLETION || scenario === SCENARIO_EMINENCE) {
 			const perfectXP = this.calculateXPForPerfect(playerData);
 			
 			let halfStepXP = 0;
