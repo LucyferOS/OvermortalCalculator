@@ -8,7 +8,7 @@ import { Dom } from './dom.js';
 import { ViryaCalculator } from '../calculators/ViryaCalculator.js';
 
 class ViryaTable {
-    static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {
+    static updateViryaDisplay(viryaInfo, playerData, dailyXP = 0, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0, maxFruitDaysSaved = 0) {
         
         // Update status bar
         Dom.updateElementText('current-virya-scenario', viryaInfo.scenario);
@@ -53,32 +53,49 @@ class ViryaTable {
             }
             
             // Update time estimates with both path daily XP values
-            this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase, secondaryPathDailyXPBase);
+            this.updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase, secondaryPathDailyXPBase, maxFruitDaysSaved);
         });
         
     }
 
-    static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0) {
-        
+    static updateViryaTimeEstimate(scenario, scenarioKey, playerData, dailyXP, viryaInfo, mainPathDailyXPBase = 0, secondaryPathDailyXPBase = 0, maxFruitDaysSaved = 0) {
+
         // Add null/undefined check for viryaInfo
         if (!viryaInfo) {
             Dom.updateElementText(`virya-${scenarioKey}-time`, 'Error: No Virya Info');
             Dom.updateElementText(`virya-${scenarioKey}-date`, '--');
+            Dom.updateElementText(`virya-${scenarioKey}-fruits-time`, '--');
             return;
         }
-        
+
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
-        
+
         const timeId = `virya-${scenarioKey}-time`;
         const dateId = `virya-${scenarioKey}-date`;
+        const fruitsTimeId = `virya-${scenarioKey}-fruits-time`;
         const focusId = `virya-${scenarioKey}-focus`;
         const nextRealmId = `virya-${scenarioKey}-next-realm`;
-        
+
+        // "Time with Fruits" is the time to cultivate less the max-fruit card's
+        // "Total Days Saved" headline - the same number the player reads there,
+        // so the subtraction is one they can check by hand. It only means
+        // anything for a tier that is still ahead of them: a tier that is
+        // active, already passed or unreachable gets a dash.
+        const writeFruitTime = (daysToReach) => {
+            const withFruits = daysToReach - maxFruitDaysSaved;
+            if (withFruits <= 0) {
+                Dom.updateElementText(fruitsTimeId, maxFruitDaysSaved > 0 ? 'Reachable now!' : '--');
+            } else {
+                Dom.updateElementText(fruitsTimeId, format(withFruits));
+            }
+        };
+
         // Check if this is the current scenario
         if (scenario === viryaInfo.scenario) {
             Dom.updateElementText(timeId, ' Active Now');
             Dom.updateElementText(dateId, '--');
+            Dom.updateElementText(fruitsTimeId, '--');
             // Determine required path focus for current scenario
             let requiredPathFocus = PATH_MAIN;
             if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
@@ -117,6 +134,7 @@ class ViryaTable {
         if (currentIndex > targetIndex) {
             Dom.updateElementText(timeId, ' Already Passed');
             Dom.updateElementText(dateId, '--');
+            Dom.updateElementText(fruitsTimeId, '--');
             // Determine required path focus for this scenario
             let requiredPathFocus = PATH_MAIN;
             if (scenario === SCENARIO_EMINENCE || scenario === SCENARIO_PERFECT || scenario === SCENARIO_HALF_STEP) {
@@ -166,6 +184,7 @@ class ViryaTable {
         if (daysToReach === 0) {
             Dom.updateElementText(timeId, ' Already Met');
             Dom.updateElementText(dateId, '--');
+            Dom.updateElementText(fruitsTimeId, '--');
         } else if (daysToReach === Infinity || isNaN(daysToReach) || daysToReach > 36500) {
             
             // Check why it's not reachable
@@ -180,12 +199,15 @@ class ViryaTable {
             
             Dom.updateElementText(timeId, reason);
             Dom.updateElementText(dateId, '--');
+            Dom.updateElementText(fruitsTimeId, '--');
         } else if (daysToReach < 0) {
             Dom.updateElementText(timeId, 'Error');
             Dom.updateElementText(dateId, '--');
+            Dom.updateElementText(fruitsTimeId, '--');
         } else {
             Dom.updateElementText(timeId, format(daysToReach));
             Dom.updateElementText(dateId, `Est: ${formatDate(daysToReach)}`);
+            writeFruitTime(daysToReach);
         }
         
         // Calculate max next realm scenario for this scenario

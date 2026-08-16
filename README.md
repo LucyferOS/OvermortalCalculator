@@ -33,6 +33,12 @@ lucyfer_os
 # Release Notes
 
 
+#### Version 0.4.6.0 (BETA)
+  * **New Virya table column: "Time with Fruits".** Each tier's Time to Cultivate less the "Total Days Saved" figure from the **With Max Fruits & Aura Extractor** card — how long the tier takes if you eat the fruit stock you are projected to hold when the timegate lifts, valued at a maxed extractor. It is the same subtraction you can do by hand from the two figures already on the dashboard.
+    * A tier the fruits already cover reads "Reachable now!".
+    * A tier that is active, already passed, or out of reach shows a dash — there is nothing to subtract from.
+    * The saving is quoted at your main path's base daily rate, exactly as the fruit card's headline is, so the column moves only with your fruits and your extractor, not with which path you are focusing.
+
 #### Version 0.4.5.0 (BETA)
   * **The Virya table's "Time to Cultivate" now agrees with the dashboard.** A taoist noticed that adding the dashboard's two figures together — the days to finish your main path realm on Main focus, then the days for your secondary path to reach the same realm's Late on Secondary focus — came to 63 days, while the Half-Step row read 65. Reaching Half-Step means passing Eminence and Perfect on the way, and each of those grants absorption, so the table should have come out slightly *under* the hand-added figure, not over. Four things were putting it over:
     * **A tier you reach on the way now speeds up the rest of the walk.** The table intended to cost each leg at the absorption bonus actually in effect for it, but the bonus only ever reached the Wisdom Confluence part of the rate. Crossing Eminence and Perfect was granting you nothing.
