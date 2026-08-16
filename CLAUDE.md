@@ -114,7 +114,8 @@ the canonical list. Key shape:
 **`results`** — assembled by `Calculator.assembleResults()`. Fields:
 `dailyXP`, `mainPathDailyXPBase`, `secondaryPathDailyXPBase`,
 `mainPathAbsorptionBonus`, `realmProgression{mainPath,secondaryPath}`,
-`fruitProjection{rows,…}`, `virya{scenario,absorptionBonus,isActive,bonusEndsAt}`,
+`fruitProjection{fruitXPSingle,fruitXPTotal,projectedFruits,horizonDays,…}`,
+`virya{scenario,absorptionBonus,isActive,bonusEndsAt}`,
 `scenarioXPNeeded`, `scenarioFruitResults`, `scenarioComparisons`,
 `nextScenario`, `fruitResult`, `recommendedFruits`.
 
@@ -150,9 +151,16 @@ the canonical list. Key shape:
   Virya bonus and MonsterScape too. Things that are *not* Abode Aura — the pill
   and Respira mansion bonuses, the Glitted Lotus bonuses — must still apply in
   easy mode. Tests enforce both halves of that.
-- **Fruit projection** counts Wednesdays between now and each breakthrough, and
-  each dashboard row gets its own horizon. It deliberately does not model the
-  feedback of eating fruits shortening the horizon.
+- **Fruit projection uses one horizon: the current timegate.** `Calculator.fruitHorizonDays()`
+  returns `timegateDays - 1`, because fruits are worth 1.5x while a timegate runs
+  and the last useful day to eat them is the one before it lifts. Every fruit row
+  and the analytics chart share that count. It must **never** be a path's time to
+  breakthrough: those come from the focus-dependent rates, so the unfocused path
+  sits years out and gets credited with years of weekly payouts — one real player
+  state produced 150 fruits on main focus and 3720 on secondary. Guarded by
+  `tests/invariants.test.js` ("fruit projection horizon"). Days saved is likewise
+  quoted at the **base** rates, never the focus-dependent ones. The projection
+  still does not model fruits being spent shortening the horizon.
 - **Path focus is all-or-nothing.** `XPCalculator` computes one full daily total
   for whichever path the `mainPath*` fields point at, and the comparator books
   *zero* main path XP for days spent chasing a tier on the secondary path. That
@@ -194,7 +202,7 @@ the canonical list. Key shape:
 
 ## Testing
 
-- `npm test` — `tests/invariants.test.js`, 159 assertions. Each `describe` block
+- `npm test` — `tests/invariants.test.js`, 163 assertions. Each `describe` block
   guards a bug the codebase has already had once: the absorption bonus must
   actually change daily XP, the secondary path must not inherit main-path state,
   results must not depend on stale written-back fields, the analytics breakdown

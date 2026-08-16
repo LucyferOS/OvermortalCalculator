@@ -102,16 +102,20 @@ class Dashboard {
     }
 
     /**
-     * The four breakthroughs the fruit cards show. Each one is reached on its
-     * own timeline, so each gets its own projected fruit count from the
-     * calculator - the further-off major breakthrough is credited with more
-     * weeks of fruit income than the next minor one.
+     * The four breakthroughs the fruit cards show. All four are measured
+     * against the same fruit stock - the one the player will hold when the
+     * current timegate lifts - so they no longer carry a per-row projection.
+     *
+     * `rate` names the daily XP the saving is quoted at. These are the *base*
+     * rates, not the focus-dependent ones: what a fruit is worth does not
+     * change because the player pointed their focus elsewhere, and using the
+     * focus-dependent rate made the unfocused path's saving explode.
      */
     static FRUIT_ROWS = [
-        { projection: 'mainMinor', path: 'mainPath', time: 'timeToNextMinor', suffix: 'minor-main' },
-        { projection: 'mainMajor', path: 'mainPath', time: 'timeToNextMajor', suffix: 'major-main' },
-        { projection: 'secondaryMinor', path: 'secondaryPath', time: 'timeToNextMinor', suffix: 'minor-secondary' },
-        { projection: 'secondaryMajor', path: 'secondaryPath', time: 'timeToNextMajor', suffix: 'major-secondary' }
+        { path: 'mainPath', time: 'timeToNextMinor', rate: 'mainPathDailyXPBase', suffix: 'minor-main' },
+        { path: 'mainPath', time: 'timeToNextMajor', rate: 'mainPathDailyXPBase', suffix: 'major-main' },
+        { path: 'secondaryPath', time: 'timeToNextMinor', rate: 'secondaryPathDailyXPBase', suffix: 'minor-secondary' },
+        { path: 'secondaryPath', time: 'timeToNextMajor', rate: 'secondaryPathDailyXPBase', suffix: 'major-secondary' }
     ];
 
     static updateFruitDisplays(results) {
@@ -130,24 +134,20 @@ class Dashboard {
         const format = CalculatorUtils.formatTimeDays;
         const formatDate = CalculatorUtils.formatDateFromDays;
 
-        const dailyXP = results.dailyXP || 0;
-        const rows = results.fruitProjection?.rows;
+        // One stock, one XP total: every row is measured against the fruits the
+        // player will hold when the timegate lifts.
+        const fruitXP = results.fruitProjection?.[xpKey] || 0;
+        const daysSavedAt = (dailyXP) => ((fruitXP > 0 && dailyXP > 0) ? fruitXP / dailyXP : 0);
 
-        const daysSavedFor = (projection) => {
-            const fruitXP = rows?.[projection]?.[xpKey] || 0;
-            return (fruitXP > 0 && dailyXP > 0) ? fruitXP / dailyXP : 0;
-        };
-
-        // The headline saving is the main path's next major breakthrough, the
-        // same horizon the projected fruit count is quoted against.
-        const headlineSaved = daysSavedFor('mainMajor');
+        // The headline is the main path's saving.
+        const headlineSaved = daysSavedAt(results.mainPathDailyXPBase || 0);
         Dom.updateElementText(`${prefix}-days-saved-display`, headlineSaved > 0 ? format(headlineSaved) : '0d');
 
-        for (const { projection, path, time, suffix } of Dashboard.FRUIT_ROWS) {
+        for (const { path, time, rate, suffix } of Dashboard.FRUIT_ROWS) {
             const pathData = results.realmProgression?.[path];
             if (!pathData) continue;
 
-            const daysSaved = daysSavedFor(projection);
+            const daysSaved = daysSavedAt(results[rate] || 0);
             const timeWithFruits = Math.max(0, pathData[time] - daysSaved);
 
             if (daysSaved > 0 && timeWithFruits === 0) {

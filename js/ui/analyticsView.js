@@ -46,13 +46,16 @@ class AnalyticsView {
      * are not a number the player cannot account for.
      */
     static describeFruitTotals(totals) {
-        if (totals.fruits <= 0) return 'No fruits projected by your next major breakthrough.';
+        if (totals.fruits <= 0) return 'No fruits projected before your timegate ends.';
 
         const horizon = CalculatorUtils.formatTimeDays(totals.horizonDays);
-        const when = totals.horizonDays > 0 ? `in ${horizon} (${CalculatorUtils.formatDateFromDays(totals.horizonDays)})` : 'right now';
+        const when = totals.horizonDays > 0
+            ? `in ${horizon} (${CalculatorUtils.formatDateFromDays(totals.horizonDays)})`
+            : 'right now';
         const tokens = totals.tokens > 0 ? `, including ${totals.tokens} token${totals.tokens === 1 ? '' : 's'} spent` : '';
 
-        return `${totals.fruits} fruits${tokens}, by your next major breakthrough ${when}.`;
+        return `${totals.fruits} fruits${tokens}, held on the last day of your timegate ${when}, `
+            + 'while they are still worth 1.5x.';
     }
 
     static updateRedPillsCalculator(playerData, results, absorptionBonus) {

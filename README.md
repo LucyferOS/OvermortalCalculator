@@ -32,6 +32,12 @@ lucyfer_os
 
 # Release Notes
 
+#### Version 0.4.3.1 (BETA)
+  * **Fruit counts are now measured to the end of your current timegate, not to a breakthrough.** A 41 day timegate looks 40 days ahead, so the fruits counted are the ones you will hold while they are still worth 1.5x.
+  * This fixes "Total Days Saved" reading absurdly high when focusing the secondary path. The old horizon was each path's own time to breakthrough, taken from the focus-dependent rate — so an unfocused main path sat years away and got credited with years of weekly fruit payouts. One test taoist saw 150 fruits on Main Path focus and 3720 on Secondary, and the headline moved from 8d 19h to 218d 11h purely from toggling focus. It now reads 12d 8h either way.
+  * Days saved is quoted at each path's base rate, so the secondary path rows are no longer scaled by the main path's rate.
+  * The fruit chart on the Analytics page uses the same count and says which window it covers.
+
 #### Version 0.4.3.0 (BETA)
   * Removed the **Fruit Timing** card added in 0.4.2.0. It compared plans correctly but did not tell you anything you could act on, so it was more noise than help. The fruit cards and the Virya table are unchanged.
   * The secondary path XP rate fix from 0.4.2.0 stays — that was a real bug and is unaffected by this removal.
