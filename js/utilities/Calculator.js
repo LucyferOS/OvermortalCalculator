@@ -67,6 +67,10 @@ class OvermortalCalculator {
             abodeAuraEasyValue: 130.0,
             absorptionEasyValue: 0.317,
 
+            // Absorption bonuses (percentage, applied on top of the realm base
+            // plus any Virya bonus)
+            absorptionBonusMonsterScape: 0,
+
             // Abode bonuses
             abodeBonusCurio: 0,
             abodeBonusTechnique: 0,
@@ -200,6 +204,7 @@ class OvermortalCalculator {
             abodeEasyMode: getStringValue('abode-easy-mode') === 'Yes',
             abodeAuraEasyValue: getNumberValue('abode-aura-easy'),
             absorptionEasyValue: getNumberValue('absorption-easy'),
+            absorptionBonusMonsterScape: getNumberValue('absorption-monsterscape'),
             abodeBonusCurio: getNumberValue('abode-aura-curio'),
             abodeBonusTechnique: getNumberValue('abode-aura-technique'),
             abodeBonusSectLevel: getNumberValue('abode-sect-level'),

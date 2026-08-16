@@ -114,6 +114,9 @@ class OvermortalApp {
             'abode-aura-easy': p.abodeAuraEasyValue,
             'absorption-easy': p.absorptionEasyValue,
 
+            // Absorption bonuses
+            'absorption-monsterscape': p.absorptionBonusMonsterScape || 0,
+
             // Abode Bonuses
             'abode-sect-level': p.abodeBonusSectLevel,
             'abode-sect-barrier': p.abodeBonusSectBarrier,

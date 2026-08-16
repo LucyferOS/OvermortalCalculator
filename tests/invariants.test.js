@@ -14,7 +14,7 @@ import { ViryaCalculator } from '../js/dashboard/ViryaCalculator.js';
 import { ViryaRules } from '../js/engine/ViryaRules.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
-    SCENARIO_PERFECT, SCENARIO_HALF_STEP
+    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms
 } from '../js/utilities/gameData.js';
 
 const entries = Object.entries(PLAYERS);
@@ -47,6 +47,47 @@ describe('absorption bonus', () => {
         const p = PLAYERS.easyMode;
         const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(p, 0);
         const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(p, 0.4);
+        assert.equal(some, none, 'easy mode absorption is entered directly and must be used as-is');
+    });
+});
+
+describe('MonsterScape absorption bonus', () => {
+    // Answered by the maintainer: MonsterScape multiplies the whole Absorption
+    // stat, so it scales the realm base and the Virya bonus together.
+    const at = (overrides) => makePlayer({
+        mainPathRealm: 'Nirvana Mid', mainPathProgress: 50, ...overrides
+    });
+
+    test('it scales the realm base and the Virya bonus together', () => {
+        const p = at({ absorptionBonusMonsterScape: 70 });
+        const base = Realms['Nirvana Mid'].absorption;
+        assert.ok(
+            Math.abs(XPCalculator.calculateAbsorption(p, 0.4) - (base + 0.4) * 1.7) < 1e-12,
+            'expected (realm base + Virya bonus) * 1.7'
+        );
+    });
+
+    test('zero leaves absorption exactly as it was', () => {
+        const p = at({ absorptionBonusMonsterScape: 0 });
+        assert.equal(XPCalculator.calculateAbsorption(p, 0.4), Realms['Nirvana Mid'].absorption + 0.4);
+    });
+
+    test('a missing value is treated as zero', () => {
+        const p = at({});
+        delete p.absorptionBonusMonsterScape;
+        assert.equal(XPCalculator.calculateAbsorption(p, 0.4), Realms['Nirvana Mid'].absorption + 0.4);
+    });
+
+    test('it raises daily XP in detailed mode', () => {
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ absorptionBonusMonsterScape: 0 }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ absorptionBonusMonsterScape: 70 }), 0);
+        assert.ok(some > none, `MonsterScape was ignored: ${some} === ${none}`);
+    });
+
+    test('easy mode ignores it, since the typed-in absorption already includes it', () => {
+        const easy = { abodeEasyMode: true, abodeAuraEasyValue: 480, absorptionEasyValue: 2.9 };
+        const none = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, absorptionBonusMonsterScape: 0 }), 0);
+        const some = XPCalculator.calculateDailyXPWithAbsorptionBonus(at({ ...easy, absorptionBonusMonsterScape: 70 }), 0);
         assert.equal(some, none, 'easy mode absorption is entered directly and must be used as-is');
     });
 });

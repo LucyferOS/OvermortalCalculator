@@ -43,13 +43,26 @@ class XPCalculator {
         return playerData.baseAbodeAura + bonusAmount;
     }
 
+    /**
+     * The detailed-mode Absorption: the realm's base rate plus the Virya bonus,
+     * scaled by the MonsterScape percentage. MonsterScape multiplies the whole
+     * stat, so it scales the Virya bonus along with the realm base.
+     *
+     * Easy mode does not call this — there the player types their effective
+     * Absorption in directly, MonsterScape already included.
+     */
+    static calculateAbsorption(playerData, absorptionBonus) {
+        const base = (Realms[playerData.mainPathRealm]?.absorption || 0) + absorptionBonus;
+        return base * (1 + ((playerData.absorptionBonusMonsterScape || 0) / 100));
+    }
+
     static calculateCosmoapsisValue(playerData, absorptionBonus) {
         const totalAbode = this.calculateTotalAbode(playerData);
 
         // Easy mode: skip the realm base + Virya bonus breakdown and use the total entered directly
         const effectiveAbsorption = playerData.abodeEasyMode
             ? (playerData.absorptionEasyValue || 0)
-            : (Realms[playerData.mainPathRealm]?.absorption || 0) + absorptionBonus;
+            : this.calculateAbsorption(playerData, absorptionBonus);
 
         // Multiply total abode by effectiveAbsorption to get cosmoapsisValue
         const cosmoapsisValue = totalAbode * effectiveAbsorption;

@@ -578,10 +578,10 @@
 
                 <div class="card" id="stage-specific-mechanics-card">
                     <h2 class="card-title">
-                        Stage Specific Mechanics - Abode Aura
-                        <span class="tooltip-icon" title="Every field here is an Abode Aura percentage bonus. Easy Mode replaces this whole card with a single Abode Aura total."><i class="fa-solid fa-circle-info"></i></span>
+                        Stage Specific Mechanics - Abode Aura &amp; Absorption
+                        <span class="tooltip-icon" title="Every field here feeds either your Abode Aura or your Absorption. Easy Mode replaces this whole card with the two totals typed in above."><i class="fa-solid fa-circle-info"></i></span>
                     </h2>
-                    <p class="card-note">Abode Aura sources only - hidden while Easy Mode is on.</p>
+                    <p class="card-note">Abode Aura and Absorption sources - hidden while Easy Mode is on.</p>
                     <div class="grid">
                         <div class="input-group required">
                             <label for="abode-sect-level">
@@ -667,6 +667,17 @@
                                 <span class="tooltip-icon" title="Star Mark - Neck Mansion (Max 21.1%)"><i class="fa-solid fa-circle-info"></i></span>
                             </label>
                             <input type="number" id="abode-nirvana-neck-mansion" step="0.1" min="0" max="21.1" value="0.0">
+                        </div>
+                    </div>
+
+                    <h3>Absorption</h3>
+                    <div class="grid">
+                        <div class="input-group required">
+                            <label for="absorption-monsterscape">
+                                MonsterScape Absorption Bonus
+                                <span class="tooltip-icon" title="Raises your Absorption by this percentage (Max 70%). NOTE: the growth of this stat is not calculated automatically, so it is recommended to leave it at its minimum (0%) or set it to its maximum (70%) rather than a value in between."><i class="fa-solid fa-circle-info"></i></span>
+                            </label>
+                            <input type="number" id="absorption-monsterscape" step="0.1" min="0" max="70" value="0.0">
                         </div>
                     </div>
                 </div>

@@ -42,6 +42,8 @@ const BASE = {
     abodeAuraEasyValue: 130.0,
     absorptionEasyValue: 0.317,
 
+    absorptionBonusMonsterScape: 0,
+
     abodeBonusCurio: 0,
     abodeBonusTechnique: 0,
     abodeBonusSectLevel: 0,
