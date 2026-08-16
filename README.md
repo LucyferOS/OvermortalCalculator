@@ -26,7 +26,7 @@ lucyfer_os
 
 * The MonsterScape Absorption Bonus is applied exactly as you enter it and does not grow over the course of a breakthrough - the calculator has no model for how quickly you gain it. Because of that, it is recommended to leave it at its minimum (0%) for a worst case, or set it to its maximum (70%) for a best case, rather than picking a value in between and treating the result as precise.
 * Abode Aura / Absorption easy mode only replaces Abode Aura and Absorption.There is not an easy way to replace other bonuses.
-* In Abode Aura / Absorption easy mode, the absorption you type in is used exactly as entered. That is right for your current state, but it means the Virya scenario table cannot model absorption changing as you gain a tier - so the scenario comparison is less meaningful in easy mode than in the detailed mode.
+* In Abode Aura / Absorption easy mode, the absorption percentage you type in is used exactly as entered. That is right for your current state, but it means the Virya scenario table cannot model absorption changing as you gain a tier - so the scenario comparison is less meaningful in easy mode than in the detailed mode.
 * Mobile browser is largely untested. Desktop browser that this is developed with in mind is Brave / other chromium based browsers. If you find a browse related bug, feel free to report it, but it may be downprioritized.
 * The page loads Chart.js and the markdown renderer from public CDNs. If those are blocked or unreachable the calculator will not start at all.
 	
@@ -34,6 +34,15 @@ lucyfer_os
 
 # Release Notes
 
+
+#### Version 0.4.7.0 (BETA)
+  * **Easy mode's Absorption is now read as a percentage.** It was being taken as a bare multiplier, so anyone typing the figure the game shows — 220 for 220% — came out with roughly 100x the XP they should have. It now asks for the percentage as the game states it.
+    * **You will need to re-enter this field once.** The old value cannot be converted safely (there is no way to tell a multiplier of 2.9 from a percentage of 2.9), so the field starts at its default and you should type your current Absorption percentage in.
+  * **Wisdom Confluence is now accounting for the "daily xp" affix**
+    * **Aux Cultivation %** is the curio field you already had — it pays that share of the Abode Aura XP you earn in a day into your **secondary path**. Your saved value carries over.
+    * **Daily EXP %** is new, and works exactly the same way except that the XP goes to your **main path**.
+  * **The Daily XP Sources chart now shows Auraseep and both Wisdom Confluence shares.** Auraseep is split out of the Gem Bonus slice rather than hidden inside it — the two together are still exactly what your gem is worth. The chart's total is now everything you earn in a day across both paths, so it includes the Aux Cultivation share.
+  * **The dashboard no longer quotes timings for the path you are not focusing.** Path focus is all-or-nothing: an unfocused path banks only its own pill and Confluence share, so its "time to next realm" was a figure years out that described nothing you were actually considering. Those cells now read "-" on the **Player Time to Cultivate** card and both fruit cards. Progress bars, realms and the Virya table are unaffected.
 
 #### Version 0.4.6.1 (BETA)
   * **New Virya table column: "Completion Date with Fruits".** The date implied by the "Time with Fruits" column beside it — when each tier lands if you eat your projected max-fruit stock. A tier the fruits already cover reads "Est: Today"; a tier that is active, already passed, or out of reach shows a dash, same as its Time with Fruits cell.

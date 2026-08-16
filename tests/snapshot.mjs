@@ -66,9 +66,10 @@ function snapshotPlayer(player) {
     const progression = RealmCalculator.calculateProgression(player, mainDailyXP, secondaryDailyXP);
 
     // Path daily XP as the app books it. The helper above deliberately leaves
-    // out the path-specific sources - elixir on the main path, benediction and
-    // Wisdom Confluence on the secondary - so this is the only place they are
-    // pinned, along with what path focus does to them.
+    // out the path-specific sources - elixir and the Confluence's Daily EXP
+    // share on the main path, benediction and the Confluence's Aux Cultivation
+    // share on the secondary - so this is the only place they are pinned, along
+    // with what path focus does to them.
     const calculator = new OvermortalCalculator();
     calculator.playerData = { ...player };
     const bonuses = calculator.calculatePathAbsorptionBonuses(virya);
@@ -119,7 +120,8 @@ function snapshotPlayer(player) {
             secondaryBase: round(paths.secondaryPathDailyXPBase),
             mainWhenFocused: round(paths.mainPathDailyXP),
             secondaryWhenFocused: round(paths.secondaryPathDailyXP),
-            wisdomConfluenceXP: round(paths.wisdomConfluenceXP)
+            wisdomConfluenceAuxXP: round(paths.wisdomConfluenceAuxXP),
+            wisdomConfluenceDailyXP: round(paths.wisdomConfluenceDailyXP)
         },
         respiraXP: round(XPCalculator.calculateRespiraXP(player)),
         pillXP: round(XPCalculator.calculatePillXP(player)),

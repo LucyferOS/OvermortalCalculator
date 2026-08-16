@@ -112,7 +112,7 @@ class OvermortalApp {
             // Abode Aura / Absorption easy mode
             'abode-easy-mode': p.abodeEasyMode ? 'Yes' : 'No',
             'abode-aura-easy': p.abodeAuraEasyValue,
-            'absorption-easy': p.absorptionEasyValue,
+            'absorption-easy-percent': p.absorptionEasyPercent,
 
             // Absorption bonuses
             'absorption-monsterscape': p.absorptionBonusMonsterScape || 0,
@@ -145,7 +145,8 @@ class OvermortalApp {
             'respira-attempt-curio': p.respiraAttemptsCurio,
             'respira-bonus-curio': p.respiraBonusCurio,
             'abode-temper-aura-curio': p.abodeTemperAuraCurio || 0,
-            'wisdom-confluence-curio': p.wisdomConfluenceCurio || 0,
+            'wisdom-confluence-curio': p.wisdomConfluenceAuxCurio || 0,
+            'wisdom-confluence-daily-curio': p.wisdomConfluenceDailyCurio || 0,
             
             // Immortal Friends
             'pill-attempts-immortal-friends': p.pillAttemptsImmortalFriends || 0,

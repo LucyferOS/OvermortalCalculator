@@ -307,11 +307,13 @@ class ViryaCalculator {
 
         let totalDays = mainPathDays;
 
-        // Wisdom Confluence pays into the secondary path on every day, the ones
-        // spent finishing the main path realm included, so the secondary path is
-        // already part of the way along by the time the focus switches.
+        // Wisdom Confluence's Aux Cultivation share pays into the secondary path
+        // on every day, the ones spent finishing the main path realm included,
+        // so the secondary path is already part of the way along by the time the
+        // focus switches. (The Daily EXP share needs no credit here: it feeds the
+        // main path, so it is already inside the mainPathDailyXP above.)
         const mainLegBonus = this.currentBonusAt(playerData, currentScenario, playerData.mainPathRealmMinor);
-        let confluenceCredit = mainPathDays * XPCalculator.calculateWisdomConfluenceXP(playerData, mainLegBonus);
+        let confluenceCredit = mainPathDays * XPCalculator.calculateWisdomConfluenceAuxXP(playerData, mainLegBonus);
 
         // Then walk the secondary path through each tier requirement in turn.
         const order = ViryaRules.tierOrder();
@@ -361,7 +363,8 @@ class ViryaCalculator {
      * The character's rate is set by the **main** path's realm - re-pointing to
      * the stage's own realm would price a secondary path stage at the secondary
      * path's (lower) rates - and on top of it come the two sources only the
-     * secondary path collects: benediction, and Wisdom Confluence.
+     * secondary path collects: benediction, and Wisdom Confluence's Aux
+     * Cultivation share.
      *
      * It used to take a precomputed rate to use in place of the character's
      * own. That rate was the *main* path's, so every secondary path leg was

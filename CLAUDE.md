@@ -114,7 +114,7 @@ the canonical list. Key shape:
 
 **`results`** — assembled by `Calculator.assembleResults()`. Fields:
 `dailyXP`, `mainPathDailyXPBase`, `secondaryPathDailyXPBase`,
-`wisdomConfluenceXP`, `mainPathAbsorptionBonus`,
+`wisdomConfluenceAuxXP`, `wisdomConfluenceDailyXP`, `mainPathAbsorptionBonus`,
 `realmProgression{mainPath,secondaryPath}`,
 `fruitProjection{fruitXPSingle,fruitXPTotal,projectedFruits,horizonDays,…}`,
 `virya{scenario,absorptionBonus,isActive,bonusEndsAt}`,
@@ -150,7 +150,9 @@ the canonical list. Key shape:
   so don't change the option values.
 - **Easy mode** (`abodeEasyMode`) replaces the Abode Aura breakdown *and* the
   Absorption calculation with two typed-in totals. It therefore swallows the
-  Virya bonus and MonsterScape too. Things that are *not* Abode Aura — the pill
+  Virya bonus and MonsterScape too. The Absorption one is a **percentage** as the
+  game states it — 220 where the realm table holds 2.2 — and
+  `XPCalculator.easyModeAbsorption()` is the only place that division happens. Things that are *not* Abode Aura — the pill
   and Respira mansion bonuses, the Glitted Lotus bonuses — must still apply in
   easy mode. Tests enforce both halves of that.
 - **Fruit projection uses one horizon: the current timegate.** `Calculator.fruitHorizonDays()`
@@ -184,21 +186,28 @@ the canonical list. Key shape:
 - **One definition of what a path banks in a day.**
   `Progression.mainPathDailyXPBase(playerData, bonus)` and
   `Progression.secondaryPathDailyXPBase(playerData, bonus)` are the character's
-  rate at that absorption bonus plus that path's own sources — elixir for the
-  main path, benediction and the Wisdom Confluence for the secondary.
+  rate at that absorption bonus plus that path's own sources — elixir and the
+  Confluence's Daily EXP share for the main path, benediction and the
+  Confluence's Aux Cultivation share for the secondary.
   `Calculator.calculatePathDailyXP()` uses them for the dashboard at today's
   bonus; `ViryaCalculator` uses them per leg at the bonus that leg is run at.
   Booking them separately is what let the Virya walk price the secondary path
   with the main path's elixir. `Progression.elixirXP()` /
   `Progression.benedictionXP()` are the individual terms, multiplier included.
-  **Wisdom Confluence** is one such source: a curio percentage
-  (`playerData.wisdomConfluenceCurio`) of the day's **Abode Aura XP**
-  (`XPCalculator.calculateAbodeAuraXP()`), paid into the **secondary path**, on
-  top of everything else and regardless of path focus. The aura gem's share is
-  *not* part of what it draws on, so neither gem quality nor Auraseep moves it.
-  Easy mode does not swallow it: it takes its cut of whatever the Abode Aura XP
-  is, typed in or broken down. Guarded by `tests/invariants.test.js` ("Wisdom
-  Confluence").
+  **Wisdom Confluence** is two such sources. Each is a curio percentage of the
+  day's **Abode Aura XP** (`XPCalculator.calculateAbodeAuraXP()`), paid on top of
+  everything else and regardless of path focus:
+  - **Aux Cultivation %** (`playerData.wisdomConfluenceAuxCurio`,
+    `XPCalculator.calculateWisdomConfluenceAuxXP()`) → the **secondary path**.
+  - **Daily EXP %** (`playerData.wisdomConfluenceDailyCurio`,
+    `XPCalculator.calculateWisdomConfluenceDailyXP()`) → the **main path**.
+
+  They are the same term on opposite paths and share
+  `XPCalculator.wisdomConfluenceShare()`. The aura gem's share is *not* part of
+  what either draws on, so neither gem quality nor Auraseep moves them. Easy mode
+  does not swallow them: each takes its cut of whatever the Abode Aura XP is,
+  typed in or broken down. Guarded by `tests/invariants.test.js` ("Wisdom
+  Confluence"), which runs every rule against both halves.
 - **The Virya table's tier timings must agree with the dashboard.** A tier's time
   to cultivate is the main path finishing its realm, then the secondary path
   walking to the tier's requirement — the same two figures the dashboard shows,
@@ -217,10 +226,12 @@ the canonical list. Key shape:
     carrying from last realm at that leg's starting stage
     (`ViryaCalculator.currentBonusAt()`). The rate must be re-derived per leg;
     handing in one precomputed number is what made the bonus argument dead.
-  - The Confluence earned during the main path leg is banked and spent against
-    the first secondary leg before any days are charged — the curio pays out
-    whichever path holds the focus, so those days are not lost. Completion is
-    untouched: it is pure main path progress.
+  - The Confluence's **Aux Cultivation** share earned during the main path leg is
+    banked and spent against the first secondary leg before any days are charged
+    — the curio pays out whichever path holds the focus, so those days are not
+    lost. The **Daily EXP** share needs no credit here: it feeds the main path,
+    so it is already inside the rate the main path leg is walked at. Completion
+    is untouched: it is pure main path progress.
   Guarded by `tests/invariants.test.js` ("the tier walk agrees with the
   dashboard" and "Wisdom Confluence in the Virya table"), including that a player
   without the curio sees no change.
@@ -237,9 +248,12 @@ the canonical list. Key shape:
 - **The aura gem's share is its own term, and Auraseep multiplies it.**
   `XPCalculator.calculateAuraGemXP()` is the gem's cut of the Abode Aura XP times
   `1 + abodeTemperAuraCurio/100` — Auraseep at 50% makes the gem worth 1.5x, and
-  it touches nothing else. Three call sites need that figure (the daily total,
+  it touches nothing else. It is split into `calculateAuraGemBaseXP()` (the gem's
+  own cut) plus `calculateAuraseepXP()` (what the curio adds) so the analytics
+  chart can draw Auraseep as its own slice; the two must always sum back to
+  `calculateAuraGemXP()`. Three call sites need that figure (the daily total,
   the analytics breakdown, the red-pill analytic), and they all go through the
-  helper; recomputing `abodeAura * gemQuality` locally is how the breakdown
+  helpers; recomputing `abodeAura * gemQuality` locally is how the breakdown
   silently stops summing to the daily total. Auraseep is a *gem* bonus, not an
   Abode Aura one, so easy mode's typed-in Abode Aura total does not subsume it —
   same rule as the pill and Respira bonuses. Guarded by
@@ -253,6 +267,14 @@ the canonical list. Key shape:
   XP never reads progress at all, so the two paths' totals differ by exactly one
   thing: elixir feeds the main path, benediction the secondary. Guarded by
   `tests/invariants.test.js` ("XP rates come from the main path realm").
+- **The dashboard withholds the unfocused path's timings.** Path focus is
+  all-or-nothing, so the path the player is not focusing banks only its own
+  path-specific sources and its breakthrough sits years out. The **Player Time to
+  Cultivate** card and both fruit cards therefore write
+  `Dashboard.UNFOCUSED_TIME` / `UNFOCUSED_DATE` (`-` / `--`) into that path's
+  time and date cells instead of a figure. Progress bars still show real state
+  and are filled in either way, and the Virya table is untouched — it costs both
+  paths deliberately. Purely a `ui/dashboard.js` concern; no calculator knows.
 - **Fruit value moves with one thing.** `FruitCalculator.fruitXP` scales off the
   main path's major realm whichever path eats the fruit, so the only variable is
   the 1.5x multiplier that applies while a timegate runs (`playerData.timegate >
@@ -261,6 +283,17 @@ the canonical list. Key shape:
 
 ## Gotchas
 
+- **`wisdom-confluence-curio` is the *Aux Cultivation* field.** When the curio
+  was split in two, the existing element id was left pointing at the Aux half
+  (`playerData.wisdomConfluenceAuxCurio`) so saved data would survive; the new
+  Daily EXP half got a new id, `wisdom-confluence-daily-curio`. Same reasoning as
+  Auraseep below.
+- **`absorption-easy-percent` is a deliberate id rename**, the one place that
+  rule was broken. The field's *meaning* changed from a multiplier to a
+  percentage, so keeping `absorption-easy` would have silently reinterpreted
+  everyone's saved number and cut their XP by 100x. Renaming it makes the field
+  fall back to its default instead, and the release notes tell players to
+  re-enter it. Rename an id only when the meaning changed like this.
 - **Auraseep's element id is `abode-temper-aura-curio`.** The label was renamed
   from "Temper Abode Aura"; the id (and `playerData.abodeTemperAuraCurio`) was
   deliberately left alone, because `DataManager` keys saved data by element id
