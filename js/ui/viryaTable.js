@@ -172,14 +172,17 @@ class ViryaTable {
             Dom.updateElementText(dateId, '--');
         } else if (daysToReach === Infinity || isNaN(daysToReach) || daysToReach > 36500) {
             
-            // Check why it's not reachable
+            // Why it cannot be reached. A path earning nothing per day is the
+            // specific cause and must be reported ahead of the generic distance
+            // message, which would otherwise swallow it: an unreachable
+            // scenario has daysToReach of Infinity, which is also "too far".
             let reason = 'Not reachable';
-            if (daysToReach > 36500) {
-                reason = 'Too far away';
-            } else if (requiredPathFocus === PATH_SECONDARY && secondaryPathDailyXPBase <= 0) {
-                reason = 'Need secondary path XP';
+            if (requiredPathFocus === PATH_SECONDARY && secondaryPathDailyXPBase <= 0) {
+                reason = 'Secondary path earns no XP';
             } else if (requiredPathFocus === PATH_MAIN && mainPathDailyXPBase <= 0) {
-                reason = 'Need main path XP';
+                reason = 'Main path earns no XP';
+            } else if (daysToReach > 36500) {
+                reason = 'Too far away';
             }
             
             Dom.updateElementText(timeId, reason);
