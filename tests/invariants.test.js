@@ -12,6 +12,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { PLAYERS, makePlayer } from './fixtures.js';
+import { OvermortalCalculator } from '../js/utilities/Calculator.js';
 import { XPCalculator } from '../js/calculators/XPCalculator.js';
 import { FruitCalculator } from '../js/calculators/FruitCalculator.js';
 import { ViryaCalculator } from '../js/calculators/ViryaCalculator.js';
@@ -19,7 +20,7 @@ import { ViryaRules } from '../js/engine/ViryaRules.js';
 import { Progression } from '../js/engine/Progression.js';
 import {
     SCENARIO_NO_VIRYA, SCENARIO_COMPLETION, SCENARIO_EMINENCE,
-    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms
+    SCENARIO_PERFECT, SCENARIO_HALF_STEP, Realms, PATH_MAIN, PATH_SECONDARY
 } from '../js/utilities/gameData.js';
 
 const entries = Object.entries(PLAYERS);
@@ -508,5 +509,63 @@ describe('XP rates are a main path property', () => {
         const viaHelper = FruitCalculator.fruitXP(Progression.asPathPlayerData(p, 'secondary'));
         assert.ok(viaMain > 0);
         assert.equal(viaHelper, viaMain, 'a fruit changed value depending on which path ate it');
+    });
+});
+
+describe('fruit projection horizon', () => {
+    // The horizon used to be each path's own time to breakthrough, taken from
+    // the focus-dependent daily XP. The unfocused path receives only its
+    // path-specific pill, so its breakthrough sat years out and was credited
+    // with years of weekly payouts: one real player state produced 150 fruits
+    // on main path focus and 3720 on secondary, moving "days saved" by 25x.
+    const build = (overrides) => {
+        const calc = new OvermortalCalculator();
+        calc.playerData = makePlayer(overrides);
+        return calc;
+    };
+
+    test('the horizon is the last day of the current timegate', () => {
+        // A 41 day timegate looks 40 days ahead: fruits are worth 1.5x while
+        // the timegate runs, so the last useful day to eat them is the one
+        // before it lifts.
+        for (const timegateDays of [41, 30, 120, 1]) {
+            assert.equal(build({ timegateDays }).fruitHorizonDays(), timegateDays - 1);
+        }
+    });
+
+    test('a spent or absent timegate gives a horizon of zero, not a negative one', () => {
+        for (const timegateDays of [0, -5]) {
+            assert.equal(build({ timegateDays }).fruitHorizonDays(), 0);
+        }
+        const bare = build({});
+        delete bare.playerData.timegateDays;
+        assert.equal(bare.fruitHorizonDays(), 0);
+    });
+
+    test('the projected fruit count does not depend on path focus', () => {
+        for (const [name, player] of entries) {
+            const onMain = build({ ...player, pathFocus: PATH_MAIN, fruitsCount: 120, weeklyFruits: 15 });
+            const onSecondary = build({ ...player, pathFocus: PATH_SECONDARY, fruitsCount: 120, weeklyFruits: 15 });
+
+            const a = onMain.calculateFruitData();
+            const b = onSecondary.calculateFruitData();
+
+            assert.equal(a.projectedFruits, b.projectedFruits, `${name}: fruit count moved with path focus`);
+            assert.equal(a.horizonDays, b.horizonDays, `${name}: horizon moved with path focus`);
+            assert.equal(a.fruitXPTotal, b.fruitXPTotal, `${name}: fruit XP moved with path focus`);
+        }
+    });
+
+    test('the fruit count is what the timegate window accrues', () => {
+        const calc = build({ timegateDays: 41, fruitsCount: 120, weeklyFruits: 15, useTokens: false });
+        const data = calc.calculateFruitData();
+
+        assert.equal(data.horizonDays, 40);
+        assert.equal(
+            data.projectedFruits,
+            FruitCalculator.projectedFruits(calc.playerData, 40),
+            'the count did not match a direct projection over the same horizon'
+        );
+        assert.ok(data.projectedFruits >= 120, 'the stock already held must be included');
     });
 });

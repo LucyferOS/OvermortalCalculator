@@ -314,8 +314,9 @@ class OvermortalCalculator {
             this.calculateScenarioAnalysis(viryaInfo, mainPathDailyXPBase, this.playerData.dailyXP);
         // Player Time to Cultivate uses focus-dependent values (mainPathDailyXP, secondaryPathDailyXP)
         const realmProgression = RealmCalculator.calculateProgression(this.playerData, mainPathDailyXP, secondaryPathDailyXP);
-        // Needs the progression: every fruit projection is measured against one of its breakthrough times.
-        const fruitData = this.calculateFruitData(realmProgression);
+        // Independent of the progression: fruits are counted to the end of the
+        // current timegate, not to any path's breakthrough.
+        const fruitData = this.calculateFruitData();
         const scenarioComparisons = this.calculateScenarioComparisons(mainPathDailyXPBase, secondaryPathDailyXPBase);
 
         this.calculationResults = this.assembleResults(
@@ -363,53 +364,50 @@ class OvermortalCalculator {
     }
 
     /**
-     * Fruit XP, projected forward to each breakthrough the dashboard shows.
+     * How far ahead fruits are counted: up to the last day of the current
+     * timegate, not to any path's breakthrough.
      *
-     * A player does not eat the fruits they hold today - they eat everything
-     * they will have accumulated by the time they break through. Each row gets
-     * its own horizon, so the further-off major breakthrough is credited with
-     * more weeks of income than the next minor one.
+     * Fruits are worth 1.5x while a timegate is running, so the last useful
+     * moment to eat them is the day before it expires - a fruit that arrives
+     * after that is worth a third less. A 41 day timegate therefore looks 40
+     * days ahead.
      *
-     * The horizons are the times before fruits are spent. Eating the fruits
-     * brings the breakthrough forward, which would in turn leave fewer weeks to
-     * accumulate them; that feedback is deliberately not modelled, so these
-     * counts are a slight over-estimate.
+     * This also has to be a single horizon shared by every row. It used to be
+     * each path's own time to breakthrough, which made the count depend on path
+     * focus: the unfocused path receives only its path-specific pill, so its
+     * breakthrough is years away, and it was credited with years of weekly
+     * payouts. The same player saw 150 fruits on main path focus and 3720 on
+     * secondary, and the "days saved" headline moved by 25x with it.
      */
-    calculateFruitData(realmProgression) {
+    fruitHorizonDays() {
+        const timegateDays = this.playerData.timegateDays || 0;
+        return Math.max(0, timegateDays - 1);
+    }
+
+    /**
+     * Fruit XP over that horizon: what the player will hold when the timegate
+     * lifts, valued at their current extractor and at a maxed one.
+     *
+     * The count is what they will have accrued by then, not what they hold
+     * today, and it does not model the fruits being spent along the way.
+     */
+    calculateFruitData() {
         const fruitXPSingle = FruitCalculator.fruitXP(this.playerData);
         const fruitXPSingleMax = Recommendations.calculateMaxLevelXP(this.playerData, MAX_EXTRACTOR_LEVEL).fruitXPSingle;
 
-        const project = (days) => {
-            const horizonDays = days || 0;
-            const fruits = FruitCalculator.projectedFruits(this.playerData, horizonDays);
-            return {
-                horizonDays,
-                fruits,
-                tokens: this.playerData.useTokens ? FruitCalculator.projectedTokens(this.playerData, horizonDays) : 0,
-                fruitXPTotal: fruitXPSingle * fruits,
-                fruitXPTotalMax: fruitXPSingleMax * fruits
-            };
-        };
+        const horizonDays = this.fruitHorizonDays();
+        const fruits = FruitCalculator.projectedFruits(this.playerData, horizonDays);
 
-        const mainPath = realmProgression?.mainPath;
-        const secondaryPath = realmProgression?.secondaryPath;
-        const rows = {
-            mainMinor: project(mainPath?.timeToNextMinor),
-            mainMajor: project(mainPath?.timeToNextMajor),
-            secondaryMinor: project(secondaryPath?.timeToNextMinor),
-            secondaryMajor: project(secondaryPath?.timeToNextMajor)
-        };
-
-        // The headline figures are the main path's next major breakthrough.
         return {
             fruitXPSingle,
             fruitXPSingleMax,
-            fruitXPTotal: rows.mainMajor.fruitXPTotal,
-            fruitXPTotalMax: rows.mainMajor.fruitXPTotalMax,
-            projectedFruits: rows.mainMajor.fruits,
-            projectedTokens: rows.mainMajor.tokens,
-            horizonDays: rows.mainMajor.horizonDays,
-            rows
+            fruitXPTotal: fruitXPSingle * fruits,
+            fruitXPTotalMax: fruitXPSingleMax * fruits,
+            projectedFruits: fruits,
+            projectedTokens: this.playerData.useTokens
+                ? FruitCalculator.projectedTokens(this.playerData, horizonDays)
+                : 0,
+            horizonDays
         };
     }
 

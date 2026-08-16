@@ -357,8 +357,8 @@ class Analytics {
 
     /**
      * What the player's whole fruit stock is worth at each extractor, using the
-     * count they will have accumulated by the breakthrough rather than the
-     * count they hold today.
+     * count they will have accumulated by the end of the current timegate
+     * rather than the count they hold today.
      * @param {Object} results - Calculation results carrying the fruit projection
      * @returns {Object} Totals, the fruit count behind them, and its horizon
      */
@@ -376,8 +376,8 @@ class Analytics {
 
     /**
      * Render the total-fruit-XP horizontal bar chart: what every fruit the
-     * player will hold at breakthrough is worth, at their current extractor
-     * versus a maxed one.
+     * player will hold when the timegate lifts is worth, at their current
+     * extractor versus a maxed one.
      * @param {string} canvasId - ID of the canvas element
      * @param {Object} totals - Totals from calculateFruitTotals
      */
