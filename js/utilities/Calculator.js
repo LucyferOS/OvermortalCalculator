@@ -349,18 +349,21 @@ class OvermortalCalculator {
     }
 
     calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus) {
-        // Calculate focus XP (full daily XP excluding elixir/benediction)
+        // Main path daily XP with every source, elixir included: elixir is part
+        // of the pill breakdown inside calculateDailyXPWithAbsorptionBonus.
         const mainPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, mainPathAbsorptionBonus);
-        
-        // Calculate path-specific XP sources
+
+        // Elixir is also tracked on its own, because it keeps working when the
+        // main path is not the focused one.
         const pillBonus = this.playerData.pillBonus || 1;
         const multiplier = pillBonus * 1000;
         const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(this.playerData, this.playerData.elixir || 0);
         const elixirXPWithMultiplier = elixirXP * multiplier;
-        
-        // Calculate base values (for analytics/Virya table) - full XP including path-specific sources
-        const mainPathDailyXPBase = mainPathFocusXP + elixirXPWithMultiplier;
-        
+
+        // Not mainPathFocusXP + elixir: that counted elixir twice, once inside
+        // the pill total and once again here.
+        const mainPathDailyXPBase = mainPathFocusXP;
+
         // Calculate secondary path focus XP and benediction
         let secondaryPathFocusXP = 0;
         let benedictionXPWithMultiplier = 0;
@@ -383,8 +386,8 @@ class OvermortalCalculator {
         
         
         if (this.playerData.pathFocus === PATH_MAIN) {
-            // Main path focused: gets focus XP + path-specific (elixir)
-            mainPathDailyXP = mainPathFocusXP + elixirXPWithMultiplier;
+            // Main path focused: everything, elixir already included
+            mainPathDailyXP = mainPathFocusXP;
             // Secondary path not focused: only gets path-specific (benediction)
             secondaryPathDailyXP = benedictionXPWithMultiplier;
         } else {

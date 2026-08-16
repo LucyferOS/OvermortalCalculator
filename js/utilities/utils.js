@@ -2,8 +2,10 @@
 class CalculatorUtils {
     // These are all self explanatory functions based on the name of the function. They are simply helper functions to format the data for the UI, or to add timeouts.
     static formatTimeDays(days) {
+        // Nothing here is asynchronous, so an unknown or non-positive duration
+        // is not "still calculating" — it is simply not a duration.
         if (days === undefined || days === null || isNaN(days) || days <= 0) {
-            return 'Calculating...';
+            return '--';
         }
         if (days === Infinity) {
             return '∞ (Never)';

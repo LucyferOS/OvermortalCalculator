@@ -140,6 +140,27 @@ describe('analytics agree with the calculator', () => {
     }
 });
 
+describe('no XP source is counted twice', () => {
+    // The main path's daily XP total added elixir on top of a pill total that
+    // already contained it, inflating the headline figure by one day's elixirs.
+    for (const [name, player] of entries.filter(([, p]) => p.elixir > 0)) {
+        test(`${name}: the daily XP total counts elixir exactly once`, () => {
+            const breakdown = XPCalculator.calculatePillXPBreakdown(player);
+            const total = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
+
+            const withoutElixir = XPCalculator.calculateDailyXPWithAbsorptionBonus(
+                { ...player, elixir: 0 }, 0
+            );
+
+            assert.ok(breakdown.elixir > 0, 'fixture should have elixir XP to test');
+            assert.ok(
+                Math.abs((total - withoutElixir) - breakdown.elixir) < 1e-6,
+                `elixir contributes ${total - withoutElixir} but breakdown says ${breakdown.elixir}`
+            );
+        });
+    }
+});
+
 describe('tier detection', () => {
     // The tier is the highest one whose secondary-path requirement is met.
     // Requirements are thresholds, not exact stage matches.
