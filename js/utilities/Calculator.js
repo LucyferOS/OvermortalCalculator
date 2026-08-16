@@ -100,6 +100,8 @@ class OvermortalCalculator {
             pillBonusCurio: 0,
             pillBonusImmortalFriends: 0,
             pillBonusTechnique: 0,
+            pillAttemptsTechnique: 0,
+            pillAttemptsImmortalFriends: 0,
             
             // Extractor
             extractorRank: 'common',
@@ -346,48 +348,53 @@ class OvermortalCalculator {
         return { fruitXPSingle, fruitXPTotal, fruitXPTotalMax };
     }
 
-    /**
-     * Daily XP for both paths.
-     *
-     * Two kinds of XP source, and the difference matters:
-     *
-     *   Focus XP     abode aura, gem, gold/purple/blue/red pills, respira,
-     *                pearl. Arrives only for the path being cultivated.
-     *   Consumables  elixirs for the main path, blessing pills for the
-     *                secondary. Arrive whether or not that path is the focus,
-     *                and never cross over to the other path.
-     *
-     * The *Base totals answer "what would this path earn if it were focused",
-     * which is what the Virya table and analytics need in order to compare like
-     * with like. The plain totals answer "what is this path earning right now",
-     * which is what Player Time to Cultivate needs.
-     */
     calculatePathDailyXP(mainPathAbsorptionBonus, secondaryPathAbsorptionBonus) {
-        const player = this.playerData;
-        const multiplier = XPCalculator.pillMultiplier(player);
-        const secondaryState = Progression.asPathPlayerData(player, 'secondary');
-
-        const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(player, player.elixir || 0) * multiplier;
-        const benedictionXP = secondaryState
-            ? XPCalculator.calculateBenedictionXPWithEfficiency(secondaryState, player.benediction || 0) * multiplier
-            : 0;
-
-        const mainFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(
-            player, mainPathAbsorptionBonus, { consumable: 'none' }
-        );
-        const secondaryFocusXP = secondaryState
-            ? XPCalculator.calculateDailyXPWithAbsorptionBonus(
-                secondaryState, secondaryPathAbsorptionBonus, { consumable: 'none' })
-            : 0;
-
-        const focusIsMain = player.pathFocus === PATH_MAIN;
-
-        return {
-            mainPathDailyXPBase: mainFocusXP + elixirXP,
-            secondaryPathDailyXPBase: secondaryFocusXP + benedictionXP,
-            mainPathDailyXP: (focusIsMain ? mainFocusXP : 0) + elixirXP,
-            secondaryPathDailyXP: (focusIsMain ? 0 : secondaryFocusXP) + benedictionXP
-        };
+        // Calculate focus XP (full daily XP excluding elixir/benediction)
+        const mainPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(this.playerData, mainPathAbsorptionBonus);
+        
+        // Calculate path-specific XP sources
+        const pillBonus = this.playerData.pillBonus || 1;
+        const multiplier = pillBonus * 1000;
+        const elixirXP = XPCalculator.calculateElixirXPWithEfficiency(this.playerData, this.playerData.elixir || 0);
+        const elixirXPWithMultiplier = elixirXP * multiplier;
+        
+        // Calculate base values (for analytics/Virya table) - full XP including path-specific sources
+        const mainPathDailyXPBase = mainPathFocusXP + elixirXPWithMultiplier;
+        
+        // Calculate secondary path focus XP and benediction
+        let secondaryPathFocusXP = 0;
+        let benedictionXPWithMultiplier = 0;
+        let secondaryPathDailyXPBase = 0;
+        
+        const secondaryPathPlayerData = Progression.asPathPlayerData(this.playerData, 'secondary');
+        if (secondaryPathPlayerData) {
+            // Calculate focus XP for secondary path (excluding benediction)
+            secondaryPathFocusXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(secondaryPathPlayerData, secondaryPathAbsorptionBonus);
+            // Calculate benediction XP (path-specific for secondary)
+            const benedictionXP = XPCalculator.calculateBenedictionXPWithEfficiency(secondaryPathPlayerData, this.playerData.benediction || 0);
+            benedictionXPWithMultiplier = benedictionXP * multiplier;
+            // Calculate base value (for analytics/Virya table) - full XP including benediction
+            secondaryPathDailyXPBase = secondaryPathFocusXP + benedictionXPWithMultiplier;
+        }
+        
+        // Calculate focus-dependent values (for Player Time to Cultivate)
+        let mainPathDailyXP = 0;
+        let secondaryPathDailyXP = 0;
+        
+        
+        if (this.playerData.pathFocus === PATH_MAIN) {
+            // Main path focused: gets focus XP + path-specific (elixir)
+            mainPathDailyXP = mainPathFocusXP + elixirXPWithMultiplier;
+            // Secondary path not focused: only gets path-specific (benediction)
+            secondaryPathDailyXP = benedictionXPWithMultiplier;
+        } else {
+            // Main path not focused: only gets path-specific (elixir)
+            mainPathDailyXP = elixirXPWithMultiplier;
+            // Secondary path focused: gets focus XP + path-specific (benediction)
+            secondaryPathDailyXP = secondaryPathFocusXP + benedictionXPWithMultiplier;
+        }
+        
+        return { mainPathDailyXPBase, secondaryPathDailyXPBase, mainPathDailyXP, secondaryPathDailyXP };
     }
 
     calculateScenarioAnalysis(viryaInfo, mainPathDailyXPBase, dailyXP) {

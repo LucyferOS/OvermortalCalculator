@@ -2,10 +2,8 @@
 class CalculatorUtils {
     // These are all self explanatory functions based on the name of the function. They are simply helper functions to format the data for the UI, or to add timeouts.
     static formatTimeDays(days) {
-        // Nothing here is asynchronous, so an unknown or non-positive duration
-        // is not "still calculating" — it is simply not a duration.
         if (days === undefined || days === null || isNaN(days) || days <= 0) {
-            return '--';
+            return 'Calculating...';
         }
         if (days === Infinity) {
             return '∞ (Never)';
@@ -60,29 +58,10 @@ class CalculatorUtils {
         return Math.round(xp).toString();
     }
 
-    /**
-     * Read a number from a field, never returning one outside the min/max the
-     * field declares. The UI corrects out-of-range values as they are entered
-     * or restored; this is the last line of defence, so that a value which
-     * somehow escapes that still cannot reach the calculation.
-     */
     static getNumberValue(elementId, defaultValue = 0) {
         const element = document.getElementById(elementId);
         const value = parseFloat(element?.value);
-        if (isNaN(value)) return defaultValue;
-        return CalculatorUtils.clampToElementLimits(element, value);
-    }
-
-    static clampToElementLimits(element, value) {
-        if (!element || element.type !== 'number') return value;
-
-        const max = parseFloat(element.max);
-        if (Number.isFinite(max) && value > max) return max;
-
-        const min = parseFloat(element.min);
-        if (Number.isFinite(min) && value < min) return min;
-
-        return value;
+        return isNaN(value) ? defaultValue : value;
     }
 
     static getStringValue(elementId) {
@@ -92,8 +71,7 @@ class CalculatorUtils {
     static getIntegerValue(elementId, defaultValue = 0) {
         const element = document.getElementById(elementId);
         const value = parseInt(element?.value);
-        if (isNaN(value)) return defaultValue;
-        return CalculatorUtils.clampToElementLimits(element, value);
+        return isNaN(value) ? defaultValue : value;
     }
 
     static debounce(func, wait) {

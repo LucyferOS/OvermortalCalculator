@@ -1,7 +1,6 @@
 import { DataManager } from './DataManager.js';
 import { CalculatorUtils } from './utils.js';
 import { UIManager } from './UIManager.js';
-import { InputLimits } from '../ui/inputLimits.js';
 import { PATH_MAIN, PATH_SECONDARY } from './gameData.js';
     // all of the functions here are used to set up the event listeners for the app, theres a few for handling the data and some for handling the UI.
 class EventManager {
@@ -221,9 +220,6 @@ class EventManager {
             if (this.dataManager.importData(e.target.result)) {
                 this.app.showNotification('Data imported successfully!');
                 this.dataManager.loadFromLocalStorage();
-                // An imported file can carry anything, including values from a
-                // save made before the limits were enforced.
-                InputLimits.enforceAll();
                 this.app.calculateAndUpdateUI();
             } else {
                 this.app.showNotification('Invalid file format', true);
