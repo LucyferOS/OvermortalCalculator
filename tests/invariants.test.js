@@ -117,6 +117,28 @@ describe('no hidden state', () => {
     }
 });
 
+describe('analytics agree with the calculator', () => {
+    // The pill maths used to exist in three places with three formulas, so the
+    // chart, the daily XP total and the red-pill analytic could disagree.
+    for (const [name, player] of entries) {
+        test(`${name}: the XP breakdown sums to the daily XP total`, async () => {
+            const { Analytics } = await import('../js/analytics/Analytics.js');
+            const breakdown = Analytics.calculateDailyXPBreakdown(player, 0);
+            const total = XPCalculator.calculateDailyXPWithAbsorptionBonus(player, 0);
+            assert.ok(
+                Math.abs(breakdown.total - total) < 1e-6,
+                `breakdown ${breakdown.total} != daily XP ${total}`
+            );
+        });
+
+        test(`${name}: the red-pill analytic values a pill the same as daily XP does`, async () => {
+            const { Analytics } = await import('../js/analytics/Analytics.js');
+            const analytic = Analytics.calculateRedPillsForBreakthrough(player, 10, 10, 0);
+            assert.equal(analytic.redPillXPPerPill, XPCalculator.redPillXPPerPill(player));
+        });
+    }
+});
+
 describe('tier detection', () => {
     // The tier is the highest one whose secondary-path requirement is met.
     // Requirements are thresholds, not exact stage matches.

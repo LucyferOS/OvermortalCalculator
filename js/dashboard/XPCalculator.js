@@ -68,50 +68,67 @@ class XPCalculator {
         return dailyAuraXP;
     }
 
+    /**
+     * The multiplier every pill's XP passes through: the player's pill bonus,
+     * times the game's flat 1000.
+     */
+    static pillMultiplier(playerData) {
+        return (playerData.pillBonus || 1) * 1000;
+    }
+
+    /**
+     * XP a single red pill is worth, including the vase's star bonus.
+     * Shared so the daily XP total and the "red pills needed" analytic cannot
+     * disagree about what one pill is worth.
+     */
+    static redPillXPPerPill(playerData) {
+        const realmXP = XPData[`${playerData.mainPathRealmMajor}XP`];
+        if (!realmXP) return 0;
+
+        const vaseBonus = GameConstants.vaseBonus[playerData.vaseStars] || 0;
+        return realmXP.red * (1 + vaseBonus) * this.pillMultiplier(playerData);
+    }
+
+    /**
+     * Daily XP from each kind of pill, already multiplied through.
+     * Benediction is excluded: it applies to the secondary path only.
+     */
+    static calculatePillXPBreakdown(playerData) {
+        const empty = { goldPills: 0, purplePills: 0, bluePills: 0, elixir: 0, benediction: 0, redPills: 0, total: 0 };
+
+        const realmXP = XPData[`${playerData.mainPathRealmMajor}XP`];
+        if (!realmXP) return empty;
+
+        const multiplier = this.pillMultiplier(playerData);
+
+        const breakdown = {
+            goldPills: realmXP.gold
+                * (1 + (playerData.pillBonusNirvanaChariotMansion / 100))
+                * playerData.goldPill * multiplier,
+
+            purplePills: realmXP.purple
+                * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100))
+                * playerData.purplePill * multiplier,
+
+            bluePills: realmXP.blue
+                * (1 + (playerData.pillBonusNirvanaGhostMansion / 100))
+                * playerData.bluePill * multiplier,
+
+            elixir: this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0) * multiplier,
+
+            benediction: 0,
+
+            redPills: this.redPillXPPerPill(playerData) * this.calculateRedPills(playerData)
+        };
+
+        breakdown.total = breakdown.goldPills + breakdown.purplePills + breakdown.bluePills
+            + breakdown.elixir + breakdown.benediction + breakdown.redPills;
+
+        return breakdown;
+    }
+
     static calculatePillXP(playerData) {
-        
-        const realmXPKey = playerData.mainPathRealmMajor + "XP";
-        const realmXP = XPData[realmXPKey];
-        
-        // Safety check: if realmXP is undefined, return 0
-        if (!realmXP) {
-            return 0;
-        }
-        
-        const goldPillXP = realmXP.gold 
-            * (1 + (playerData.pillBonusNirvanaChariotMansion / 100)) 
-            * playerData.goldPill;
-        
-        const purplePillXP = realmXP.purple 
-            * (1 + (playerData.pillBonusNirvanaTurtleBeakMansion / 100)) 
-            * playerData.purplePill;
-        
-        const bluePillXP = realmXP.blue 
-            * (1 + (playerData.pillBonusNirvanaGhostMansion / 100)) 
-            * playerData.bluePill;
-        
-        const elixirXP = this.calculateElixirXPWithEfficiency(playerData, playerData.elixir || 0);
-        
-        // Benediction pills only apply to secondary path, not main path
-        // const benedictionXP = this.calculateBenedictionXPWithEfficiency(playerData, playerData.benediction || 0);
-        
-        const numRedPills = this.calculateRedPills(playerData);
-        
-        // Calculate red pill XP with separate vase bonus
-        // Base XP per pill: realmXP.red
-        // Vase bonus per pill (separate, additive): realmXP.red * vaseBonus
-        // Then multiply by number of red pills per day
-        const vaseBonusMultiplier = GameConstants.vaseBonus[playerData.vaseStars];
-        const baseRedPillXPPerPill = realmXP.red;
-        const vaseBonusXPPerPill = realmXP.red * vaseBonusMultiplier;
-        const redPillXPPerPill = baseRedPillXPPerPill + vaseBonusXPPerPill;
-        const redPillXP = redPillXPPerPill * numRedPills;
-        
-        const basePillXP = goldPillXP + purplePillXP + bluePillXP + elixirXP + redPillXP;
-        const totalPillXP = basePillXP * playerData.pillBonus * 1000;
-        
-        
-        return totalPillXP;
+        return this.calculatePillXPBreakdown(playerData).total;
     }
 
     static calculateRedPills(playerData) {
