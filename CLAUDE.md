@@ -57,12 +57,10 @@ index.html
      │    ├─ calculators/ViryaScenarioComparator.js  tier A vs tier B over a timegate window
      │    ├─ calculators/RealmProgressionSimulator.js  day-by-day realm walk
      │    ├─ calculators/FruitCalculator.js        fruit XP + weekly projection
-     │    ├─ calculators/FruitTimingCalculator.js  where/when to spend fruits
      │    ├─ calculators/Recommendations.js        minimum extractor levels for a target
      │    └─ DataManager.js                      localStorage / export / import
      └─ UIManager.js              thin facade → js/ui/*
-          └─ ui/dashboard.js → ui/viryaTable.js, ui/fruitTimingView.js,
-                               ui/analyticsView.js → analytics/Analytics.js
+          └─ ui/dashboard.js → ui/viryaTable.js, ui/analyticsView.js → analytics/Analytics.js
 ```
 
 One render pass: `calculateAndUpdateUI()` → `calculator.calculateAll()` →
@@ -84,7 +82,6 @@ every calculate.
 | Realm ordering, XP between two positions, "am I past X" | `js/domain/realms.js` |
 | Time to next minor/major realm | `js/calculators/RealmCalculator.js` |
 | Fruit counts, weekly income, token conversion | `js/calculators/FruitCalculator.js` + `Calculator.calculateFruitData()` |
-| Where/when to spend fruits, fruit-vs-Virya trade-off | `js/calculators/FruitTimingCalculator.js` (maths), `js/ui/fruitTimingView.js` (the card) |
 | Extractor level recommendations | `js/calculators/Recommendations.js` |
 | Charts, red-pill analytic | `js/analytics/Analytics.js` (maths+render), `js/ui/analyticsView.js` (wiring) |
 | Dashboard cards, fruit cards, timegate card, focus highlighting | `js/ui/dashboard.js` |
@@ -119,7 +116,7 @@ the canonical list. Key shape:
 `mainPathAbsorptionBonus`, `realmProgression{mainPath,secondaryPath}`,
 `fruitProjection{rows,…}`, `virya{scenario,absorptionBonus,isActive,bonusEndsAt}`,
 `scenarioXPNeeded`, `scenarioFruitResults`, `scenarioComparisons`,
-`nextScenario`, `fruitResult`, `recommendedFruits`, `fruitTiming`.
+`nextScenario`, `fruitResult`, `recommendedFruits`.
 
 ## Domain rules worth knowing before you touch the maths
 
@@ -176,18 +173,6 @@ the canonical list. Key shape:
   the 1.5x multiplier that applies while a timegate runs (`playerData.timegate >
   0`). There is no "better path" for a fruit — the choice is about what the XP
   unlocks, not what it is worth.
-- **`FruitTimingCalculator` works by moving positions, not by injecting XP.** A
-  lump of fruit XP becomes a move along the ladder (`domain/realms.js advanceBy`),
-  and the resulting `playerData` is handed to the existing calculators unchanged.
-  Nothing downstream knows fruits were involved. Main path advancement is clamped
-  to its major's Late with overflow, because the timegate blocks the breakthrough;
-  the secondary path is clamped at the main path's Late with *no* overflow,
-  because no tier asks for more than that.
-- **`advanceBy` never crosses a realm boundary on its own.** A position landing
-  exactly on a boundary stays at 100% of the realm it filled rather than becoming
-  0% of the next. The two are the same absolute XP, but `isMainPathComplete`
-  reads the minor stage and progress directly, so normalising would strip a
-  player of Completion.
 
 ## Gotchas
 
@@ -209,7 +194,7 @@ the canonical list. Key shape:
 
 ## Testing
 
-- `npm test` — `tests/invariants.test.js`, 189 assertions. Each `describe` block
+- `npm test` — `tests/invariants.test.js`, 159 assertions. Each `describe` block
   guards a bug the codebase has already had once: the absorption bonus must
   actually change daily XP, the secondary path must not inherit main-path state,
   results must not depend on stale written-back fields, the analytics breakdown

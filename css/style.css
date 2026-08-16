@@ -1333,23 +1333,3 @@ tr:hover {
     font-size: 1.3rem;
     color: var(--accent);
 }
-
-/* Fruit timing table: tier group headers and the plan rows beneath them. */
-.fruit-timing-tier td {
-    background: var(--card-alt, rgba(0, 0, 0, 0.04));
-    border-top: 2px solid var(--success);
-    font-size: 0.98rem;
-    padding-top: 10px;
-}
-
-.fruit-timing-plan td:first-child {
-    padding-left: 22px;
-}
-
-.fruit-timing-best {
-    border-left: 4px solid var(--success);
-}
-
-.fruit-timing-best td {
-    font-weight: 600;
-}

@@ -6,7 +6,6 @@ import { PATH_MAIN, PATH_SECONDARY, REALM_ORDER_MAJOR, SCENARIO_COMPLETION, SCEN
 import { AnalyticsView } from './analyticsView.js';
 import { CalculatorUtils } from '../utilities/utils.js';
 import { Dom } from './dom.js';
-import { FruitTimingView } from './fruitTimingView.js';
 import { ViewState } from './viewState.js';
 import { ViryaTable } from './viryaTable.js';
 
@@ -48,10 +47,7 @@ class Dashboard {
         
         // Update timegate information
         this.updateTimegateInfo(playerData);
-
-        // Where to spend fruits, and whether to spend them now
-        FruitTimingView.updateFruitTiming(results.fruitTiming);
-
+        
         // Store latest values for red pills calculator
         ViewState.latestResults = results;
         ViewState.latestPlayerData = playerData;

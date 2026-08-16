@@ -98,45 +98,6 @@ export function absoluteXP(realm, progress = 0) {
 }
 
 /**
- * Where a position lands after gaining a lump of XP: the inverse of absoluteXP.
- *
- * This is what lets a one-off XP source (a pile of fruits) be expressed as a
- * move along the ladder, so that everything downstream can go on reading a
- * plain realm-and-progress pair instead of learning about lump sums.
- *
- * At the top of the ladder there is nowhere left to advance to, so the surplus
- * is returned as progress above 100 on Supreme Late, the same way overflow is
- * represented everywhere else.
- */
-export function advanceBy(realm, progress = 0, xp = 0) {
-    const startIndex = realmIndex(realm);
-    if (startIndex === -1) return { realm, progress };
-
-    const target = absoluteXP(realm, progress) + Math.max(0, xp);
-
-    // The landing realm is the last one the target reaches *past* the start of.
-    // The comparison is strict on purpose: a position sitting exactly on a realm
-    // boundary stays at 100% of the realm it filled rather than being normalised
-    // into 0% of the next one. The two are the same point in absolute XP, but
-    // "100% Late" is a state the Virya rules read directly - isMainPathComplete
-    // tests the minor stage and the progress - so normalising it away would strip
-    // a player of Completion, and advanceBy(x, 0) would not be a no-op.
-    let index = startIndex;
-    while (index + 1 < REALM_LADDER.length && XP_TO_START_OF[index + 1] < target) {
-        index++;
-    }
-
-    const landed = REALM_LADDER[index];
-    const size = realmXP(landed);
-    if (size <= 0) return { realm: landed, progress: PERCENTAGE_COMPLETE };
-
-    return {
-        realm: landed,
-        progress: ((target - XP_TO_START_OF[index]) / size) * PERCENTAGE_COMPLETE
-    };
-}
-
-/**
  * XP still needed to travel from one position on the ladder to another.
  * Returns 0 when the start position is already at or past the target.
  */
