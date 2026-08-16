@@ -64,6 +64,19 @@ class EventManager {
         
         // Path focus switching
         this.setupPathFocusListeners();
+
+        // Abode Aura / Absorption easy mode toggle
+        this.setupAbodeEasyModeListener();
+    }
+
+    setupAbodeEasyModeListener() {
+        const easyModeSelect = document.getElementById('abode-easy-mode');
+        if (easyModeSelect) {
+            easyModeSelect.addEventListener('change', () => {
+                UIManager.updateAbodeEasyModeVisibility();
+                this.app.calculateAndUpdateUI();
+            });
+        }
     }
     
     setupPathFocusListeners() {

@@ -21,10 +21,13 @@ class OvermortalApp {
         this.originalCalculateBtnText = document.getElementById('calculate-btn').innerHTML;
         this.eventManager.setupEventListeners();
         this.loadSavedData();
-        
+
         // Hide debug menu item initially (debug starts as disabled)
         UIManager.updateDebugMenuVisibility(this.calculator.debugEnabled);
-        
+
+        // Sync Abode Aura / Absorption easy mode field visibility with any restored value
+        UIManager.updateAbodeEasyModeVisibility();
+
         this.calculateAndUpdateUI();
 		this.loadReleaseNotes();
     }
@@ -68,6 +71,7 @@ class OvermortalApp {
     resetToDefaults() {
         this.calculator.initializePlayerData();
         this.syncInputsToCalculator();
+        UIManager.updateAbodeEasyModeVisibility();
         this.calculateAndUpdateUI();
         UIManager.showNotification('Reset to default values complete.');
     }
@@ -106,6 +110,11 @@ class OvermortalApp {
             // Aura Gem
             'gem-quality': p.gemQuality || p.gemBonus || 'Common',
             
+            // Abode Aura / Absorption easy mode
+            'abode-easy-mode': p.abodeEasyMode ? 'Yes' : 'No',
+            'abode-aura-easy': p.abodeAuraEasyValue,
+            'absorption-easy': p.absorptionEasyValue,
+
             // Abode Bonuses
             'abode-sect-level': p.abodeBonusSectLevel,
             'abode-sect-barrier': p.abodeBonusSectBarrier,

@@ -61,6 +61,11 @@ class OvermortalCalculator {
             respiraAttemptsTotal: 10,
             respiraExp: 0,
             
+            // Abode Aura / Absorption easy mode
+            abodeEasyMode: false,
+            abodeAuraEasyValue: 130.0,
+            absorptionEasyValue: 0.317,
+
             // Abode bonuses
             abodeBonusCurio: 0,
             abodeBonusTechnique: 0,
@@ -232,8 +237,12 @@ class OvermortalCalculator {
 
     updateAbodeInputs() {
         const getNumberValue = CalculatorUtils.getNumberValue;
-        
+        const getStringValue = CalculatorUtils.getStringValue;
+
         return {
+            abodeEasyMode: getStringValue('abode-easy-mode') === 'Yes',
+            abodeAuraEasyValue: getNumberValue('abode-aura-easy'),
+            absorptionEasyValue: getNumberValue('absorption-easy'),
             abodeBonusCurio: getNumberValue('abode-aura-curio'),
             abodeBonusTechnique: getNumberValue('abode-aura-technique'),
             abodeBonusSectLevel: getNumberValue('abode-sect-level'),
