@@ -126,6 +126,24 @@ the canonical list. Key shape:
 - **Realm ladder.** 9 majors × 3 minors (`Early/Mid/Late`), Nascent → Supreme.
   Positions are compared by absolute XP from the bottom of the ladder, so
   progress > 100% (overflow) is meaningful and carries forward.
+- **Overflow past 100% is a position the player is holding, not a stale entry —
+  and it is priced off the stage they are standing in.** Stepping into the next
+  minor stage is the player's choice, not automatic, so a main path entered as
+  `Nirvana Mid` at `168.5%` is *deliberately* parked in Mid with the surplus
+  banked. The usual reason is a carry-over bonus that stepping up would end:
+  Half-Step carries through Early and Mid, so a player holding +0.4 absorption
+  stays in Mid, banks overflow, and steps into Late only when they are ready to
+  break through. **Do not "normalise" an over-100% progress onto the ladder
+  position its absolute XP implies.** `Realms[mainPathRealm].absorption` and
+  `ViryaRules.carriedBonusAt(tier, mainPathRealmMinor)` are correct exactly as
+  written — reading either off the implied position would price the player at a
+  stage they have chosen not to enter and would silently delete the bonus they
+  are holding out for. `xpBetween` already counts the surplus, so the XP maths
+  needs no special case; only the rate could get this wrong.
+  This is also why a tier walk may hold one carry bonus flat across a leg
+  spanning several stages: the player sits at the last stage the bonus covers and
+  steps through at the end. Confirmed by the maintainer; a previous audit
+  mistook all of this for a bug.
 - **Two paths.** The main path is what the player is breaking through on; the
   secondary path only exists to unlock Virya tiers. Path focus decides which one
   gets the daily XP — it is all-or-nothing, not a split, so a day spent on the
