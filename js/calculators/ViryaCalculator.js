@@ -272,20 +272,31 @@ class ViryaCalculator {
         }
 
         let totalDays = 0;
+        let mainPathDays = 0;
 
         // The main path has to finish its own realm first, and that leg needs
         // main path focus rather than secondary.
         if (!ViryaRules.isMainPathComplete(playerData.mainPathRealmMinor, playerData.mainPathProgress)
             && mainPathDailyXP > 0
             && this.calculateXPForCompletion(playerData) > 0) {
-            totalDays += this.calculateDaysForMainPathStage(
+            mainPathDays = this.calculateDaysForMainPathStage(
                 playerData.mainPathRealm,
                 playerData.mainPathProgress,
                 `${playerData.mainPathRealmMajor} Late`,
                 PERCENTAGE_COMPLETE,
                 playerData
             );
+            totalDays += mainPathDays;
         }
+
+        // Wisdom Confluence pays into the secondary path on every day, the ones
+        // spent finishing the main path realm included, so the secondary path is
+        // already part of the way along by the time the focus switches. No tier
+        // is held during that leg - reaching one is what this walk is for - so
+        // the Confluence is priced at no absorption bonus.
+        let confluenceCredit = Number.isFinite(mainPathDays)
+            ? mainPathDays * XPCalculator.calculateWisdomConfluenceXP(playerData, 0)
+            : 0;
 
         // Then walk the secondary path through each tier requirement in turn.
         const order = ViryaRules.tierOrder();
@@ -303,10 +314,13 @@ class ViryaCalculator {
 
             const legXP = xpBetween(legRealm, legProgress, requirement.realm, requirement.progress);
             if (legXP > 0) {
-                totalDays += this.calculateDaysForStage(
-                    legRealm, legProgress,
-                    requirement.realm, requirement.progress,
-                    bonusInEffect, playerData, true, mainPathDailyXP
+                // Spend whatever the Confluence banked during the main path leg
+                // before charging any days for this one.
+                const alreadyCovered = Math.min(confluenceCredit, legXP);
+                confluenceCredit -= alreadyCovered;
+
+                totalDays += this.daysForSecondaryXP(
+                    legXP - alreadyCovered, playerData, bonusInEffect, mainPathDailyXP
                 );
                 legRealm = requirement.realm;
                 legProgress = requirement.progress;
@@ -316,34 +330,62 @@ class ViryaCalculator {
             bonusInEffect = ViryaRules.bonusFor(tier);
         }
 
-        return totalDays;
+        // Every tier requires Completion, so none of them can land before it
+        // does. That is not automatic: the Completion row is quoted at today's
+        // flat rate, while the main path leg above is averaged across the stage
+        // and so comes out slightly lower. The gap used to be hidden behind the
+        // days spent walking the secondary path, but a Confluence credit that
+        // covers those legs outright exposes it - Eminence would read as
+        // arriving weeks before the Completion it depends on.
+        const completionDays = mainPathDailyXP > 0
+            ? this.calculateXPForCompletion(playerData) / mainPathDailyXP
+            : 0;
+
+        return Math.max(totalDays, completionDays);
     }
 
-    static calculateDaysForStage(startRealm, startProgress, endRealm, endProgress, bonusActive, playerData, useMainPathDailyXP = false, mainPathDailyXP = null) {
-        // Calculate days needed for a single stage (secondary path), accounting for realm progression
-        // Uses average of daily XP at start and end of stage
-        // For Perfect and Half-Step, use mainPathDailyXP instead of calculating from secondary path
-        
-        let averageDailyXP;
-        if (useMainPathDailyXP && mainPathDailyXP !== null) {
-            // Use mainPathDailyXP for Perfect and Half-Step scenarios
-            averageDailyXP = mainPathDailyXP;
-        } else {
-            // The stage being walked belongs to the secondary path, but the rate
-            // it is walked at is the character's, set by the main path's realm.
-            // Re-pointing to the stage's own realm here would price a secondary
-            // path stage at the secondary path's (lower) rates.
-            averageDailyXP = XPCalculator.calculateDailyXPWithAbsorptionBonus(playerData, bonusActive);
-        }
-        
-        if (averageDailyXP <= 0) {
-            return Infinity;
-        }
-        
-        const stageXP = this.calculateXPToReach(startRealm, startProgress, endRealm, endProgress);
-        return stageXP / averageDailyXP;
+    /**
+     * Daily XP the secondary path fills at on a day spent focusing it.
+     *
+     * Two things go into it. The character's own rate, which is set by the
+     * **main** path's realm - re-pointing to the stage's own realm here would
+     * price a secondary path stage at the secondary path's (lower) rates. And
+     * Wisdom Confluence, which pays into the secondary path on top of whatever
+     * the focus earns, so a day walking this ladder collects both.
+     */
+    static secondaryPathRate(playerData, bonusActive, mainPathDailyXP = null) {
+        const characterRate = mainPathDailyXP !== null
+            ? mainPathDailyXP
+            : XPCalculator.calculateDailyXPWithAbsorptionBonus(playerData, bonusActive);
+
+        return characterRate + XPCalculator.calculateWisdomConfluenceXP(playerData, bonusActive);
     }
-    
+
+    /**
+     * Days for the secondary path to cover a given amount of XP at the bonus in
+     * effect while it does so.
+     */
+    static daysForSecondaryXP(xpNeeded, playerData, bonusActive, mainPathDailyXP = null) {
+        if (xpNeeded <= 0) {
+            return 0;
+        }
+
+        const dailyXP = this.secondaryPathRate(playerData, bonusActive, mainPathDailyXP);
+        return dailyXP > 0 ? xpNeeded / dailyXP : Infinity;
+    }
+
+    /**
+     * Days for a single secondary path stage. Delegates to the XP form above;
+     * kept as a static so existing call sites keep working.
+     */
+    static calculateDaysForStage(startRealm, startProgress, endRealm, endProgress, bonusActive, playerData, useMainPathDailyXP = false, mainPathDailyXP = null) {
+        const stageXP = this.calculateXPToReach(startRealm, startProgress, endRealm, endProgress);
+        const rateSource = useMainPathDailyXP ? mainPathDailyXP : null;
+
+        return this.daysForSecondaryXP(stageXP, playerData, bonusActive, rateSource);
+    }
+
+
     static calculateDaysForMainPathStage(startRealm, startProgress, endRealm, endProgress, playerData) {
         // Calculate days needed for a main path stage, accounting for realm progression
         // Uses average of daily XP at start and end of stage

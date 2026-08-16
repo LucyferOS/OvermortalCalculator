@@ -183,9 +183,17 @@ the canonical list. Key shape:
   *not* part of what it draws on, so neither gem quality nor Auraseep moves it.
   Easy mode does not swallow it: it takes its cut of whatever the Abode Aura XP
   is, typed in or broken down. Guarded by `tests/invariants.test.js` ("Wisdom
-  Confluence"). Note the Virya table's time-to-tier still walks the secondary
-  path at the main path rate (see `ViryaCalculator.calculateDaysForStage`), so it
-  does not yet credit the Confluence.
+  Confluence").
+- **The Virya table's tier timings walk the secondary path, so they credit the
+  Confluence.** `ViryaCalculator.secondaryPathRate()` is the rate any secondary
+  path leg is walked at: the character's rate (from the *main* path's realm) plus
+  the Confluence. On top of that, `calculateDaysToScenarioWithBonuses()` banks
+  the Confluence earned during the main path completion leg and spends it against
+  the first secondary leg before charging any days — the curio pays out whichever
+  path holds the focus, so those days are not lost. Completion is untouched: it
+  is pure main path progress. Both are guarded by `tests/invariants.test.js`
+  ("Wisdom Confluence in the Virya table"), including that a player without the
+  curio sees no change.
 - **The aura gem's share is its own term, and Auraseep multiplies it.**
   `XPCalculator.calculateAuraGemXP()` is the gem's cut of the Abode Aura XP times
   `1 + abodeTemperAuraCurio/100` — Auraseep at 50% makes the gem worth 1.5x, and

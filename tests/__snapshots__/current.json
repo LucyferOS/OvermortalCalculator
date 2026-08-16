@@ -978,8 +978,8 @@
     "daysToTier": {
       "Completion": 103.33,
       "Eminence": 103.33,
-      "Perfect": 108.52,
-      "Half-Step": 292.59
+      "Perfect": 103.33,
+      "Half-Step": 276.79
     },
     "maxNextRealm": {
       "Completion": "Cannot reach Completion",
@@ -1000,16 +1000,16 @@
         "percentage": "-48.01%"
       },
       "Perfect": {
-        "totalXP": 2499929120.9,
-        "overflowXP": 4717470520.98,
-        "daysToReach": 108.52,
+        "totalXP": 2625457014.26,
+        "overflowXP": 4958550048.89,
+        "daysToReach": 103.33,
         "better": "Completion",
-        "percentage": "-50.50%"
+        "percentage": "-48.01%"
       },
       "Half-Step": {
         "totalXP": 5066427219.29,
         "overflowXP": 0,
-        "daysToReach": 292.59,
+        "daysToReach": 276.79,
         "better": "Half-Step",
         "percentage": "+0.33%"
       }
